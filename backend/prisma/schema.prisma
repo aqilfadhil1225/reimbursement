@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReimbursementStatus {
+  DRAFT
+  SUBMITTED
+  MANAGER_APPROVED
+  FINANCE_REVIEW
+  READY_FOR_PAYMENT
+  PAID
+  REJECTED
+  REVISION_REQUIRED
+}
+
+enum UserRole {
+  EMPLOYEE
+  MANAGER
+  FINANCE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  OTHER
+}
+
+model Reimbursement {
+  id            Int                    @id @default(autoincrement())
+  employeeName  String
+  employeeEmail String
+  amount        Float
+  category      String
+  description   String
+  receiptUrl    String
+  status        ReimbursementStatus    @default(DRAFT)
+  employeeId    Int?
+  managerId     Int?
+  financeId     Int?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  employee      User?                  @relation("EmployeeReimbursements", fields: [employeeId], references: [id])
+  manager       User?                  @relation("ManagerReimbursements", fields: [managerId], references: [id])
+  finance       User?                  @relation("FinanceReimbursements", fields: [financeId], references: [id])
+  expenses      Expense[]
+  history       ReimbursementHistory[]
+  payment       Payment?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+}
+
+model ReimbursementHistory {
+  id              Int                 @id @default(autoincrement())
+  reimbursementId Int
+  status          ReimbursementStatus
+  note            String
+  actorId         Int?
+  createdAt       DateTime            @default(now())
+  reimbursement   Reimbursement       @relation(fields: [reimbursementId], references: [id], onDelete: Cascade)
+  actor           User?               @relation("HistoryActors", fields: [actorId], references: [id])
+
+  @@index([reimbursementId])
+}
+
+model User {
+  id                     Int                    @id @default(autoincrement())
+  name                   String
+  email                  String                 @unique
+  role                   UserRole
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  employeeReimbursements Reimbursement[]        @relation("EmployeeReimbursements")
+  managerReimbursements  Reimbursement[]        @relation("ManagerReimbursements")
+  financeReimbursements  Reimbursement[]        @relation("FinanceReimbursements")
+  historyEntries         ReimbursementHistory[] @relation("HistoryActors")
+  notifications          Notification[]
+  auditLogs              AuditLog[]
+}
+
+model Expense {
+  id              Int           @id @default(autoincrement())
+  reimbursementId Int
+  category        String
+  amount          Float
+  expenseDate     DateTime
+  description     String
+  receiptUrl      String?
+  createdAt       DateTime      @default(now())
+  reimbursement   Reimbursement @relation(fields: [reimbursementId], references: [id], onDelete: Cascade)
+
+  @@index([reimbursementId])
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  reimbursementId Int           @unique
+  amount          Float
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  reference       String?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  reimbursement   Reimbursement @relation(fields: [reimbursementId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id              Int            @id @default(autoincrement())
+  userId          Int?
+  reimbursementId Int?
+  title           String
+  message         String
+  isRead          Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  user            User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reimbursement   Reimbursement? @relation(fields: [reimbursementId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([reimbursementId])
+}
+
+model AuditLog {
+  id              Int            @id @default(autoincrement())
+  actorId         Int?
+  reimbursementId Int?
+  action          String
+  details         String?
+  createdAt       DateTime       @default(now())
+  actor           User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  reimbursement   Reimbursement? @relation(fields: [reimbursementId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
+  @@index([reimbursementId])
+  @@index([createdAt])
+}

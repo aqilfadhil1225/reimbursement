@@ -1,0 +1,5 @@
+module.exports = {
+  port: process.env.PORT || 3000,
+  appName: 'Reimbursement API',
+  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+};
