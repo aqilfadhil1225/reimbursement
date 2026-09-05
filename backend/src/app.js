@@ -5,6 +5,7 @@ const reimbursementRoutes = require('./routes/reimbursementRoutes');
 const expenseRoutes = require('./routes/expenseRoutes');
 const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const auditLogRoutes = require('./routes/auditLogRoutes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/reimbursements', reimbursementRoutes);
 app.use('/api/reimbursements/:reimbursementId/expenses', expenseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
