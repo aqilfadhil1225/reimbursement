@@ -60,7 +60,7 @@ const createReimbursement = async (req, res) => {
 
 const submitReimbursement = async (req, res, next) => {
   try {
-  const result = await reimbursementService.submitReimbursement(req.params.id, req.body.actorId);
+  const result = await reimbursementService.submitReimbursement(req.params.id, req.user.id);
 
   if (!result) {
     return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
@@ -77,9 +77,9 @@ const submitReimbursement = async (req, res, next) => {
 };
 
 const managerDecision = async (req, res, next) => {
-  const { action, note, actorId } = req.body;
+  const { action, note } = req.body;
   try {
-  const result = await reimbursementService.managerReview(req.params.id, action, note, actorId);
+  const result = await reimbursementService.managerReview(req.params.id, action, note, req.user.id);
 
   if (!result) {
     return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
@@ -96,9 +96,9 @@ const managerDecision = async (req, res, next) => {
 };
 
 const financeDecision = async (req, res, next) => {
-  const { action, note, actorId } = req.body;
+  const { action, note } = req.body;
   try {
-  const result = await reimbursementService.financeReview(req.params.id, action, note, actorId);
+  const result = await reimbursementService.financeReview(req.params.id, action, note, req.user.id);
 
   if (!result) {
     return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
@@ -115,9 +115,9 @@ const financeDecision = async (req, res, next) => {
 };
 
 const markPaid = async (req, res, next) => {
-  const { note, actorId, method = 'BANK_TRANSFER', reference } = req.body;
+  const { note, method = 'BANK_TRANSFER', reference } = req.body;
   try {
-  const result = await reimbursementService.markAsPaid(req.params.id, note, actorId, { method, reference });
+  const result = await reimbursementService.markAsPaid(req.params.id, note, req.user.id, { method, reference });
 
   if (!result) {
     return res.status(404).json({ success: false, message: 'Reimbursement not found.' });

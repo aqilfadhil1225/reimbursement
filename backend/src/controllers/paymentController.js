@@ -17,7 +17,10 @@ const getPayment = async (req, res, next) => {
 
 const completePayment = async (req, res, next) => {
   try {
-    const payment = await paymentService.completePayment(req.params.reimbursementId, req.body);
+    const payment = await paymentService.completePayment(req.params.reimbursementId, {
+      ...req.body,
+      actorId: req.user.id,
+    });
 
     if (!payment) {
       return res.status(404).json({ success: false, message: 'Reimbursement tidak ditemukan.' });
