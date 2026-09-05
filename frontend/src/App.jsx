@@ -17,6 +17,11 @@ const statusLabels = {
   REJECTED: "Rejected",
   REVISION_REQUIRED: "Revision required",
 };
+const roleDescriptions = {
+  EMPLOYEE: "Kelola pengajuan reimbursement",
+  MANAGER: "Review pengajuan tim",
+  FINANCE: "Verifikasi dan proses pembayaran",
+};
 const emptyExpense = {
   category: "",
   amount: "",
@@ -400,6 +405,11 @@ function App() {
             <br />
             <small>Data dimuat langsung dari backend</small>
           </div>
+          <div className="sidebar-note role-note">
+            <strong>{roleLabels[session.role]}</strong>
+            <br />
+            <small>{roleDescriptions[session.role]}</small>
+          </div>
         </aside>
         <section className="content-area">
           <div className="page-header">
@@ -692,9 +702,12 @@ function App() {
                     <button
                       className="primary-button full-button"
                       type="button"
+                      disabled={actionKey === `submit-${selected.id}`}
                       onClick={() => submitDraft(selected.id)}
                     >
-                      Kirim untuk review
+                      {actionKey === `submit-${selected.id}`
+                        ? "Mengirim..."
+                        : "Kirim untuk review"}
                     </button>
                   )}
                   {((isManager && selected.status === "SUBMITTED") ||
@@ -713,10 +726,16 @@ function App() {
                           })
                         }
                       >
-                        <option value="">Pilih keputusan</option>
-                        <option value="approve">Approve</option>
-                        <option value="revise">Request revision</option>
-                        <option value="reject">Reject</option>
+                        <option value="">Pilih tindakan</option>
+                        {isManager && <option value="approve">Setujui</option>}
+                        {isFinance && selected.status === "MANAGER_APPROVED" && (
+                          <option value="start">Mulai review finance</option>
+                        )}
+                        {isFinance && selected.status === "FINANCE_REVIEW" && (
+                          <option value="approve">Siapkan pembayaran</option>
+                        )}
+                        <option value="revise">Minta revisi</option>
+                        <option value="reject">Tolak</option>
                       </select>
                       <textarea
                         placeholder="Catatan review"
@@ -728,9 +747,12 @@ function App() {
                       <button
                         className="primary-button full-button"
                         type="button"
+                        disabled={actionKey === `review-${selected.id}`}
                         onClick={reviewReimbursement}
                       >
-                        Simpan keputusan
+                        {actionKey === `review-${selected.id}`
+                          ? "Menyimpan..."
+                          : "Simpan keputusan"}
                       </button>
                     </div>
                   )}
@@ -738,9 +760,12 @@ function App() {
                     <button
                       className="primary-button full-button"
                       type="button"
+                      disabled={actionKey === `pay-${selected.id}`}
                       onClick={payReimbursement}
                     >
-                      Proses pembayaran
+                      {actionKey === `pay-${selected.id}`
+                        ? "Memproses..."
+                        : "Proses pembayaran"}
                     </button>
                   )}
                 </>
