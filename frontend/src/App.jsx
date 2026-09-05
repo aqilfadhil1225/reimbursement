@@ -576,6 +576,14 @@ function App() {
                           )
                         }
                       />
+                      <input
+                        type="url"
+                        placeholder="Tautan bukti"
+                        value={expense.receiptUrl}
+                        onChange={(event) =>
+                          updateExpense(index, "receiptUrl", event.target.value)
+                        }
+                      />
                     </div>
                   ))}
                 </div>
@@ -697,6 +705,31 @@ function App() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                  <div className="detail-block">
+                    <p className="eyebrow">Rincian expense</p>
+                    {(selected.expenses || []).length === 0 ? (
+                      <p className="muted">Belum ada rincian expense.</p>
+                    ) : (
+                      <div className="expense-list">
+                        {selected.expenses.map((expense) => (
+                          <div className="expense-detail-row" key={expense.id}>
+                            <div>
+                              <strong>{expense.category}</strong>
+                              <small>
+                                {expense.description} · {new Date(expense.expenseDate).toLocaleDateString("id-ID")}
+                              </small>
+                            </div>
+                            <span>Rp {Number(expense.amount).toLocaleString("id-ID")}</span>
+                            {expense.receiptUrl && (
+                              <a href={expense.receiptUrl} target="_blank" rel="noreferrer">
+                                Lihat bukti
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {isEmployee && selected.status === "DRAFT" && (
                     <button
