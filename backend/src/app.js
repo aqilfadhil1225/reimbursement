@@ -3,6 +3,7 @@ const cors = require('cors');
 const config = require('./config');
 const reimbursementRoutes = require('./routes/reimbursementRoutes');
 const expenseRoutes = require('./routes/expenseRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/reimbursements', reimbursementRoutes);
 app.use('/api/reimbursements/:reimbursementId/expenses', expenseRoutes);
+app.use('/api/reimbursements/:reimbursementId/payment', paymentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
