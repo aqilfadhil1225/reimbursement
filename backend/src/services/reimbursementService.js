@@ -23,7 +23,29 @@ const getAllReimbursements = () => reimbursementModel.findAll();
 
 const getReimbursementById = (id) => reimbursementModel.findById(id);
 
-const updateReimbursement = (id, updates) => reimbursementModel.updateById(id, updates);
+const updateReimbursement = (id, updates) => {
+  const allowedFields = [
+    'employeeName',
+    'employeeEmail',
+    'amount',
+    'category',
+    'description',
+    'receiptUrl',
+  ];
+  const data = Object.fromEntries(
+    allowedFields
+      .filter((field) => updates[field] !== undefined)
+      .map((field) => [field, updates[field]]),
+  );
+
+  if (data.amount !== undefined && (!Number.isFinite(Number(data.amount)) || Number(data.amount) < 0)) {
+    throw new Error('amount harus berupa angka dan tidak boleh negatif.');
+  }
+  if (!Object.keys(data).length) throw new Error('tidak ada data reimbursement yang diubah.');
+  if (data.amount !== undefined) data.amount = Number(data.amount);
+
+  return reimbursementModel.updateById(id, data);
+};
 
 const deleteReimbursement = (id) => reimbursementModel.deleteById(id);
 

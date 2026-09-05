@@ -50,6 +50,9 @@ const createReimbursement = async ({
   if (!Number.isFinite(Number(amount)) || Number(amount) < 0) {
     throw new Error('amount must be a non-negative number.');
   }
+  if (!Array.isArray(expenses)) {
+    throw new Error('expenses harus berupa array.');
+  }
 
   return prisma.reimbursement.create({
     data: {
@@ -63,13 +66,25 @@ const createReimbursement = async ({
       employeeId: employeeId ? Number(employeeId) : undefined,
       managerId: managerId ? Number(managerId) : undefined,
       financeId: financeId ? Number(financeId) : undefined,
-      expenses: { create: expenses.map((expense) => ({
-        category: expense.category,
-        amount: Number(expense.amount),
-        expenseDate: new Date(expense.expenseDate),
-        description: expense.description || '',
-        receiptUrl: expense.receiptUrl || null,
-      })) },
+      expenses: { create: expenses.map((expense) => {
+        if (!expense.category || expense.amount === undefined || !expense.expenseDate || !expense.description) {
+          throw new Error('Setiap expense wajib memiliki category, amount, expenseDate, dan description.');
+        }
+
+        const expenseAmount = Number(expense.amount);
+        const expenseDate = new Date(expense.expenseDate);
+        if (!Number.isFinite(expenseAmount) || expenseAmount < 0 || Number.isNaN(expenseDate.getTime())) {
+          throw new Error('Data expense tidak valid.');
+        }
+
+        return {
+          category: expense.category,
+          amount: expenseAmount,
+          expenseDate,
+          description: expense.description,
+          receiptUrl: expense.receiptUrl || null,
+        };
+      }) },
       history: {
         create: {
           status: normalizedStatus,
