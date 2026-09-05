@@ -23,6 +23,7 @@ function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [actionKey, setActionKey] = useState('')
   const [notice, setNotice] = useState('')
   const [form, setForm] = useState({ category: '', amount: '', description: '', receiptUrl: '', expenses: [{ ...emptyExpense }] })
   const [decision, setDecision] = useState({ action: '', note: '' })
@@ -56,7 +57,9 @@ function App() {
 
   const submitAuth = async (event) => {
     event.preventDefault()
+    if (actionKey) return
     setAuthError('')
+    setActionKey('auth')
     try {
       const response = await api.post(`/auth/${authMode === 'login' ? 'login' : 'register'}`, authForm)
       const { user, token } = response.data.data
@@ -65,6 +68,8 @@ function App() {
       setSession(user)
     } catch (error) {
       setAuthError(getErrorMessage(error))
+    } finally {
+      setActionKey('')
     }
   }
 
@@ -82,40 +87,54 @@ function App() {
 
   const submitReimbursement = async (event) => {
     event.preventDefault()
+    if (actionKey) return
+    const validExpenses = form.expenses.filter((expense) => expense.category.trim())
+    const hasInvalidExpense = validExpenses.some((expense) => !expense.amount || Number(expense.amount) <= 0 || !expense.expenseDate)
+    if (!form.category.trim() || !form.amount || Number(form.amount) <= 0 || validExpenses.length === 0 || hasInvalidExpense) {
+      setNotice('Lengkapi kategori, total amount, dan minimal satu expense yang valid.')
+      return
+    }
+    setActionKey('create')
     try {
       await api.post('/reimbursements', {
         ...form,
         amount: Number(form.amount),
-        expenses: form.expenses.filter((expense) => expense.category).map((expense) => ({ ...expense, amount: Number(expense.amount) })),
+        expenses: validExpenses.map((expense) => ({ ...expense, amount: Number(expense.amount) })),
       })
       setForm({ category: '', amount: '', description: '', receiptUrl: '', expenses: [{ ...emptyExpense }] })
       setShowForm(false)
       setNotice('Pengajuan berhasil disimpan sebagai draft.')
       await loadData()
-    } catch (error) { setNotice(getErrorMessage(error)) }
+    } catch (error) { setNotice(getErrorMessage(error)) } finally { setActionKey('') }
   }
 
   const submitDraft = async (id) => {
-    try { await api.patch(`/reimbursements/${id}/submit`); setNotice('Pengajuan dikirim untuk direview manager.'); await loadData() } catch (error) { setNotice(getErrorMessage(error)) }
+    if (actionKey) return
+    setActionKey(`submit-${id}`)
+    try { await api.patch(`/reimbursements/${id}/submit`); setNotice('Pengajuan dikirim untuk direview manager.'); await loadData() } catch (error) { setNotice(getErrorMessage(error)) } finally { setActionKey('') }
   }
 
   const reviewReimbursement = async () => {
-    if (!selected || !decision.action) return
+    if (actionKey || !selected || !decision.action) return
     const endpoint = isManager ? `/reimbursements/${selected.id}/manager` : `/reimbursements/${selected.id}/finance`
-    try { await api.patch(endpoint, decision); setDecision({ action: '', note: '' }); setNotice('Keputusan berhasil disimpan.'); await loadData() } catch (error) { setNotice(getErrorMessage(error)) }
+    setActionKey(`review-${selected.id}`)
+    try { await api.patch(endpoint, decision); setDecision({ action: '', note: '' }); setNotice('Keputusan berhasil disimpan.'); await loadData() } catch (error) { setNotice(getErrorMessage(error)) } finally { setActionKey('') }
   }
 
   const payReimbursement = async () => {
-    if (!selected) return
+    if (actionKey || !selected) return
+    setActionKey(`pay-${selected.id}`)
     try {
       await api.post(`/reimbursements/${selected.id}/payment`, { method: 'BANK_TRANSFER', reference: `PAY-${selected.id}-${Date.now()}`, note: 'Pembayaran diproses melalui dashboard finance.' })
       setNotice('Pembayaran berhasil diproses.')
       await loadData()
-    } catch (error) { setNotice(getErrorMessage(error)) }
+    } catch (error) { setNotice(getErrorMessage(error)) } finally { setActionKey('') }
   }
 
   const markRead = async (id) => {
-    try { await api.patch(`/notifications/${id}/read`); setNotifications((current) => current.map((item) => item.id === id ? { ...item, isRead: true } : item)) } catch (error) { setNotice(getErrorMessage(error)) }
+    if (actionKey) return
+    setActionKey(`notification-${id}`)
+    try { await api.patch(`/notifications/${id}/read`); setNotifications((current) => current.map((item) => item.id === id ? { ...item, isRead: true } : item)) } catch (error) { setNotice(getErrorMessage(error)) } finally { setActionKey('') }
   }
 
   if (!session) return <main className="auth-shell"><section className="auth-intro"><div className="brand-mark">RM</div><p className="eyebrow">Reimbursement operations</p><h1>Pengeluaran yang rapi, keputusan yang jelas.</h1><p className="intro-copy">Kelola pengajuan, review, dan pembayaran dalam satu ruang kerja yang mudah dipantau.</p><div className="process-line"><span>Submit</span><i /><span>Review</span><i /><span>Pay</span></div></section><section className="auth-panel"><div className="panel-heading"><p className="eyebrow">Workspace access</p><h2>{authMode === 'login' ? 'Masuk ke dashboard' : 'Buat akun employee'}</h2></div><form onSubmit={submitAuth} className="stack-form">{authMode === 'register' && <label>Nama<input required value={authForm.name} onChange={(event) => setAuthForm({ ...authForm, name: event.target.value })} /></label>}<label>Email<input required type="email" value={authForm.email} onChange={(event) => setAuthForm({ ...authForm, email: event.target.value })} /></label><label>Password<input required minLength="6" type="password" value={authForm.password} onChange={(event) => setAuthForm({ ...authForm, password: event.target.value })} /></label>{authError && <p className="error-text">{authError}</p>}<button className="primary-button" type="submit">{authMode === 'login' ? 'Masuk' : 'Daftar sebagai employee'}</button></form><button className="link-button" type="button" onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setAuthError('') }}>{authMode === 'login' ? 'Belum punya akun? Daftar' : 'Sudah punya akun? Masuk'}</button></section></main>
