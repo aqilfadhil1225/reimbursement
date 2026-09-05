@@ -25,15 +25,15 @@ app.use('/api/notifications', notificationRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
-  const status = err.code === 'P2025' ? 404 : err.statusCode || 500;
+  const statusByCode = {
+    P2002: 409,
+    P2025: 404,
+  };
+  const status = statusByCode[err.code] || err.statusCode || 500;
   res.status(status).json({
     success: false,
     message: status === 500 ? 'Internal Server Error' : err.message,
   });
-});
-
-app.listen(config.port, () => {
-  console.log(`${config.appName} running on port ${config.port}`);
 });
 
 module.exports = app;
