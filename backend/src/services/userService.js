@@ -1,4 +1,5 @@
 const userModel = require('../models/userModel');
+const bcrypt = require('bcrypt');
 
 const normalizeRole = (role) => {
   const normalizedRole = typeof role === 'string' ? role.trim().toUpperCase() : role;
@@ -20,9 +21,9 @@ const validateId = (id) => {
   return parsedId;
 };
 
-const validateUserData = ({ name, email, role }) => {
-  if (!name || !email || !role) {
-    throw new Error('name, email, dan role wajib diisi.');
+const validateUserData = ({ name, email, password, role }) => {
+  if (!name || !email || !password || !role) {
+    throw new Error('name, email, password, dan role wajib diisi.');
   }
 
   const normalizedRole = normalizeRole(role);
@@ -30,6 +31,7 @@ const validateUserData = ({ name, email, role }) => {
   return {
     name: name.trim(),
     email: email.trim().toLowerCase(),
+    password,
     role: normalizedRole,
   };
 };
@@ -38,7 +40,13 @@ const getUsers = (role) => userModel.findAll(normalizeRole(role));
 
 const getUserById = (id) => userModel.findById(validateId(id));
 
-const createUser = (payload) => userModel.create(validateUserData(payload));
+const createUser = async (payload) => {
+  const data = validateUserData(payload);
+  return userModel.create({
+    ...data,
+    password: await bcrypt.hash(data.password, 12),
+  });
+};
 
 const updateUser = (id, payload) => {
   const data = {};
