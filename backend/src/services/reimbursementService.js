@@ -19,11 +19,16 @@ const canTransition = (currentStatus, nextStatus) => {
 
 const createReimbursement = (payload) => reimbursementModel.createReimbursement(payload);
 
-const getAllReimbursements = () => reimbursementModel.findAll();
+const getAllReimbursements = (user) => reimbursementModel.findAll(user);
 
-const getReimbursementById = (id) => reimbursementModel.findById(id);
+const getReimbursementById = (id, user) => reimbursementModel.findById(id, user);
 
-const updateReimbursement = (id, updates) => {
+const updateReimbursement = async (id, updates, user) => {
+  const reimbursement = await reimbursementModel.findById(id, user);
+  if (!reimbursement) return null;
+  if (reimbursement.status !== STATUS.DRAFT && reimbursement.status !== STATUS.REVISION_REQUIRED) {
+    throw new Error('Reimbursement hanya bisa diubah saat DRAFT atau REVISION_REQUIRED.');
+  }
   const allowedFields = [
     'employeeName',
     'employeeEmail',
@@ -47,13 +52,20 @@ const updateReimbursement = (id, updates) => {
   return reimbursementModel.updateById(id, data);
 };
 
-const deleteReimbursement = (id) => reimbursementModel.deleteById(id);
+const deleteReimbursement = async (id, user) => {
+  const reimbursement = await reimbursementModel.findById(id, user);
+  if (!reimbursement) return null;
+  if (reimbursement.status !== STATUS.DRAFT) {
+    throw new Error('Reimbursement hanya bisa dihapus saat DRAFT.');
+  }
+  return reimbursementModel.deleteById(id);
+};
 
-const updateStatus = async (id, nextStatus, note, actorId, extraData) => {
+const updateStatus = async (id, nextStatus, note, actorId, extraData, actorRole) => {
   const normalizedStatus = reimbursementModel.normalizeStatus
     ? reimbursementModel.normalizeStatus(nextStatus)
     : nextStatus;
-  const reimbursement = await reimbursementModel.findById(id);
+  const reimbursement = await reimbursementModel.findById(id, { id: actorId, role: actorRole });
 
   if (!reimbursement) {
     return null;
@@ -74,26 +86,19 @@ const updateStatus = async (id, nextStatus, note, actorId, extraData) => {
   );
 };
 
-const submitReimbursement = (id, actorId) => updateStatus(id, STATUS.SUBMITTED, 'Submitted by employee for manager review.', actorId);
+const submitReimbursement = (id, actorId, actorRole = 'EMPLOYEE') => updateStatus(id, STATUS.SUBMITTED, 'Submitted by employee for manager review.', actorId, undefined, actorRole);
 
 const managerReview = async (id, action, note, actorId) => {
   if (!['approve', 'reject', 'revise'].includes(action)) throw new Error('action must be approve, reject, or revise.');
   const nextStatus = action === 'approve' ? STATUS.MANAGER_APPROVED : action === 'reject' ? STATUS.REJECTED : STATUS.REVISION_REQUIRED;
-  return updateStatus(id, nextStatus, note || `Manager ${action}d the reimbursement.`, actorId, { managerId: actorId ? Number(actorId) : undefined });
+  return updateStatus(id, nextStatus, note || `Manager ${action}d the reimbursement.`, actorId, { managerId: actorId ? Number(actorId) : undefined }, 'MANAGER');
 };
 
 const financeReview = async (id, action, note, actorId) => {
   if (!['start', 'verify', 'approve', 'reject', 'revise'].includes(action)) throw new Error('action must be start, verify, approve, reject, or revise.');
   const nextStatus = action === 'start' ? STATUS.FINANCE_REVIEW : action === 'verify' || action === 'approve' ? STATUS.READY_FOR_PAYMENT : action === 'reject' ? STATUS.REJECTED : STATUS.REVISION_REQUIRED;
-  return updateStatus(id, nextStatus, note || `Finance ${action}d the reimbursement.`, actorId, { financeId: actorId ? Number(actorId) : undefined });
+  return updateStatus(id, nextStatus, note || `Finance ${action}d the reimbursement.`, actorId, { financeId: actorId ? Number(actorId) : undefined }, 'FINANCE');
 };
-
-const markAsPaid = (id, note, actorId, payment) => reimbursementModel.completePayment(
-  id,
-  { ...payment, status: 'COMPLETED', paidAt: new Date() },
-  actorId,
-  note || 'Payment has been processed successfully.',
-);
 
 module.exports = {
   STATUS,
@@ -105,10 +110,5 @@ module.exports = {
   submitReimbursement,
   managerReview,
   financeReview,
-  markAsPaid,
   updateStatus,
-  findUsers: reimbursementModel.findUsers,
-  createUser: reimbursementModel.createUser,
-  findNotifications: reimbursementModel.findNotifications,
-  markNotificationRead: reimbursementModel.markNotificationRead,
 };

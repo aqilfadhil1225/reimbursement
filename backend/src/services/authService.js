@@ -2,16 +2,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const authModel = require('../models/authModel');
-const userModel = require('../models/userModel');
 
-const validateCredentials = ({ name, email, password, role }) => {
-  if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string' || typeof role !== 'string') {
-    throw new Error('name, email, password, dan role wajib diisi.');
-  }
-
-  const normalizedRole = role.trim().toUpperCase();
-  if (!userModel.USER_ROLES.includes(normalizedRole)) {
-    throw new Error('role harus EMPLOYEE, MANAGER, atau FINANCE.');
+const validateCredentials = ({ name, email, password }) => {
+  if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
+    throw new Error('name, email, dan password wajib diisi.');
   }
 
   if (password.length < 6) {
@@ -22,7 +16,7 @@ const validateCredentials = ({ name, email, password, role }) => {
     name: name.trim(),
     email: email.trim().toLowerCase(),
     password,
-    role: normalizedRole,
+    role: 'EMPLOYEE',
   };
 };
 
@@ -36,7 +30,7 @@ const publicUser = (user) => ({
 });
 
 const createToken = (user) => jwt.sign(
-  { id: user.id, email: user.email, role: user.role },
+  { id: user.id, name: user.name, email: user.email, role: user.role },
   config.jwtSecret,
   { expiresIn: '1d' },
 );

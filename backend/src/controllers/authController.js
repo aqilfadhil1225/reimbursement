@@ -1,6 +1,6 @@
 const authService = require('../services/authService');
 
-const register = async (req, res, next) => {
+const register = async (req, res) => {
   try {
     const result = await authService.register(req.body);
     return res.status(201).json({ success: true, data: result });
@@ -12,7 +12,7 @@ const register = async (req, res, next) => {
   }
 };
 
-const login = async (req, res, next) => {
+const login = async (req, res) => {
   try {
     const result = await authService.login(req.body);
     return res.json({ success: true, data: result });

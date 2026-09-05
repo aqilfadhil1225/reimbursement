@@ -50,10 +50,11 @@ Content-Type: application/json
 {
   "name": "Employee Satu",
   "email": "employee@example.com",
-  "password": "password123",
-  "role": "EMPLOYEE"
+  "password": "password123"
 }
 ```
+
+Register publik selalu membuat user dengan role `EMPLOYEE`. Akun `MANAGER` dan `FINANCE` dibuat oleh user `FINANCE` melalui endpoint user.
 
 Login:
 
@@ -91,6 +92,8 @@ PATCH  /api/users/:id
 DELETE /api/users/:id
 ```
 
+Endpoint user hanya bisa digunakan oleh `FINANCE`.
+
 ### Reimbursement
 
 ```text
@@ -102,7 +105,6 @@ DELETE /api/reimbursements/:id
 PATCH  /api/reimbursements/:id/submit
 PATCH  /api/reimbursements/:id/manager
 PATCH  /api/reimbursements/:id/finance
-PATCH  /api/reimbursements/:id/pay
 ```
 
 Aturan akses:
@@ -144,12 +146,13 @@ Contoh body:
 
 ```text
 GET   /api/notifications
-GET   /api/notifications?userId=1
 PATCH /api/notifications/:id/read
 GET   /api/audit-logs
 GET   /api/audit-logs?reimbursementId=1
 GET   /api/audit-logs?actorId=1
 ```
+
+Notifikasi hanya menampilkan data milik user yang sedang login. Audit log hanya bisa dilihat oleh `MANAGER` dan `FINANCE`.
 
 ## Alur status
 

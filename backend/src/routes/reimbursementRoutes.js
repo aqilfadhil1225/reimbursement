@@ -12,6 +12,5 @@ router.delete('/:id', authorizeRoles('EMPLOYEE'), reimbursementController.delete
 router.patch('/:id/submit', authorizeRoles('EMPLOYEE'), reimbursementController.submitReimbursement);
 router.patch('/:id/manager', authorizeRoles('MANAGER'), reimbursementController.managerDecision);
 router.patch('/:id/finance', authorizeRoles('FINANCE'), reimbursementController.financeDecision);
-router.patch('/:id/pay', authorizeRoles('FINANCE'), reimbursementController.markPaid);
 
 module.exports = router;

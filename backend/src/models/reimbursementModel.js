@@ -101,13 +101,30 @@ const createReimbursement = async ({
   });
 };
 
-const findAll = () => prisma.reimbursement.findMany({
+const accessFilter = ({ id, role }) => {
+  if (role === 'EMPLOYEE') return { employeeId: Number(id) };
+  if (role === 'MANAGER') {
+    return { OR: [{ managerId: Number(id) }, { status: STATUS.SUBMITTED }] };
+  }
+  if (role === 'FINANCE') {
+    return {
+      OR: [
+        { financeId: Number(id) },
+        { status: { in: [STATUS.MANAGER_APPROVED, STATUS.FINANCE_REVIEW, STATUS.READY_FOR_PAYMENT] } },
+      ],
+    };
+  }
+  return { id: -1 };
+};
+
+const findAll = (user) => prisma.reimbursement.findMany({
+  where: accessFilter(user),
   include: includeRelations,
   orderBy: { createdAt: 'desc' },
 });
 
-const findById = (id) => prisma.reimbursement.findUnique({
-  where: { id: Number(id) },
+const findById = (id, user) => prisma.reimbursement.findFirst({
+  where: { id: Number(id), ...accessFilter(user) },
   include: includeRelations,
 });
 
@@ -183,49 +200,6 @@ const updateStatus = async (id, status, note, actorId, extraData = {}) => prisma
   });
 });
 
-const findUsers = (role) => prisma.user.findMany({
-  where: role ? { role } : undefined,
-  orderBy: { name: 'asc' },
-});
-
-const createUser = (data) => prisma.user.create({ data });
-
-const findNotifications = (userId) => prisma.notification.findMany({
-  where: userId ? { userId: Number(userId) } : undefined,
-  include: { reimbursement: true },
-  orderBy: { createdAt: 'desc' },
-});
-
-const markNotificationRead = (id) => prisma.notification.update({
-  where: { id: Number(id) },
-  data: { isRead: true },
-});
-
-const completePayment = async (id, data, actorId, note) => prisma.$transaction(async (transaction) => {
-  const reimbursementId = Number(id);
-  const reimbursement = await transaction.reimbursement.findUnique({ where: { id: reimbursementId } });
-  if (!reimbursement) return null;
-  if (reimbursement.status !== STATUS.READY_FOR_PAYMENT) {
-    return { error: `Payment is only allowed when status is ${STATUS.READY_FOR_PAYMENT}.` };
-  }
-  await transaction.payment.upsert({
-    where: { reimbursementId },
-    create: { reimbursementId, amount: reimbursement.amount, ...data },
-    update: data,
-  });
-  await transaction.reimbursement.update({
-    where: { id: reimbursementId },
-    data: { status: STATUS.PAID },
-  });
-  await transaction.reimbursementHistory.create({
-    data: { reimbursementId, status: STATUS.PAID, note, actorId: actorId ? Number(actorId) : undefined },
-  });
-  await transaction.auditLog.create({
-    data: { reimbursementId, actorId: actorId ? Number(actorId) : undefined, action: 'PAYMENT_COMPLETED', details: note },
-  });
-  return transaction.reimbursement.findUnique({ where: { id: reimbursementId }, include: includeRelations });
-});
-
 module.exports = {
   STATUS,
   VALID_STATUSES,
@@ -233,13 +207,9 @@ module.exports = {
   createReimbursement,
   findAll,
   findById,
+  accessFilter,
   updateById,
   deleteById,
   addHistoryEntry,
   updateStatus,
-  findUsers,
-  createUser,
-  findNotifications,
-  markNotificationRead,
-  completePayment,
 };
