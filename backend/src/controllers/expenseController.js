@@ -1,9 +1,10 @@
 const expenseService = require('../services/expenseService');
+const apiView = require('../views/apiView');
 
 const listExpenses = async (req, res, next) => {
   try {
     const expenses = await expenseService.getExpenses(req.params.reimbursementId);
-    return res.json({ success: true, data: expenses });
+    return res.json({ success: true, data: expenses.map(apiView.formatExpense) });
   } catch (error) {
     return next(error);
   }
@@ -12,7 +13,7 @@ const listExpenses = async (req, res, next) => {
 const createExpense = async (req, res, next) => {
   try {
     const expense = await expenseService.createExpense(req.params.reimbursementId, req.body);
-    return res.status(201).json({ success: true, data: expense });
+    return res.status(201).json({ success: true, data: apiView.formatExpense(expense) });
   } catch (error) {
     return next(error);
   }
@@ -21,7 +22,7 @@ const createExpense = async (req, res, next) => {
 const updateExpense = async (req, res, next) => {
   try {
     const expense = await expenseService.updateExpense(req.params.id, req.body);
-    return res.json({ success: true, data: expense });
+    return res.json({ success: true, data: apiView.formatExpense(expense) });
   } catch (error) {
     return next(error);
   }

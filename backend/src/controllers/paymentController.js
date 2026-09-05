@@ -1,4 +1,5 @@
 const paymentService = require('../services/paymentService');
+const apiView = require('../views/apiView');
 
 const getPayment = async (req, res, next) => {
   try {
@@ -8,7 +9,7 @@ const getPayment = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Payment belum ditemukan.' });
     }
 
-    return res.json({ success: true, data: payment });
+    return res.json({ success: true, data: apiView.formatPayment(payment) });
   } catch (error) {
     return next(error);
   }
@@ -26,7 +27,7 @@ const completePayment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: payment.error });
     }
 
-    return res.status(201).json({ success: true, data: payment });
+    return res.status(201).json({ success: true, data: apiView.formatPayment(payment) });
   } catch (error) {
     return next(error);
   }

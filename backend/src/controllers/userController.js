@@ -1,9 +1,10 @@
 const userService = require('../services/userService');
+const apiView = require('../views/apiView');
 
 const listUsers = async (req, res, next) => {
   try {
     const users = await userService.getUsers(req.query.role);
-    return res.json({ success: true, data: users });
+    return res.json({ success: true, data: users.map(apiView.formatUser) });
   } catch (error) {
     return next(error);
   }
@@ -17,7 +18,7 @@ const getUser = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
     }
 
-    return res.json({ success: true, data: user });
+    return res.json({ success: true, data: apiView.formatUser(user) });
   } catch (error) {
     return next(error);
   }
@@ -26,7 +27,7 @@ const getUser = async (req, res, next) => {
 const createUser = async (req, res, next) => {
   try {
     const user = await userService.createUser(req.body);
-    return res.status(201).json({ success: true, data: user });
+    return res.status(201).json({ success: true, data: apiView.formatUser(user) });
   } catch (error) {
     return next(error);
   }
@@ -35,7 +36,7 @@ const createUser = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
   try {
     const user = await userService.updateUser(req.params.id, req.body);
-    return res.json({ success: true, data: user });
+    return res.json({ success: true, data: apiView.formatUser(user) });
   } catch (error) {
     return next(error);
   }
