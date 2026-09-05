@@ -50,19 +50,28 @@ const updateReimbursement = (id, updates) => {
 const deleteReimbursement = (id) => reimbursementModel.deleteById(id);
 
 const updateStatus = async (id, nextStatus, note, actorId, extraData) => {
+  const normalizedStatus = reimbursementModel.normalizeStatus
+    ? reimbursementModel.normalizeStatus(nextStatus)
+    : nextStatus;
   const reimbursement = await reimbursementModel.findById(id);
 
   if (!reimbursement) {
     return null;
   }
 
-  if (!canTransition(reimbursement.status, nextStatus)) {
+  if (!canTransition(reimbursement.status, normalizedStatus)) {
     return {
-      error: `Status transition from ${reimbursement.status} to ${nextStatus} is not allowed.`,
+      error: `Perubahan status dari ${reimbursement.status} ke ${normalizedStatus} tidak diizinkan.`,
     };
   }
 
-  return reimbursementModel.updateStatus(id, nextStatus, note || `Status changed to ${nextStatus}.`, actorId, extraData);
+  return reimbursementModel.updateStatus(
+    id,
+    normalizedStatus,
+    note || `Status reimbursement diubah menjadi ${normalizedStatus}.`,
+    actorId,
+    extraData,
+  );
 };
 
 const submitReimbursement = (id, actorId) => updateStatus(id, STATUS.SUBMITTED, 'Submitted by employee for manager review.', actorId);

@@ -26,7 +26,12 @@ const includeRelations = {
 
 const normalizeStatus = (status) => {
   const safeStatus = typeof status === 'string' ? status.trim().toUpperCase() : status;
-  return VALID_STATUSES.includes(safeStatus) ? safeStatus : STATUS.DRAFT;
+
+  if (!VALID_STATUSES.includes(safeStatus)) {
+    throw new Error(`status harus salah satu dari: ${VALID_STATUSES.join(', ')}.`);
+  }
+
+  return safeStatus;
 };
 
 const createReimbursement = async ({
@@ -126,6 +131,11 @@ const addHistoryEntry = (id, status, note) => prisma.reimbursementHistory.create
 
 const updateStatus = async (id, status, note, actorId, extraData = {}) => prisma.$transaction(async (transaction) => {
   const normalizedStatus = normalizeStatus(status);
+  const parsedActorId = actorId === undefined || actorId === null ? undefined : Number(actorId);
+
+  if (parsedActorId !== undefined && (!Number.isInteger(parsedActorId) || parsedActorId < 1)) {
+    throw new Error('actorId tidak valid.');
+  }
 
   await transaction.reimbursement.update({
     where: { id: Number(id) },
@@ -137,14 +147,14 @@ const updateStatus = async (id, status, note, actorId, extraData = {}) => prisma
       reimbursementId: Number(id),
       status: normalizedStatus,
       note,
-      actorId: actorId ? Number(actorId) : undefined,
+      actorId: parsedActorId,
     },
   });
 
   await transaction.auditLog.create({
     data: {
       reimbursementId: Number(id),
-      actorId: actorId ? Number(actorId) : undefined,
+      actorId: parsedActorId,
       action: 'STATUS_CHANGED',
       details: note,
     },
@@ -219,6 +229,7 @@ const completePayment = async (id, data, actorId, note) => prisma.$transaction(a
 module.exports = {
   STATUS,
   VALID_STATUSES,
+  normalizeStatus,
   createReimbursement,
   findAll,
   findById,
