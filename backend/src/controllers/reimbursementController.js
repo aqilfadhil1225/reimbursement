@@ -3,8 +3,8 @@ const reimbursementView = require('../views/reimbursementView');
 
 const listReimbursements = async (req, res, next) => {
   try {
-    const reimbursements = await reimbursementService.getAllReimbursements();
-  res.json({
+    const reimbursements = await reimbursementService.getAllReimbursements(req.user);
+  return res.json({
     success: true,
     data: reimbursementView.formatReimbursements(reimbursements),
   });
@@ -15,7 +15,7 @@ const listReimbursements = async (req, res, next) => {
 
 const getReimbursement = async (req, res, next) => {
   try {
-    const reimbursement = await reimbursementService.getReimbursementById(req.params.id);
+    const reimbursement = await reimbursementService.getReimbursementById(req.params.id, req.user);
 
   if (!reimbursement) {
     return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
@@ -29,7 +29,10 @@ const getReimbursement = async (req, res, next) => {
 
 const updateReimbursement = async (req, res, next) => {
   try {
-    const reimbursement = await reimbursementService.updateReimbursement(req.params.id, req.body);
+    const reimbursement = await reimbursementService.updateReimbursement(req.params.id, req.body, req.user);
+    if (!reimbursement) {
+      return res.status(404).json({ success: false, message: 'Reimbursement tidak ditemukan.' });
+    }
     return res.json({ success: true, data: reimbursementView.formatReimbursement(reimbursement) });
   } catch (error) {
     return next(error);
@@ -38,7 +41,10 @@ const updateReimbursement = async (req, res, next) => {
 
 const deleteReimbursement = async (req, res, next) => {
   try {
-    await reimbursementService.deleteReimbursement(req.params.id);
+    const reimbursement = await reimbursementService.deleteReimbursement(req.params.id, req.user);
+    if (!reimbursement) {
+      return res.status(404).json({ success: false, message: 'Reimbursement tidak ditemukan.' });
+    }
     return res.status(204).send();
   } catch (error) {
     return next(error);
@@ -47,7 +53,15 @@ const deleteReimbursement = async (req, res, next) => {
 
 const createReimbursement = async (req, res) => {
   try {
-    const reimbursement = await reimbursementService.createReimbursement(req.body);
+    const reimbursement = await reimbursementService.createReimbursement({
+      ...req.body,
+      employeeId: req.user.id,
+      employeeName: req.user.name,
+      employeeEmail: req.user.email,
+      managerId: undefined,
+      financeId: undefined,
+      status: 'DRAFT',
+    });
 
     return res.status(201).json({
       success: true,
@@ -60,7 +74,7 @@ const createReimbursement = async (req, res) => {
 
 const submitReimbursement = async (req, res, next) => {
   try {
-  const result = await reimbursementService.submitReimbursement(req.params.id, req.body.actorId);
+  const result = await reimbursementService.submitReimbursement(req.params.id, req.user.id);
 
   if (!result) {
     return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
@@ -77,9 +91,9 @@ const submitReimbursement = async (req, res, next) => {
 };
 
 const managerDecision = async (req, res, next) => {
-  const { action, note, actorId } = req.body;
+  const { action, note } = req.body;
   try {
-  const result = await reimbursementService.managerReview(req.params.id, action, note, actorId);
+  const result = await reimbursementService.managerReview(req.params.id, action, note, req.user.id);
 
   if (!result) {
     return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
@@ -96,9 +110,9 @@ const managerDecision = async (req, res, next) => {
 };
 
 const financeDecision = async (req, res, next) => {
-  const { action, note, actorId } = req.body;
+  const { action, note } = req.body;
   try {
-  const result = await reimbursementService.financeReview(req.params.id, action, note, actorId);
+  const result = await reimbursementService.financeReview(req.params.id, action, note, req.user.id);
 
   if (!result) {
     return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
@@ -109,61 +123,6 @@ const financeDecision = async (req, res, next) => {
   }
 
   return res.json({ success: true, data: reimbursementView.formatReimbursement(result) });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-const markPaid = async (req, res, next) => {
-  const { note, actorId, method = 'BANK_TRANSFER', reference } = req.body;
-  try {
-  const result = await reimbursementService.markAsPaid(req.params.id, note, actorId, { method, reference });
-
-  if (!result) {
-    return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
-  }
-
-  if (result.error) {
-    return res.status(400).json({ success: false, message: result.error });
-  }
-
-  return res.json({ success: true, data: reimbursementView.formatReimbursement(result) });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-const listUsers = async (req, res, next) => {
-  try {
-    const users = await reimbursementService.findUsers(req.query.role);
-    return res.json({ success: true, data: users });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-const createUser = async (req, res, next) => {
-  try {
-    const user = await reimbursementService.createUser(req.body);
-    return res.status(201).json({ success: true, data: user });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-const listNotifications = async (req, res, next) => {
-  try {
-    const notifications = await reimbursementService.findNotifications(req.query.userId);
-    return res.json({ success: true, data: notifications });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-const markNotificationRead = async (req, res, next) => {
-  try {
-    const notification = await reimbursementService.markNotificationRead(req.params.id);
-    return res.json({ success: true, data: notification });
   } catch (error) {
     return next(error);
   }
@@ -178,9 +137,4 @@ module.exports = {
   submitReimbursement,
   managerDecision,
   financeDecision,
-  markPaid,
-  listUsers,
-  createUser,
-  listNotifications,
-  markNotificationRead,
 };

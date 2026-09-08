@@ -2,8 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const config = require('./config');
 const reimbursementRoutes = require('./routes/reimbursementRoutes');
+const expenseRoutes = require('./routes/expenseRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const auditLogRoutes = require('./routes/auditLogRoutes');
+const authRoutes = require('./routes/authRoutes');
+const authenticate = require('./middleware/authMiddleware');
 
 const app = express();
 
@@ -19,9 +24,13 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use('/api/reimbursements', reimbursementRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/reimbursements', authenticate, reimbursementRoutes);
+app.use('/api/reimbursements/:reimbursementId/expenses', authenticate, expenseRoutes);
+app.use('/api/reimbursements/:reimbursementId/payment', authenticate, paymentRoutes);
+app.use('/api/users', authenticate, userRoutes);
+app.use('/api/notifications', authenticate, notificationRoutes);
+app.use('/api/audit-logs', authenticate, auditLogRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
