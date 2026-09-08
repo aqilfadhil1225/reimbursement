@@ -161,18 +161,50 @@ function App() {
     const validExpenses = form.expenses.filter((expense) =>
       expense.category.trim(),
     );
+    const hasIncompleteExpense = form.expenses.some((expense) => {
+      const hasAnyValue = Object.values(expense).some((value) =>
+        String(value).trim(),
+      );
+      const hasAllValues =
+        expense.category.trim() &&
+        expense.amount &&
+        Number(expense.amount) > 0 &&
+        expense.expenseDate &&
+        expense.description.trim();
+
+      return hasAnyValue && !hasAllValues;
+    });
     const hasInvalidExpense = validExpenses.some(
       (expense) =>
-        !expense.amount || Number(expense.amount) <= 0 || !expense.expenseDate,
+        !expense.amount ||
+        !Number.isFinite(Number(expense.amount)) ||
+        Number(expense.amount) <= 0 ||
+        !expense.expenseDate ||
+        !expense.description.trim(),
     );
+    const expenseTotal = validExpenses.reduce(
+      (total, expense) => total + Number(expense.amount),
+      0,
+    );
+    const reimbursementAmount = Number(form.amount);
     if (
       !form.category.trim() ||
+      !form.description.trim() ||
       !form.amount ||
-      Number(form.amount) <= 0 ||
-      (!editingId && (validExpenses.length === 0 || hasInvalidExpense))
+      !Number.isFinite(reimbursementAmount) ||
+      reimbursementAmount <= 0 ||
+      validExpenses.length === 0 ||
+      hasIncompleteExpense ||
+      hasInvalidExpense
     ) {
       setNotice(
-        "Lengkapi kategori, total amount, dan minimal satu expense yang valid.",
+        "Lengkapi kategori, deskripsi, dan semua expense yang diisi.",
+      );
+      return;
+    }
+    if (Math.abs(expenseTotal - reimbursementAmount) > 0.01) {
+      setNotice(
+        `Total expense harus sama dengan total reimbursement (Rp ${expenseTotal.toLocaleString("id-ID")}).`,
       );
       return;
     }
