@@ -1,4 +1,5 @@
 const reimbursementModel = require('../models/reimbursementModel');
+const auditLogModel = require('../models/auditLogModel');
 
 const STATUS = reimbursementModel.STATUS;
 
@@ -40,7 +41,16 @@ const canTransition = (currentStatus, nextStatus) => {
   return (transitions[currentStatus] || []).includes(nextStatus);
 };
 
-const createReimbursement = (payload) => reimbursementModel.createReimbursement(payload);
+const createReimbursement = async (payload) => {
+  const reimbursement = await reimbursementModel.createReimbursement(payload);
+  await auditLogModel.create({
+    reimbursementId: reimbursement.id,
+    actorId: payload.employeeId ? Number(payload.employeeId) : undefined,
+    action: 'REIMBURSEMENT_CREATED',
+    details: 'Reimbursement dibuat sebagai draft.',
+  });
+  return reimbursement;
+};
 
 const getAllReimbursements = (user) => reimbursementModel.findAll(user);
 
@@ -72,6 +82,10 @@ const updateReimbursement = async (id, updates, user) => {
   if (data.amount !== undefined) data.amount = Number(data.amount);
   if (data.receiptUrl !== undefined) validateReceiptUrl(data.receiptUrl);
 
+  if (data.amount !== undefined && updates.expenses === undefined) {
+    validateExpensesTotal(reimbursement.expenses, data.amount);
+  }
+
   if (updates.expenses !== undefined) {
     if (!Array.isArray(updates.expenses)) {
       throw new Error('expenses harus berupa array.');
@@ -83,7 +97,14 @@ const updateReimbursement = async (id, updates, user) => {
 
   if (!Object.keys(data).length) throw new Error('tidak ada data reimbursement yang diubah.');
 
-  return reimbursementModel.updateById(id, data);
+  const updated = await reimbursementModel.updateById(id, data);
+  await auditLogModel.create({
+    reimbursementId: updated.id,
+    actorId: user.id,
+    action: 'REIMBURSEMENT_UPDATED',
+    details: 'Data reimbursement diperbarui.',
+  });
+  return updated;
 };
 
 const deleteReimbursement = async (id, user) => {
@@ -92,7 +113,14 @@ const deleteReimbursement = async (id, user) => {
   if (reimbursement.status !== STATUS.DRAFT) {
     throw new Error('Reimbursement hanya bisa dihapus saat DRAFT.');
   }
-  return reimbursementModel.deleteById(id);
+  const deleted = await reimbursementModel.deleteById(id);
+  await auditLogModel.create({
+    reimbursementId: deleted.id,
+    actorId: user.id,
+    action: 'REIMBURSEMENT_DELETED',
+    details: 'Draft reimbursement dihapus.',
+  });
+  return deleted;
 };
 
 const updateStatus = async (id, nextStatus, note, actorId, extraData, actorRole) => {

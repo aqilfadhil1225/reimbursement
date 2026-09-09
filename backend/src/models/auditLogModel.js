@@ -12,6 +12,9 @@ const findAll = ({ reimbursementId, actorId } = {}) => prisma.auditLog.findMany(
   orderBy: { createdAt: 'desc' },
 });
 
+const create = (data) => prisma.auditLog.create({ data });
+
 module.exports = {
   findAll,
+  create,
 };

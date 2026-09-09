@@ -1,5 +1,6 @@
 const expenseModel = require('../models/expenseModel');
 const reimbursementModel = require('../models/reimbursementModel');
+const auditLogModel = require('../models/auditLogModel');
 
 const validateId = (id, label) => {
   const parsedId = Number(id);
@@ -49,6 +50,13 @@ const validateExpense = ({ category, amount, expenseDate, description }) => {
   };
 };
 
+const validateReimbursementTotal = (reimbursement, expenses) => {
+  const total = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+  if (!expenses.length || Math.abs(total - Number(reimbursement.amount)) > 0.01) {
+    throw new Error('Total expense harus sama dengan total reimbursement.');
+  }
+};
+
 const getExpenses = async (reimbursementId, user) => {
   const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
   const reimbursement = await reimbursementModel.findById(parsedReimbursementId, user);
@@ -72,11 +80,21 @@ const createExpense = async (reimbursementId, payload, user) => {
   const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
   const reimbursement = await assertEmployeeCanEdit(parsedReimbursementId, user);
   if (!reimbursement) return null;
-  return expenseModel.create({
+  const expenseData = {
     reimbursementId: parsedReimbursementId,
     ...validateExpense(payload),
     receiptUrl: validateReceiptUrl(payload.receiptUrl) || null,
+  };
+  const currentExpenses = await expenseModel.findByReimbursementId(parsedReimbursementId);
+  validateReimbursementTotal(reimbursement, [...currentExpenses, expenseData]);
+  const expense = await expenseModel.create(expenseData);
+  await auditLogModel.create({
+    reimbursementId: parsedReimbursementId,
+    actorId: user.id,
+    action: 'EXPENSE_CREATED',
+    details: `Expense ${expense.id} ditambahkan.`,
   });
+  return expense;
 };
 
 const updateExpense = async (id, payload, user) => {
@@ -103,7 +121,19 @@ const updateExpense = async (id, payload, user) => {
 
   if (!Object.keys(data).length) throw new Error('tidak ada data expense yang diubah.');
 
-  return expenseModel.updateById(validateId(id, 'id expense'), data);
+  const currentExpenses = await expenseModel.findByReimbursementId(expense.reimbursementId);
+  const nextExpenses = currentExpenses.map((currentExpense) => (
+    currentExpense.id === expense.id ? { ...currentExpense, ...data } : currentExpense
+  ));
+  validateReimbursementTotal(reimbursement, nextExpenses);
+  const updated = await expenseModel.updateById(validateId(id, 'id expense'), data);
+  await auditLogModel.create({
+    reimbursementId: expense.reimbursementId,
+    actorId: user.id,
+    action: 'EXPENSE_UPDATED',
+    details: `Expense ${expense.id} diperbarui.`,
+  });
+  return updated;
 };
 
 const deleteExpense = async (id, user) => {
@@ -112,7 +142,19 @@ const deleteExpense = async (id, user) => {
   if (!expense) return null;
   const reimbursement = await assertEmployeeCanEdit(expense.reimbursementId, user);
   if (!reimbursement) return null;
-  return expenseModel.deleteById(parsedId);
+  const currentExpenses = await expenseModel.findByReimbursementId(expense.reimbursementId);
+  validateReimbursementTotal(
+    reimbursement,
+    currentExpenses.filter((currentExpense) => currentExpense.id !== parsedId),
+  );
+  const deleted = await expenseModel.deleteById(parsedId);
+  await auditLogModel.create({
+    reimbursementId: expense.reimbursementId,
+    actorId: user.id,
+    action: 'EXPENSE_DELETED',
+    details: `Expense ${expense.id} dihapus.`,
+  });
+  return deleted;
 };
 
 const updateReceipt = async (id, receiptUrl, user) => {
@@ -121,7 +163,14 @@ const updateReceipt = async (id, receiptUrl, user) => {
   if (!expense) return null;
   const reimbursement = await assertEmployeeCanEdit(expense.reimbursementId, user);
   if (!reimbursement) return null;
-  return expenseModel.updateById(parsedId, { receiptUrl: validateReceiptUrl(receiptUrl) });
+  const updated = await expenseModel.updateById(parsedId, { receiptUrl: validateReceiptUrl(receiptUrl) });
+  await auditLogModel.create({
+    reimbursementId: expense.reimbursementId,
+    actorId: user.id,
+    action: 'EXPENSE_RECEIPT_UPLOADED',
+    details: `Bukti expense ${expense.id} diunggah.`,
+  });
+  return updated;
 };
 
 module.exports = {
