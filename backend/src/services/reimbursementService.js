@@ -46,8 +46,17 @@ const updateReimbursement = async (id, updates, user) => {
   if (data.amount !== undefined && (!Number.isFinite(Number(data.amount)) || Number(data.amount) < 0)) {
     throw new Error('amount harus berupa angka dan tidak boleh negatif.');
   }
-  if (!Object.keys(data).length) throw new Error('tidak ada data reimbursement yang diubah.');
   if (data.amount !== undefined) data.amount = Number(data.amount);
+
+  if (updates.expenses !== undefined) {
+    if (!Array.isArray(updates.expenses)) {
+      throw new Error('expenses harus berupa array.');
+    }
+
+    data.expenses = updates.expenses;
+  }
+
+  if (!Object.keys(data).length) throw new Error('tidak ada data reimbursement yang diubah.');
 
   return reimbursementModel.updateById(id, data);
 };

@@ -134,7 +134,12 @@ function App() {
       amount: item.amount || "",
       description: item.description || "",
       receiptUrl: item.receiptUrl || "",
-      expenses: item.expenses?.length ? item.expenses : [{ ...emptyExpense }],
+      expenses: item.expenses?.length
+        ? item.expenses.map((expense) => ({
+            ...expense,
+            expenseDate: expense.expenseDate?.slice(0, 10) || "",
+          }))
+        : [{ ...emptyExpense }],
     });
     setShowForm(true);
   };
@@ -216,7 +221,14 @@ function App() {
         description: form.description.trim(),
         receiptUrl: form.receiptUrl.trim(),
       };
-      if (editingId) await api.patch(`/reimbursements/${editingId}`, payload);
+      if (editingId)
+        await api.patch(`/reimbursements/${editingId}`, {
+          ...payload,
+          expenses: validExpenses.map((expense) => ({
+            ...expense,
+            amount: Number(expense.amount),
+          })),
+        });
       else
         await api.post("/reimbursements", {
           ...payload,
