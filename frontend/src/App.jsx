@@ -93,7 +93,11 @@ function App() {
       const requests = [
         api.get("/reimbursements"),
         api.get("/notifications"),
-        api.get("/reports/summary", { params: reportFilters }),
+        api.get("/reports/summary", {
+          params: Object.fromEntries(
+            Object.entries(reportFilters).filter(([, value]) => value),
+          ),
+        }),
       ];
       if (session.role === "MANAGER" || session.role === "FINANCE") {
         requests.push(api.get("/audit-logs"));
