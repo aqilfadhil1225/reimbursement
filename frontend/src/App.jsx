@@ -22,6 +22,11 @@ const roleDescriptions = {
   MANAGER: "Review pengajuan tim",
   FINANCE: "Verifikasi dan proses pembayaran",
 };
+const paymentMethodLabels = {
+  BANK_TRANSFER: "Transfer bank",
+  CASH: "Tunai",
+  OTHER: "Lainnya",
+};
 const emptyExpense = {
   category: "",
   amount: "",
@@ -58,6 +63,11 @@ function App() {
     expenses: [{ ...emptyExpense }],
   });
   const [decision, setDecision] = useState({ action: "", note: "" });
+  const [paymentForm, setPaymentForm] = useState({
+    method: "BANK_TRANSFER",
+    reference: "",
+    note: "",
+  });
 
   const selected = useMemo(
     () => items.find((item) => item.id === selectedId),
@@ -134,7 +144,12 @@ function App() {
       amount: item.amount || "",
       description: item.description || "",
       receiptUrl: item.receiptUrl || "",
-      expenses: item.expenses?.length ? item.expenses : [{ ...emptyExpense }],
+      expenses: item.expenses?.length
+        ? item.expenses.map((expense) => ({
+            ...expense,
+            expenseDate: expense.expenseDate?.slice(0, 10) || "",
+          }))
+        : [{ ...emptyExpense }],
     });
     setShowForm(true);
   };
@@ -216,7 +231,14 @@ function App() {
         description: form.description.trim(),
         receiptUrl: form.receiptUrl.trim(),
       };
-      if (editingId) await api.patch(`/reimbursements/${editingId}`, payload);
+      if (editingId)
+        await api.patch(`/reimbursements/${editingId}`, {
+          ...payload,
+          expenses: validExpenses.map((expense) => ({
+            ...expense,
+            amount: Number(expense.amount),
+          })),
+        });
       else
         await api.post("/reimbursements", {
           ...payload,
@@ -284,10 +306,11 @@ function App() {
     setActionKey(`pay-${selected.id}`);
     try {
       await api.post(`/reimbursements/${selected.id}/payment`, {
-        method: "BANK_TRANSFER",
-        reference: `PAY-${selected.id}-${Date.now()}`,
-        note: "Pembayaran diproses melalui dashboard finance.",
+        method: paymentForm.method,
+        reference: paymentForm.reference.trim() || `PAY-${selected.id}-${Date.now()}`,
+        note: paymentForm.note.trim() || "Pembayaran diproses melalui dashboard finance.",
       });
+      setPaymentForm({ method: "BANK_TRANSFER", reference: "", note: "" });
       setNotice("Pembayaran berhasil diproses.");
       await loadData();
     } catch (error) {
@@ -726,6 +749,37 @@ function App() {
                       </strong>
                     </div>
                   </div>
+                  {selected.payment && (
+                    <div className="payment-box">
+                      <div className="section-title">
+                        <div>
+                          <p className="eyebrow">Payment</p>
+                          <h3>Detail pembayaran</h3>
+                        </div>
+                        <span className={`status status-${selected.payment.status.toLowerCase()}`}>
+                          {selected.payment.status}
+                        </span>
+                      </div>
+                      <div className="payment-meta">
+                        <div>
+                          <span>Metode</span>
+                          <strong>{paymentMethodLabels[selected.payment.method] || selected.payment.method}</strong>
+                        </div>
+                        <div>
+                          <span>Reference</span>
+                          <strong>{selected.payment.reference || "-"}</strong>
+                        </div>
+                        <div>
+                          <span>Dibayar pada</span>
+                          <strong>
+                            {selected.payment.paidAt
+                              ? new Date(selected.payment.paidAt).toLocaleString("id-ID")
+                              : "Belum dibayar"}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="detail-block">
                     <p className="eyebrow">Timeline</p>
                     {(selected.history || []).map((history) => (
@@ -822,16 +876,53 @@ function App() {
                     </div>
                   )}
                   {isFinance && selected.status === "READY_FOR_PAYMENT" && (
-                    <button
-                      className="primary-button full-button"
-                      type="button"
-                      disabled={actionKey === `pay-${selected.id}`}
-                      onClick={payReimbursement}
-                    >
-                      {actionKey === `pay-${selected.id}`
-                        ? "Memproses..."
-                        : "Proses pembayaran"}
-                    </button>
+                    <div className="payment-box payment-form">
+                      <div>
+                        <p className="eyebrow">Payment</p>
+                        <h3>Proses pembayaran</h3>
+                      </div>
+                      <label>
+                        Metode pembayaran
+                        <select
+                          value={paymentForm.method}
+                          onChange={(event) =>
+                            setPaymentForm({ ...paymentForm, method: event.target.value })
+                          }
+                        >
+                          {Object.entries(paymentMethodLabels).map(([value, label]) => (
+                            <option value={value} key={value}>{label}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Reference pembayaran
+                        <input
+                          value={paymentForm.reference}
+                          onChange={(event) =>
+                            setPaymentForm({ ...paymentForm, reference: event.target.value })
+                          }
+                          placeholder="Opsional, dibuat otomatis jika kosong"
+                        />
+                      </label>
+                      <label>
+                        Catatan pembayaran
+                        <textarea
+                          value={paymentForm.note}
+                          onChange={(event) =>
+                            setPaymentForm({ ...paymentForm, note: event.target.value })
+                          }
+                          placeholder="Catatan untuk pengaju"
+                        />
+                      </label>
+                      <button
+                        className="primary-button full-button"
+                        type="button"
+                        disabled={actionKey === `pay-${selected.id}`}
+                        onClick={payReimbursement}
+                      >
+                        {actionKey === `pay-${selected.id}` ? "Memproses..." : "Konfirmasi pembayaran"}
+                      </button>
+                    </div>
                   )}
                 </>
               ) : (

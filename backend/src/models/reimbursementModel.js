@@ -128,11 +128,60 @@ const findById = (id, user) => prisma.reimbursement.findFirst({
   include: includeRelations,
 });
 
-const updateById = (id, updates) => prisma.reimbursement.update({
-  where: { id: Number(id) },
-  data: updates,
-  include: includeRelations,
-});
+const updateById = async (id, updates) => {
+  const { expenses, ...reimbursementUpdates } = updates;
+
+  if (expenses === undefined) {
+    return prisma.reimbursement.update({
+      where: { id: Number(id) },
+      data: reimbursementUpdates,
+      include: includeRelations,
+    });
+  }
+
+  const expenseData = expenses.map((expense) => {
+    if (!expense.category || expense.amount === undefined || !expense.expenseDate || !expense.description) {
+      throw new Error('Setiap expense wajib memiliki category, amount, expenseDate, dan description.');
+    }
+
+    const expenseAmount = Number(expense.amount);
+    const expenseDate = new Date(expense.expenseDate);
+    if (!Number.isFinite(expenseAmount) || expenseAmount < 0 || Number.isNaN(expenseDate.getTime())) {
+      throw new Error('Data expense tidak valid.');
+    }
+
+    return {
+      category: expense.category,
+      amount: expenseAmount,
+      expenseDate,
+      description: expense.description,
+      receiptUrl: expense.receiptUrl || null,
+    };
+  });
+
+  return prisma.$transaction(async (transaction) => {
+    await transaction.reimbursement.update({
+      where: { id: Number(id) },
+      data: reimbursementUpdates,
+    });
+    await transaction.expense.deleteMany({
+      where: { reimbursementId: Number(id) },
+    });
+    if (expenseData.length) {
+      await transaction.expense.createMany({
+        data: expenseData.map((expense) => ({
+          ...expense,
+          reimbursementId: Number(id),
+        })),
+      });
+    }
+
+    return transaction.reimbursement.findUnique({
+      where: { id: Number(id) },
+      include: includeRelations,
+    });
+  });
+};
 
 const deleteById = (id) => prisma.reimbursement.delete({
   where: { id: Number(id) },
