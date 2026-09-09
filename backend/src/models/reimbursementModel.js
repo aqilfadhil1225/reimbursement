@@ -58,6 +58,13 @@ const createReimbursement = async ({
   if (!Array.isArray(expenses)) {
     throw new Error('expenses harus berupa array.');
   }
+  const expenseTotal = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+  if (!expenses.length || !expenses.every((expense) => Number.isFinite(Number(expense.amount)) && Number(expense.amount) > 0)) {
+    throw new Error('Minimal satu expense dengan nominal lebih besar dari nol wajib diisi.');
+  }
+  if (Math.abs(expenseTotal - Number(amount)) > 0.01) {
+    throw new Error('Total expense harus sama dengan total reimbursement.');
+  }
 
   return prisma.reimbursement.create({
     data: {

@@ -1,6 +1,7 @@
 const express = require('express');
 const reimbursementController = require('../controllers/reimbursementController');
 const authorizeRoles = require('../middleware/authorizeRoles');
+const uploadReceipt = require('../middleware/uploadReceipt');
 
 const router = express.Router();
 
@@ -12,5 +13,6 @@ router.delete('/:id', authorizeRoles('EMPLOYEE'), reimbursementController.delete
 router.patch('/:id/submit', authorizeRoles('EMPLOYEE'), reimbursementController.submitReimbursement);
 router.patch('/:id/manager', authorizeRoles('MANAGER'), reimbursementController.managerDecision);
 router.patch('/:id/finance', authorizeRoles('FINANCE'), reimbursementController.financeDecision);
+router.post('/:id/receipt', authorizeRoles('EMPLOYEE'), uploadReceipt.single('receipt'), reimbursementController.uploadReceipt);
 
 module.exports = router;

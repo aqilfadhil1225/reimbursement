@@ -25,6 +25,9 @@ const validateExpense = ({ category, amount, expenseDate, description }) => {
   if (Number.isNaN(parsedDate.getTime())) {
     throw new Error('expenseDate tidak valid.');
   }
+  if (parsedDate > new Date()) {
+    throw new Error('expenseDate tidak boleh di masa depan.');
+  }
 
   return {
     category: category.trim(),

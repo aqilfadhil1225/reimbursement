@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import api, { getErrorMessage } from "./api";
 import "./App.css";
 
@@ -49,6 +49,8 @@ function App() {
   const [authError, setAuthError] = useState("");
   const [items, setItems] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [summary, setSummary] = useState({ total: 0, totalAmount: 0, byStatus: {} });
   const [selectedId, setSelectedId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -60,6 +62,7 @@ function App() {
     amount: "",
     description: "",
     receiptUrl: "",
+    receiptFile: null,
     expenses: [{ ...emptyExpense }],
   });
   const [decision, setDecision] = useState({ action: "", note: "" });
@@ -77,27 +80,34 @@ function App() {
   const isManager = session?.role === "MANAGER";
   const isFinance = session?.role === "FINANCE";
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [reimbursementResponse, notificationResponse] = await Promise.all([
+      const requests = [
         api.get("/reimbursements"),
         api.get("/notifications"),
-      ]);
+        api.get("/reports/summary"),
+      ];
+      if (session.role === "MANAGER" || session.role === "FINANCE") {
+        requests.push(api.get("/audit-logs"));
+      }
+      const [reimbursementResponse, notificationResponse, reportResponse, auditResponse] = await Promise.all(requests);
       setItems(reimbursementResponse.data.data);
       setNotifications(notificationResponse.data.data);
+      setSummary(reportResponse.data.data);
+      setAuditLogs(auditResponse?.data?.data || []);
     } catch (error) {
       setNotice(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
-  };
+  }, [session]);
 
   useEffect(() => {
     if (!session) return undefined;
     const timer = setTimeout(() => loadData(), 0);
     return () => clearTimeout(timer);
-  }, [session]);
+  }, [session, loadData]);
 
   const submitAuth = async (event) => {
     event.preventDefault();
@@ -126,6 +136,8 @@ function App() {
     setSession(null);
     setItems([]);
     setNotifications([]);
+    setAuditLogs([]);
+    setSummary({ total: 0, totalAmount: 0, byStatus: {} });
   };
 
   const updateExpense = (index, field, value) => {
@@ -144,6 +156,7 @@ function App() {
       amount: item.amount || "",
       description: item.description || "",
       receiptUrl: item.receiptUrl || "",
+      receiptFile: null,
       expenses: item.expenses?.length
         ? item.expenses.map((expense) => ({
             ...expense,
@@ -231,27 +244,37 @@ function App() {
         description: form.description.trim(),
         receiptUrl: form.receiptUrl.trim(),
       };
-      if (editingId)
-        await api.patch(`/reimbursements/${editingId}`, {
+      let savedReimbursement;
+      if (editingId) {
+        const response = await api.patch(`/reimbursements/${editingId}`, {
           ...payload,
           expenses: validExpenses.map((expense) => ({
             ...expense,
             amount: Number(expense.amount),
           })),
         });
-      else
-        await api.post("/reimbursements", {
+        savedReimbursement = response.data.data;
+      } else {
+        const response = await api.post("/reimbursements", {
           ...payload,
           expenses: validExpenses.map((expense) => ({
             ...expense,
             amount: Number(expense.amount),
           })),
         });
+        savedReimbursement = response.data.data;
+      }
+      if (form.receiptFile) {
+        const receiptData = new FormData();
+        receiptData.append("receipt", form.receiptFile);
+        await api.post(`/reimbursements/${savedReimbursement.id}/receipt`, receiptData);
+      }
       setForm({
         category: "",
         amount: "",
         description: "",
         receiptUrl: "",
+        receiptFile: null,
         expenses: [{ ...emptyExpense }],
       });
       setEditingId(null);
@@ -426,6 +449,7 @@ function App() {
     (item) => !["PAID", "REJECTED"].includes(item.status),
   ).length;
   const unreadCount = notifications.filter((item) => !item.isRead).length;
+  const statusCount = (status) => summary.byStatus[status]?.count || 0;
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -565,6 +589,16 @@ function App() {
                         setForm({ ...form, receiptUrl: event.target.value })
                       }
                       placeholder="https://..."
+                    />
+                  </label>
+                  <label className="full-field">
+                    Upload bukti (JPG, PNG, PDF maksimal 5 MB)
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,application/pdf"
+                      onChange={(event) =>
+                        setForm({ ...form, receiptFile: event.target.files?.[0] || null })
+                      }
                     />
                   </label>
                 </div>
@@ -932,6 +966,22 @@ function App() {
               )}
             </aside>
           </div>
+          <section className="monitoring-section">
+            <div className="section-title">
+              <div>
+                <p className="eyebrow">Reports & monitoring</p>
+                <h2>Ringkasan proses</h2>
+              </div>
+              <span className="count-label">{summary.total} pengajuan</span>
+            </div>
+            <div className="monitoring-grid">
+              <div><span>Draft</span><strong>{statusCount("DRAFT")}</strong></div>
+              <div><span>Menunggu review</span><strong>{statusCount("SUBMITTED") + statusCount("FINANCE_REVIEW")}</strong></div>
+              <div><span>Siap dibayar</span><strong>{statusCount("READY_FOR_PAYMENT")}</strong></div>
+              <div><span>Selesai dibayar</span><strong>{statusCount("PAID")}</strong></div>
+              <div><span>Total nominal</span><strong>Rp {Number(summary.totalAmount).toLocaleString("id-ID")}</strong></div>
+            </div>
+          </section>
           <section className="notifications-section">
             <div className="section-title">
               <div>
@@ -965,6 +1015,33 @@ function App() {
               ))
             )}
           </section>
+          {(isManager || isFinance) && (
+            <section className="notifications-section audit-section">
+              <div className="section-title">
+                <div>
+                  <p className="eyebrow">System</p>
+                  <h2>Audit trail</h2>
+                </div>
+                <span className="count-label">{auditLogs.length} aktivitas</span>
+              </div>
+              {auditLogs.length === 0 ? (
+                <div className="empty-state">Belum ada aktivitas tercatat.</div>
+              ) : (
+                auditLogs.slice(0, 10).map((log) => (
+                  <div className="notification-row" key={log.id}>
+                    <span className="notification-mark">{log.action.slice(0, 1)}</span>
+                    <div>
+                      <strong>{log.action}</strong>
+                      <p>{log.details || "Aktivitas reimbursement tercatat."}</p>
+                    </div>
+                    <small className="muted">
+                      {new Date(log.createdAt).toLocaleString("id-ID")}
+                    </small>
+                  </div>
+                ))
+              )}
+            </section>
+          )}
         </section>
       </div>
     </main>

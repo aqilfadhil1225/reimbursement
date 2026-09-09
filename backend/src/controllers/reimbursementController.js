@@ -128,6 +128,26 @@ const financeDecision = async (req, res, next) => {
   }
 };
 
+const uploadReceipt = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'File bukti wajib dikirim.' });
+    }
+    const reimbursement = await reimbursementService.getReimbursementById(req.params.id, req.user);
+    if (!reimbursement) {
+      return res.status(404).json({ success: false, message: 'Reimbursement tidak ditemukan.' });
+    }
+    if (!['DRAFT', 'REVISION_REQUIRED'].includes(reimbursement.status)) {
+      return res.status(400).json({ success: false, message: 'Bukti hanya bisa diunggah saat DRAFT atau REVISION_REQUIRED.' });
+    }
+    const receiptUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const updated = await reimbursementService.updateReimbursement(req.params.id, { receiptUrl }, req.user);
+    return res.json({ success: true, data: reimbursementView.formatReimbursement(updated) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   listReimbursements,
   getReimbursement,
@@ -137,4 +157,5 @@ module.exports = {
   submitReimbursement,
   managerDecision,
   financeDecision,
+  uploadReceipt,
 };

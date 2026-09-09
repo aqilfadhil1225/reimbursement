@@ -2,6 +2,29 @@ const reimbursementModel = require('../models/reimbursementModel');
 
 const STATUS = reimbursementModel.STATUS;
 
+const validateReceiptUrl = (receiptUrl) => {
+  if (!receiptUrl) return;
+  try {
+    const url = new URL(receiptUrl);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+  } catch {
+    throw new Error('receiptUrl harus berupa URL http atau https yang valid.');
+  }
+};
+
+const validateExpensesTotal = (expenses, amount) => {
+  if (!Array.isArray(expenses) || expenses.length === 0) {
+    throw new Error('Minimal satu expense wajib diisi.');
+  }
+  const total = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+  if (!expenses.every((expense) => Number.isFinite(Number(expense.amount)) && Number(expense.amount) > 0)) {
+    throw new Error('Setiap nominal expense harus lebih besar dari nol.');
+  }
+  if (Math.abs(total - Number(amount)) > 0.01) {
+    throw new Error('Total expense harus sama dengan total reimbursement.');
+  }
+};
+
 const canTransition = (currentStatus, nextStatus) => {
   const transitions = {
     [STATUS.DRAFT]: [STATUS.SUBMITTED],
@@ -47,6 +70,7 @@ const updateReimbursement = async (id, updates, user) => {
     throw new Error('amount harus berupa angka dan tidak boleh negatif.');
   }
   if (data.amount !== undefined) data.amount = Number(data.amount);
+  if (data.receiptUrl !== undefined) validateReceiptUrl(data.receiptUrl);
 
   if (updates.expenses !== undefined) {
     if (!Array.isArray(updates.expenses)) {
@@ -54,6 +78,7 @@ const updateReimbursement = async (id, updates, user) => {
     }
 
     data.expenses = updates.expenses;
+    validateExpensesTotal(updates.expenses, data.amount ?? reimbursement.amount);
   }
 
   if (!Object.keys(data).length) throw new Error('tidak ada data reimbursement yang diubah.');
