@@ -124,12 +124,18 @@ const submitReimbursement = (id, actorId, actorRole = 'EMPLOYEE') => updateStatu
 
 const managerReview = async (id, action, note, actorId) => {
   if (!['approve', 'reject', 'revise'].includes(action)) throw new Error('action must be approve, reject, or revise.');
+  if (['reject', 'revise'].includes(action) && (!note || !note.trim())) {
+    throw new Error('Catatan wajib diisi untuk penolakan atau permintaan revisi.');
+  }
   const nextStatus = action === 'approve' ? STATUS.MANAGER_APPROVED : action === 'reject' ? STATUS.REJECTED : STATUS.REVISION_REQUIRED;
   return updateStatus(id, nextStatus, note || `Manager ${action}d the reimbursement.`, actorId, { managerId: actorId ? Number(actorId) : undefined }, 'MANAGER');
 };
 
 const financeReview = async (id, action, note, actorId) => {
   if (!['start', 'verify', 'approve', 'reject', 'revise'].includes(action)) throw new Error('action must be start, verify, approve, reject, or revise.');
+  if (['reject', 'revise'].includes(action) && (!note || !note.trim())) {
+    throw new Error('Catatan wajib diisi untuk penolakan atau permintaan revisi.');
+  }
   const nextStatus = action === 'start' ? STATUS.FINANCE_REVIEW : action === 'verify' || action === 'approve' ? STATUS.READY_FOR_PAYMENT : action === 'reject' ? STATUS.REJECTED : STATUS.REVISION_REQUIRED;
   return updateStatus(id, nextStatus, note || `Finance ${action}d the reimbursement.`, actorId, { financeId: actorId ? Number(actorId) : undefined }, 'FINANCE');
 };

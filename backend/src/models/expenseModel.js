@@ -5,6 +5,11 @@ const findByReimbursementId = (reimbursementId) => prisma.expense.findMany({
   orderBy: { expenseDate: 'asc' },
 });
 
+const findById = (id) => prisma.expense.findUnique({
+  where: { id: Number(id) },
+  include: { reimbursement: true },
+});
+
 const create = (data) => prisma.expense.create({ data });
 
 const updateById = (id, data) => prisma.expense.update({
@@ -18,6 +23,7 @@ const deleteById = (id) => prisma.expense.delete({
 
 module.exports = {
   findByReimbursementId,
+  findById,
   create,
   updateById,
   deleteById,

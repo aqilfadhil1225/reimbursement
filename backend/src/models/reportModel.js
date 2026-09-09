@@ -22,4 +22,15 @@ const getSummary = async (where) => {
   };
 };
 
-module.exports = { getSummary };
+const getWhere = ({ baseWhere, status, from, to }) => ({
+  ...baseWhere,
+  ...(status ? { status } : {}),
+  ...((from || to) && {
+    createdAt: {
+      ...(from ? { gte: new Date(`${from}T00:00:00.000Z`) } : {}),
+      ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}),
+    },
+  }),
+});
+
+module.exports = { getSummary, getWhere };

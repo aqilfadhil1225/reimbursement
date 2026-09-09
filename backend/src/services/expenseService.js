@@ -1,4 +1,5 @@
 const expenseModel = require('../models/expenseModel');
+const reimbursementModel = require('../models/reimbursementModel');
 
 const validateId = (id, label) => {
   const parsedId = Number(id);
@@ -37,17 +38,39 @@ const validateExpense = ({ category, amount, expenseDate, description }) => {
   };
 };
 
-const getExpenses = (reimbursementId) => expenseModel.findByReimbursementId(
-  validateId(reimbursementId, 'id reimbursement'),
-);
+const getExpenses = async (reimbursementId, user) => {
+  const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
+  const reimbursement = await reimbursementModel.findById(parsedReimbursementId, user);
+  if (!reimbursement) return null;
+  return expenseModel.findByReimbursementId(parsedReimbursementId);
+};
 
-const createExpense = (reimbursementId, payload) => expenseModel.create({
-  reimbursementId: validateId(reimbursementId, 'id reimbursement'),
-  ...validateExpense(payload),
-  receiptUrl: payload.receiptUrl || null,
-});
+const assertEmployeeCanEdit = async (reimbursementId, user) => {
+  const reimbursement = await reimbursementModel.findById(reimbursementId, user);
+  if (!reimbursement) return null;
+  if (user.role !== 'EMPLOYEE' || reimbursement.employeeId !== Number(user.id)) {
+    throw new Error('Kamu tidak memiliki akses mengubah expense ini.');
+  }
+  if (!['DRAFT', 'REVISION_REQUIRED'].includes(reimbursement.status)) {
+    throw new Error('Expense hanya bisa diubah saat DRAFT atau REVISION_REQUIRED.');
+  }
+  return reimbursement;
+};
 
-const updateExpense = (id, payload) => {
+const createExpense = async (reimbursementId, payload, user) => {
+  const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
+  await assertEmployeeCanEdit(parsedReimbursementId, user);
+  return expenseModel.create({
+    reimbursementId: parsedReimbursementId,
+    ...validateExpense(payload),
+    receiptUrl: payload.receiptUrl || null,
+  });
+};
+
+const updateExpense = async (id, payload, user) => {
+  const expense = await expenseModel.findById(validateId(id, 'id expense'));
+  if (!expense) return null;
+  await assertEmployeeCanEdit(expense.reimbursementId, user);
   const data = {};
 
   if (payload.category !== undefined) data.category = payload.category.trim();
@@ -61,6 +84,7 @@ const updateExpense = (id, payload) => {
   if (payload.expenseDate !== undefined) {
     const expenseDate = new Date(payload.expenseDate);
     if (Number.isNaN(expenseDate.getTime())) throw new Error('expenseDate tidak valid.');
+    if (expenseDate > new Date()) throw new Error('expenseDate tidak boleh di masa depan.');
     data.expenseDate = expenseDate;
   }
 
@@ -69,11 +93,26 @@ const updateExpense = (id, payload) => {
   return expenseModel.updateById(validateId(id, 'id expense'), data);
 };
 
-const deleteExpense = (id) => expenseModel.deleteById(validateId(id, 'id expense'));
+const deleteExpense = async (id, user) => {
+  const parsedId = validateId(id, 'id expense');
+  const expense = await expenseModel.findById(parsedId);
+  if (!expense) return null;
+  await assertEmployeeCanEdit(expense.reimbursementId, user);
+  return expenseModel.deleteById(parsedId);
+};
+
+const updateReceipt = async (id, receiptUrl, user) => {
+  const parsedId = validateId(id, 'id expense');
+  const expense = await expenseModel.findById(parsedId);
+  if (!expense) return null;
+  await assertEmployeeCanEdit(expense.reimbursementId, user);
+  return expenseModel.updateById(parsedId, { receiptUrl });
+};
 
 module.exports = {
   getExpenses,
   createExpense,
   updateExpense,
   deleteExpense,
+  updateReceipt,
 };

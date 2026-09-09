@@ -1,4 +1,5 @@
 const paymentModel = require('../models/paymentModel');
+const reimbursementModel = require('../models/reimbursementModel');
 
 const validateId = (id, label) => {
   const parsedId = Number(id);
@@ -27,12 +28,17 @@ const validatePayment = ({ method, reference }) => {
   };
 };
 
-const getPayment = (reimbursementId) => paymentModel.findByReimbursementId(
-  validateId(reimbursementId, 'id reimbursement'),
-);
-
-const completePayment = async (reimbursementId, payload) => {
+const getPayment = async (reimbursementId, user) => {
   const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
+  const reimbursement = await reimbursementModel.findById(parsedReimbursementId, user);
+  if (!reimbursement) return null;
+  return paymentModel.findByReimbursementId(parsedReimbursementId);
+};
+
+const completePayment = async (reimbursementId, payload, user) => {
+  const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
+  const reimbursement = await reimbursementModel.findById(parsedReimbursementId, user);
+  if (!reimbursement) return null;
   const actorId = payload.actorId === undefined || payload.actorId === null
     ? null
     : validateId(payload.actorId, 'actorId');
