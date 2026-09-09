@@ -13,6 +13,17 @@ const STATUS = {
 
 const VALID_STATUSES = Object.values(STATUS);
 
+const validateReceiptUrl = (receiptUrl) => {
+  if (!receiptUrl) return null;
+  try {
+    const url = new URL(receiptUrl);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+  } catch {
+    throw new Error('receiptUrl harus berupa URL http atau https yang valid.');
+  }
+  return receiptUrl.trim();
+};
+
 const includeRelations = {
   employee: true,
   manager: true,
@@ -65,6 +76,7 @@ const createReimbursement = async ({
   if (Math.abs(expenseTotal - Number(amount)) > 0.01) {
     throw new Error('Total expense harus sama dengan total reimbursement.');
   }
+  validateReceiptUrl(receiptUrl);
 
   return prisma.reimbursement.create({
     data: {
@@ -73,7 +85,7 @@ const createReimbursement = async ({
       amount: Number(amount),
       category,
       description: description || '',
-      receiptUrl: receiptUrl || '',
+      receiptUrl: validateReceiptUrl(receiptUrl) || '',
       status: normalizedStatus,
       employeeId: employeeId ? Number(employeeId) : undefined,
       managerId: managerId ? Number(managerId) : undefined,
@@ -85,16 +97,17 @@ const createReimbursement = async ({
 
         const expenseAmount = Number(expense.amount);
         const expenseDate = new Date(expense.expenseDate);
-        if (!Number.isFinite(expenseAmount) || expenseAmount < 0 || Number.isNaN(expenseDate.getTime())) {
+        if (!Number.isFinite(expenseAmount) || expenseAmount <= 0 || Number.isNaN(expenseDate.getTime())) {
           throw new Error('Data expense tidak valid.');
         }
+        if (expenseDate > new Date()) throw new Error('expenseDate tidak boleh di masa depan.');
 
         return {
           category: expense.category,
           amount: expenseAmount,
           expenseDate,
           description: expense.description,
-          receiptUrl: expense.receiptUrl || null,
+          receiptUrl: validateReceiptUrl(expense.receiptUrl) || null,
         };
       }) },
       history: {
@@ -153,16 +166,17 @@ const updateById = async (id, updates) => {
 
     const expenseAmount = Number(expense.amount);
     const expenseDate = new Date(expense.expenseDate);
-    if (!Number.isFinite(expenseAmount) || expenseAmount < 0 || Number.isNaN(expenseDate.getTime())) {
+    if (!Number.isFinite(expenseAmount) || expenseAmount <= 0 || Number.isNaN(expenseDate.getTime())) {
       throw new Error('Data expense tidak valid.');
     }
+    if (expenseDate > new Date()) throw new Error('expenseDate tidak boleh di masa depan.');
 
     return {
       category: expense.category,
       amount: expenseAmount,
       expenseDate,
       description: expense.description,
-      receiptUrl: expense.receiptUrl || null,
+      receiptUrl: validateReceiptUrl(expense.receiptUrl) || null,
     };
   });
 

@@ -14,6 +14,7 @@ const listExpenses = async (req, res, next) => {
 const createExpense = async (req, res, next) => {
   try {
     const expense = await expenseService.createExpense(req.params.reimbursementId, req.body, req.user);
+    if (!expense) return res.status(404).json({ success: false, message: 'Reimbursement tidak ditemukan.' });
     return res.status(201).json({ success: true, data: apiView.formatExpense(expense) });
   } catch (error) {
     return next(error);

@@ -43,7 +43,7 @@ app.use((err, req, res, next) => {
     P2025: 404,
     LIMIT_FILE_SIZE: 400,
   };
-  const status = statusByCode[err.code] || err.statusCode || 500;
+  const status = statusByCode[err.code] || err.statusCode || (err.name === 'MulterError' ? 400 : 500);
   res.status(status).json({
     success: false,
     message: status === 500 ? 'Internal Server Error' : err.message,

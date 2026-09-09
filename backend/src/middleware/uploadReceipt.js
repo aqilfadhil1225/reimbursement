@@ -19,7 +19,9 @@ const uploadReceipt = multer({
   fileFilter: (req, file, callback) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
     if (!allowedTypes.includes(file.mimetype)) {
-      return callback(new Error('Bukti harus berupa JPG, PNG, atau PDF.'));
+      const error = new Error('Bukti harus berupa JPG, PNG, atau PDF.');
+      error.statusCode = 400;
+      return callback(error);
     }
     return callback(null, true);
   },

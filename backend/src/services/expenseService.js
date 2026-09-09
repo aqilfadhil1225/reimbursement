@@ -11,6 +11,17 @@ const validateId = (id, label) => {
   return parsedId;
 };
 
+const validateReceiptUrl = (receiptUrl) => {
+  if (!receiptUrl) return null;
+  try {
+    const url = new URL(receiptUrl);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+  } catch {
+    throw new Error('receiptUrl harus berupa URL http atau https yang valid.');
+  }
+  return receiptUrl.trim();
+};
+
 const validateExpense = ({ category, amount, expenseDate, description }) => {
   if (!category || amount === undefined || amount === null || !expenseDate || !description) {
     throw new Error('category, amount, expenseDate, dan description wajib diisi.');
@@ -19,8 +30,8 @@ const validateExpense = ({ category, amount, expenseDate, description }) => {
   const numericAmount = Number(amount);
   const parsedDate = new Date(expenseDate);
 
-  if (!Number.isFinite(numericAmount) || numericAmount < 0) {
-    throw new Error('amount expense harus angka dan tidak boleh negatif.');
+  if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+    throw new Error('amount expense harus angka dan lebih besar dari nol.');
   }
 
   if (Number.isNaN(parsedDate.getTime())) {
@@ -59,26 +70,28 @@ const assertEmployeeCanEdit = async (reimbursementId, user) => {
 
 const createExpense = async (reimbursementId, payload, user) => {
   const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
-  await assertEmployeeCanEdit(parsedReimbursementId, user);
+  const reimbursement = await assertEmployeeCanEdit(parsedReimbursementId, user);
+  if (!reimbursement) return null;
   return expenseModel.create({
     reimbursementId: parsedReimbursementId,
     ...validateExpense(payload),
-    receiptUrl: payload.receiptUrl || null,
+    receiptUrl: validateReceiptUrl(payload.receiptUrl) || null,
   });
 };
 
 const updateExpense = async (id, payload, user) => {
   const expense = await expenseModel.findById(validateId(id, 'id expense'));
   if (!expense) return null;
-  await assertEmployeeCanEdit(expense.reimbursementId, user);
+  const reimbursement = await assertEmployeeCanEdit(expense.reimbursementId, user);
+  if (!reimbursement) return null;
   const data = {};
 
   if (payload.category !== undefined) data.category = payload.category.trim();
   if (payload.description !== undefined) data.description = payload.description.trim();
-  if (payload.receiptUrl !== undefined) data.receiptUrl = payload.receiptUrl || null;
+  if (payload.receiptUrl !== undefined) data.receiptUrl = validateReceiptUrl(payload.receiptUrl);
   if (payload.amount !== undefined) {
     const amount = Number(payload.amount);
-    if (!Number.isFinite(amount) || amount < 0) throw new Error('amount expense harus angka dan tidak boleh negatif.');
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('amount expense harus angka dan lebih besar dari nol.');
     data.amount = amount;
   }
   if (payload.expenseDate !== undefined) {
@@ -97,7 +110,8 @@ const deleteExpense = async (id, user) => {
   const parsedId = validateId(id, 'id expense');
   const expense = await expenseModel.findById(parsedId);
   if (!expense) return null;
-  await assertEmployeeCanEdit(expense.reimbursementId, user);
+  const reimbursement = await assertEmployeeCanEdit(expense.reimbursementId, user);
+  if (!reimbursement) return null;
   return expenseModel.deleteById(parsedId);
 };
 
@@ -105,8 +119,9 @@ const updateReceipt = async (id, receiptUrl, user) => {
   const parsedId = validateId(id, 'id expense');
   const expense = await expenseModel.findById(parsedId);
   if (!expense) return null;
-  await assertEmployeeCanEdit(expense.reimbursementId, user);
-  return expenseModel.updateById(parsedId, { receiptUrl });
+  const reimbursement = await assertEmployeeCanEdit(expense.reimbursementId, user);
+  if (!reimbursement) return null;
+  return expenseModel.updateById(parsedId, { receiptUrl: validateReceiptUrl(receiptUrl) });
 };
 
 module.exports = {

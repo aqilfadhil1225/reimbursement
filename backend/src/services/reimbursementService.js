@@ -120,7 +120,12 @@ const updateStatus = async (id, nextStatus, note, actorId, extraData, actorRole)
   );
 };
 
-const submitReimbursement = (id, actorId, actorRole = 'EMPLOYEE') => updateStatus(id, STATUS.SUBMITTED, 'Submitted by employee for manager review.', actorId, undefined, actorRole);
+const submitReimbursement = async (id, actorId, actorRole = 'EMPLOYEE') => {
+  const reimbursement = await reimbursementModel.findById(id, { id: actorId, role: actorRole });
+  if (!reimbursement) return null;
+  validateExpensesTotal(reimbursement.expenses, reimbursement.amount);
+  return updateStatus(id, STATUS.SUBMITTED, 'Submitted by employee for manager review.', actorId, undefined, actorRole);
+};
 
 const managerReview = async (id, action, note, actorId) => {
   if (!['approve', 'reject', 'revise'].includes(action)) throw new Error('action must be approve, reject, or revise.');
