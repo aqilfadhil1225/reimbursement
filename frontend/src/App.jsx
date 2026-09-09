@@ -27,12 +27,17 @@ const paymentMethodLabels = {
   CASH: "Tunai",
   OTHER: "Lainnya",
 };
+const statusFilterOptions = [
+  ["", "Semua status"],
+  ...Object.entries(statusLabels),
+];
 const emptyExpense = {
   category: "",
   amount: "",
   expenseDate: "",
   description: "",
   receiptUrl: "",
+  receiptFile: null,
 };
 
 function App() {
@@ -71,6 +76,8 @@ function App() {
     reference: "",
     note: "",
   });
+  const [queueFilters, setQueueFilters] = useState({ search: "", status: "" });
+  const [reportFilters, setReportFilters] = useState({ status: "", from: "", to: "" });
 
   const selected = useMemo(
     () => items.find((item) => item.id === selectedId),
@@ -86,7 +93,7 @@ function App() {
       const requests = [
         api.get("/reimbursements"),
         api.get("/notifications"),
-        api.get("/reports/summary"),
+        api.get("/reports/summary", { params: reportFilters }),
       ];
       if (session.role === "MANAGER" || session.role === "FINANCE") {
         requests.push(api.get("/audit-logs"));
@@ -101,7 +108,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, reportFilters]);
 
   useEffect(() => {
     if (!session) return undefined;
@@ -160,6 +167,7 @@ function App() {
       expenses: item.expenses?.length
         ? item.expenses.map((expense) => ({
             ...expense,
+        receiptFile: null,
             expenseDate: expense.expenseDate?.slice(0, 10) || "",
           }))
         : [{ ...emptyExpense }],
@@ -249,7 +257,9 @@ function App() {
         const response = await api.patch(`/reimbursements/${editingId}`, {
           ...payload,
           expenses: validExpenses.map((expense) => ({
-            ...expense,
+            ...Object.fromEntries(
+              Object.entries(expense).filter(([key]) => key !== "receiptFile"),
+            ),
             amount: Number(expense.amount),
           })),
         });
@@ -258,7 +268,9 @@ function App() {
         const response = await api.post("/reimbursements", {
           ...payload,
           expenses: validExpenses.map((expense) => ({
-            ...expense,
+            ...Object.fromEntries(
+              Object.entries(expense).filter(([key]) => key !== "receiptFile"),
+            ),
             amount: Number(expense.amount),
           })),
         });
@@ -269,6 +281,19 @@ function App() {
         receiptData.append("receipt", form.receiptFile);
         await api.post(`/reimbursements/${savedReimbursement.id}/receipt`, receiptData);
       }
+      const savedExpenses = savedReimbursement.expenses || [];
+      await Promise.all(
+        validExpenses.map((expense, index) => {
+          const savedExpense = savedExpenses[index];
+          if (!expense.receiptFile || !savedExpense?.id) return null;
+          const receiptData = new FormData();
+          receiptData.append("receipt", expense.receiptFile);
+          return api.post(
+            `/reimbursements/${savedReimbursement.id}/expenses/${savedExpense.id}/receipt`,
+            receiptData,
+          );
+        }),
+      );
       setForm({
         category: "",
         amount: "",
@@ -450,6 +475,12 @@ function App() {
   ).length;
   const unreadCount = notifications.filter((item) => !item.isRead).length;
   const statusCount = (status) => summary.byStatus[status]?.count || 0;
+  const filteredItems = items.filter((item) => {
+    const query = queueFilters.search.trim().toLowerCase();
+    const matchesSearch = !query || [item.category, item.employeeName, item.description]
+      .some((value) => value?.toLowerCase().includes(query));
+    return matchesSearch && (!queueFilters.status || item.status === queueFilters.status);
+  });
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -673,6 +704,14 @@ function App() {
                           updateExpense(index, "receiptUrl", event.target.value)
                         }
                       />
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,application/pdf"
+                        aria-label={`Upload bukti expense ${index + 1}`}
+                        onChange={(event) =>
+                          updateExpense(index, "receiptFile", event.target.files?.[0] || null)
+                        }
+                      />
                     </div>
                   ))}
                 </div>
@@ -691,13 +730,34 @@ function App() {
                 </div>
                 <span className="count-label">{items.length} total</span>
               </div>
+              <div className="queue-filters">
+                <input
+                  aria-label="Cari reimbursement"
+                  placeholder="Cari kategori, pengaju, atau deskripsi"
+                  value={queueFilters.search}
+                  onChange={(event) =>
+                    setQueueFilters({ ...queueFilters, search: event.target.value })
+                  }
+                />
+                <select
+                  aria-label="Filter status reimbursement"
+                  value={queueFilters.status}
+                  onChange={(event) =>
+                    setQueueFilters({ ...queueFilters, status: event.target.value })
+                  }
+                >
+                  {statusFilterOptions.map(([value, label]) => (
+                    <option value={value} key={value || "all-queue-statuses"}>{label}</option>
+                  ))}
+                </select>
+              </div>
               {loading ? (
                 <div className="empty-state">Memuat data...</div>
-              ) : items.length === 0 ? (
+              ) : filteredItems.length === 0 ? (
                 <div className="empty-state">Belum ada pengajuan.</div>
               ) : (
                 <div className="request-list">
-                  {items.map((item) => (
+                  {filteredItems.map((item) => (
                     <button
                       className={`request-row ${selectedId === item.id ? "selected" : ""}`}
                       type="button"
@@ -980,6 +1040,46 @@ function App() {
               <div><span>Siap dibayar</span><strong>{statusCount("READY_FOR_PAYMENT")}</strong></div>
               <div><span>Selesai dibayar</span><strong>{statusCount("PAID")}</strong></div>
               <div><span>Total nominal</span><strong>Rp {Number(summary.totalAmount).toLocaleString("id-ID")}</strong></div>
+            </div>
+            <div className="report-filters">
+              <select
+                aria-label="Filter laporan berdasarkan status"
+                value={reportFilters.status}
+                onChange={(event) =>
+                  setReportFilters({ ...reportFilters, status: event.target.value })
+                }
+              >
+                {statusFilterOptions.map(([value, label]) => (
+                  <option value={value} key={value || "all-report-statuses"}>{label}</option>
+                ))}
+              </select>
+              <label>
+                Dari
+                <input
+                  type="date"
+                  value={reportFilters.from}
+                  onChange={(event) =>
+                    setReportFilters({ ...reportFilters, from: event.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Sampai
+                <input
+                  type="date"
+                  value={reportFilters.to}
+                  onChange={(event) =>
+                    setReportFilters({ ...reportFilters, to: event.target.value })
+                  }
+                />
+              </label>
+              <button
+                className="ghost-button"
+                type="button"
+                onClick={() => setReportFilters({ status: "", from: "", to: "" })}
+              >
+                Reset filter
+              </button>
             </div>
           </section>
           <section className="notifications-section">

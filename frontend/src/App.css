@@ -55,3 +55,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .expense-detail-row span { font: 600 12px 'Space Grotesk'; white-space: nowrap; }
 .expense-detail-row a { color: var(--green); font-size: 11px; font-weight: 700; white-space: nowrap; }
 @media (max-width: 600px) { .expense-row { grid-template-columns: 1fr; }.expense-detail-row { grid-template-columns: 1fr auto; }.expense-detail-row a { grid-column: 1 / -1; }.payment-meta { grid-template-columns: 1fr; }.monitoring-grid { grid-template-columns: repeat(2, 1fr); }.monitoring-section { padding: 20px; } }
+
+.queue-filters { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 10px; padding: 0 25px 18px; }
+.report-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.report-filters label { min-width: 140px; }
+.report-filters .ghost-button { margin-bottom: 8px; }
+.expense-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@media (max-width: 900px) {
+  .report-filters label { flex: 1; }
+}
+@media (max-width: 600px) {
+  .queue-filters, .report-filters { display: grid; grid-template-columns: 1fr; }
+  .report-filters label, .report-filters .ghost-button { width: 100%; margin: 0; }
+  .expense-row { grid-template-columns: 1fr; }
+}
