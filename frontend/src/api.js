@@ -14,8 +14,12 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-export const getErrorMessage = (error) => (
-  error.response?.data?.message || 'Terjadi kesalahan. Coba lagi.'
-)
+export const getErrorMessage = (error) => {
+  if (!error.response) {
+    return 'Backend tidak dapat dihubungi. Jalankan server backend di port 3000.'
+  }
+
+  return error.response.data?.message || 'Terjadi kesalahan. Coba lagi.'
+}
 
 export default api

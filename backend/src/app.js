@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 const authRoutes = require('./routes/authRoutes');
 const authenticate = require('./middleware/authMiddleware');
 const path = require('path');
@@ -35,6 +36,7 @@ app.use('/api/users', authenticate, userRoutes);
 app.use('/api/notifications', authenticate, notificationRoutes);
 app.use('/api/audit-logs', authenticate, auditLogRoutes);
 app.use('/api/reports', authenticate, reportRoutes);
+app.use('/api/profile', authenticate, profileRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

@@ -17,11 +17,6 @@ const statusLabels = {
   REJECTED: "Rejected",
   REVISION_REQUIRED: "Revision required",
 };
-const roleDescriptions = {
-  EMPLOYEE: "Kelola pengajuan reimbursement",
-  MANAGER: "Review pengajuan tim",
-  FINANCE: "Verifikasi dan proses pembayaran",
-};
 const paymentMethodLabels = {
   BANK_TRANSFER: "Transfer bank",
   CASH: "Tunai",
@@ -78,6 +73,11 @@ function App() {
   });
   const [queueFilters, setQueueFilters] = useState({ search: "", status: "" });
   const [reportFilters, setReportFilters] = useState({ status: "", from: "", to: "" });
+  const [activePage, setActivePage] = useState("dashboard");
+  const [profileForm, setProfileForm] = useState(() => ({
+    name: session?.name || "",
+    email: session?.email || "",
+  }));
 
   const selected = useMemo(
     () => items.find((item) => item.id === selectedId),
@@ -133,6 +133,7 @@ function App() {
       const { user, token } = response.data.data;
       localStorage.setItem("reimbursement_token", token);
       localStorage.setItem("reimbursement_user", JSON.stringify(user));
+      setProfileForm({ name: user.name || "", email: user.email || "" });
       setSession(user);
     } catch (error) {
       setAuthError(getErrorMessage(error));
@@ -389,28 +390,55 @@ function App() {
     }
   };
 
+  const updateProfile = async (event) => {
+    event.preventDefault();
+    if (actionKey) return;
+    setActionKey("profile");
+    try {
+      const response = await api.patch("/profile", profileForm);
+      const { user, token } = response.data.data;
+      const updatedUser = { ...session, ...user };
+      localStorage.setItem("reimbursement_token", token);
+      localStorage.setItem("reimbursement_user", JSON.stringify(updatedUser));
+      setSession(updatedUser);
+      setNotice("Profile berhasil diperbarui.");
+    } catch (error) {
+      setNotice(getErrorMessage(error));
+    } finally {
+      setActionKey("");
+    }
+  };
+
+  const openQueue = (status = "") => {
+    setQueueFilters({ search: "", status });
+    setSelectedId(null);
+    setActivePage(status === "READY_FOR_PAYMENT" ? "payment" : "reimbursement");
+  };
+
+  const openApprovalHistory = () => {
+    setQueueFilters({ search: "", status: "" });
+    setSelectedId(null);
+    setActivePage("approval");
+  };
+
+  const openPage = (page) => {
+    setActivePage(page);
+    setNotice("");
+  };
+
   if (!session)
     return (
       <main className="auth-shell">
         <section className="auth-intro">
-          <div className="brand-mark">RM</div>
           <p className="eyebrow">Reimbursement operations</p>
           <h1>Pengeluaran yang rapi, keputusan yang jelas.</h1>
           <p className="intro-copy">
             Kelola pengajuan, review, dan pembayaran dalam satu ruang kerja yang
             mudah dipantau.
           </p>
-          <div className="process-line">
-            <span>Submit</span>
-            <i />
-            <span>Review</span>
-            <i />
-            <span>Pay</span>
-          </div>
         </section>
         <section className="auth-panel">
           <div className="panel-heading">
-            <p className="eyebrow">Workspace access</p>
             <h2>
               {authMode === "login"
                 ? "Masuk ke dashboard"
@@ -474,12 +502,12 @@ function App() {
       </main>
     );
 
-  const openItems = items.filter(
-    (item) => !["PAID", "REJECTED"].includes(item.status),
-  ).length;
   const unreadCount = notifications.filter((item) => !item.isRead).length;
   const statusCount = (status) => summary.byStatus[status]?.count || 0;
-  const filteredItems = items.filter((item) => {
+  const visibleItems = activePage === "approval"
+    ? items.filter((item) => item.status !== "DRAFT")
+    : items;
+  const filteredItems = visibleItems.filter((item) => {
     const query = queueFilters.search.trim().toLowerCase();
     const matchesSearch = !query || [item.category, item.employeeName, item.description]
       .some((value) => value?.toLowerCase().includes(query));
@@ -505,36 +533,43 @@ function App() {
       </header>
       <div className="workspace">
         <aside className="sidebar">
-          <div className="sidebar-label">Overview</div>
-          <div className="side-stat">
-            <span>Pengajuan aktif</span>
-            <strong>{openItems}</strong>
+          <div className="sidebar-account">
+            <div>
+              <strong>{session.name}</strong>
+            </div>
           </div>
-          <div className="side-stat">
-            <span>Notifikasi baru</span>
-            <strong>{unreadCount}</strong>
+          <div className="sidebar-nav">
+            <div className="sidebar-label">Main Menu</div>
+            <button className={`sidebar-link ${activePage === "dashboard" ? "sidebar-link-active" : ""}`} type="button" onClick={() => openPage("dashboard")}><span>⌂</span> Dashboard</button>
+            <div className="sidebar-label">Transaksi</div>
+            <button className="sidebar-link" type="button" onClick={() => {
+              if (isEmployee) {
+                setEditingId(null);
+                setShowForm(true);
+                openPage("reimbursement");
+              } else {
+                openQueue();
+              }
+            }}><span>▤</span> Reimbursement <b>⌄</b></button>
+            <button className="sidebar-link" type="button" onClick={() => openQueue("READY_FOR_PAYMENT")}><span>▣</span> Pembayaran <b>⌄</b></button>
+            <div className="sidebar-label">Approval</div>
+            <button className={`sidebar-link ${activePage === "approval" ? "sidebar-link-active" : ""}`} type="button" onClick={openApprovalHistory}><span>✓</span> Riwayat Approval</button>
+            <div className="sidebar-label">Lainnya</div>
+            <button className={`sidebar-link ${activePage === "notifications" ? "sidebar-link-active" : ""}`} type="button" onClick={() => openPage("notifications")}><span>♢</span> Notifikasi {unreadCount > 0 && <i />}</button>
+            <button className={`sidebar-link ${activePage === "monitoring" ? "sidebar-link-active" : ""}`} type="button" onClick={() => openPage("monitoring")}><span>▥</span> Laporan Monitoring</button>
+            <button className="sidebar-link" type="button" onClick={() => {
+              setNotice(`${session.name} · ${session.email} · ${roleLabels[session.role]}`);
+              openPage("profile");
+            }}><span>○</span> Profile</button>
           </div>
-          <div className="sidebar-note">
-            <span className="dot" /> API tersambung
-            <br />
-            <small>Data dimuat langsung dari backend</small>
-          </div>
-          <div className="sidebar-note role-note">
-            <strong>{roleLabels[session.role]}</strong>
-            <br />
-            <small>{roleDescriptions[session.role]}</small>
-          </div>
+          <button className="sidebar-logout" type="button" onClick={logout}><span>⇥</span> Keluar</button>
         </aside>
-        <section className="content-area">
+        <section className="content-area" id="profile-section">
           <div className="page-header">
             <div>
-              <p className="eyebrow">
-                {new Date().toLocaleDateString("id-ID", { dateStyle: "long" })}
-              </p>
-              <h1>Selamat datang, {session.name.split(" ")[0]}.</h1>
-              <p className="muted">
-                Pantau progres reimbursement tanpa kehilangan konteks.
-              </p>
+              <p className="breadcrumb">Home <b>/</b> Dashboard</p>
+              <h1>Dashboard</h1>
+              <p className="muted">Ringkasan aktivitas reimbursement Anda</p>
             </div>
             {isEmployee && (
               <button
@@ -542,13 +577,49 @@ function App() {
                 type="button"
                 onClick={() => {
                   setEditingId(null);
-                  setShowForm(!showForm);
+                  setShowForm(true);
+                  openPage("reimbursement");
                 }}
               >
                 + Pengajuan baru
               </button>
             )}
           </div>
+          {activePage === "dashboard" && <section className="welcome-banner">
+            <div>
+              <p>Dashboard Overview</p>
+              <h2>Selamat datang, {roleLabels[session.role]}! </h2>
+              <small>Pantau status reimbursement dan aktivitas pengajuan Anda melalui dashboard ini.</small>
+              {isEmployee && <button type="button" onClick={() => { setEditingId(null); setShowForm(true); openPage("reimbursement"); }}>＋ &nbsp;Ajukan Reimbursement</button>}
+            </div>
+          </section>}
+          {activePage === "dashboard" && <section className="summary-cards" aria-label="Ringkasan reimbursement">
+            <div className="summary-card summary-card-blue">
+              <div className="summary-card-top"><span className="summary-icon">▤</span><span>Total</span></div>
+              <strong>{summary.total || items.length}</strong>
+              <small>Semua reimbursement</small>
+            </div>
+            <div className="summary-card summary-card-orange">
+              <div className="summary-card-top"><span className="summary-icon">◷</span><span>Pending</span></div>
+              <strong>{statusCount("SUBMITTED") + statusCount("FINANCE_REVIEW")}</strong>
+              <small>Menunggu proses</small>
+            </div>
+            <div className="summary-card summary-card-green">
+              <div className="summary-card-top"><span className="summary-icon">✓</span><span>Approved</span></div>
+              <strong>{statusCount("MANAGER_APPROVED")}</strong>
+              <small>Telah disetujui</small>
+            </div>
+            <div className="summary-card summary-card-purple">
+              <div className="summary-card-top"><span className="summary-icon">Rp</span><span>Payment</span></div>
+              <strong>{statusCount("READY_FOR_PAYMENT")}</strong>
+              <small>Menunggu pembayaran</small>
+            </div>
+            <div className="summary-card summary-card-teal">
+              <div className="summary-card-top"><span className="summary-icon">✓</span><span>Paid</span></div>
+              <strong>{statusCount("PAID")}</strong>
+              <small>Sudah dibayarkan</small>
+            </div>
+          </section>}
           {notice && (
             <div className="notice">
               {notice}
@@ -557,8 +628,8 @@ function App() {
               </button>
             </div>
           )}
-          {showForm && (
-            <section className="form-section">
+          {activePage === "reimbursement" && showForm && (
+            <section className="form-section" id="reimbursement-form">
               <div className="section-title">
                 <div>
                   <p className="eyebrow">{editingId ? "Edit reimbursement" : "Draft baru"}</p>
@@ -725,7 +796,7 @@ function App() {
               </form>
             </section>
           )}
-          <div className="dashboard-grid">
+          {(activePage === "reimbursement" || activePage === "payment" || activePage === "approval") && <div className="dashboard-grid" id="reimbursement-queue">
             <section className="list-section">
               <div className="section-title">
                 <div>
@@ -1029,8 +1100,8 @@ function App() {
                 </div>
               )}
             </aside>
-          </div>
-          <section className="monitoring-section">
+          </div>}
+          {activePage === "monitoring" && <section className="monitoring-section" id="monitoring-section">
             <div className="section-title">
               <div>
                 <p className="eyebrow">Reports & monitoring</p>
@@ -1085,8 +1156,8 @@ function App() {
                 Reset filter
               </button>
             </div>
-          </section>
-          <section className="notifications-section">
+          </section>}
+          {activePage === "notifications" && <section className="notifications-section" id="notifications-section">
             <div className="section-title">
               <div>
                 <p className="eyebrow">Inbox</p>
@@ -1118,7 +1189,40 @@ function App() {
                 </div>
               ))
             )}
-          </section>
+          </section>}
+          {activePage === "profile" && <section className="notifications-section profile-page">
+            <div className="section-title">
+              <div>
+                <p className="eyebrow">Account</p>
+                <h2>Profile</h2>
+              </div>
+            </div>
+            <div className="profile-details">
+              <div><span>Role</span><strong>{roleLabels[session.role]}</strong></div>
+            </div>
+            <form className="profile-form" onSubmit={updateProfile}>
+              <label>
+                Nama
+                <input
+                  required
+                  value={profileForm.name}
+                  onChange={(event) => setProfileForm({ ...profileForm, name: event.target.value })}
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  required
+                  type="email"
+                  value={profileForm.email}
+                  onChange={(event) => setProfileForm({ ...profileForm, email: event.target.value })}
+                />
+              </label>
+              <button className="primary-button" type="submit" disabled={actionKey === "profile"}>
+                {actionKey === "profile" ? "Menyimpan..." : "Simpan profile"}
+              </button>
+            </form>
+          </section>}
           {(isManager || isFinance) && (
             <section className="notifications-section audit-section">
               <div className="section-title">
