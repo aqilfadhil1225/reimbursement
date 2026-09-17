@@ -26,6 +26,15 @@ const validateExpensesTotal = (expenses, amount) => {
   }
 };
 
+const validateEvidence = (reimbursement) => {
+  const hasReimbursementReceipt = Boolean(reimbursement.receiptUrl);
+  const hasExpenseReceipt = reimbursement.expenses.some((expense) => Boolean(expense.receiptUrl));
+
+  if (!hasReimbursementReceipt && !hasExpenseReceipt) {
+    throw new Error('Minimal satu bukti reimbursement atau bukti expense wajib diunggah.');
+  }
+};
+
 const canTransition = (currentStatus, nextStatus) => {
   const transitions = {
     [STATUS.DRAFT]: [STATUS.SUBMITTED],
@@ -152,6 +161,7 @@ const submitReimbursement = async (id, actorId, actorRole = 'EMPLOYEE') => {
   const reimbursement = await reimbursementModel.findById(id, { id: actorId, role: actorRole });
   if (!reimbursement) return null;
   validateExpensesTotal(reimbursement.expenses, reimbursement.amount);
+  validateEvidence(reimbursement);
   return updateStatus(id, STATUS.SUBMITTED, 'Submitted by employee for manager review.', actorId, undefined, actorRole);
 };
 
