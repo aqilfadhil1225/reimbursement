@@ -614,31 +614,32 @@ function App() {
             </div>
           </section>}
           {activePage === "dashboard" && <section className="summary-cards" aria-label="Ringkasan reimbursement">
-            <div className="summary-card summary-card-blue">
-              <div className="summary-card-top"><span className="summary-icon">▤</span><span>Total</span></div>
-              <strong>{summary.total || items.length}</strong>
-              <small>Semua reimbursement</small>
-            </div>
-            <div className="summary-card summary-card-orange">
-              <div className="summary-card-top"><span className="summary-icon">◷</span><span>Pending</span></div>
-              <strong>{statusCount("SUBMITTED") + statusCount("FINANCE_REVIEW")}</strong>
-              <small>Menunggu proses</small>
-            </div>
-            <div className="summary-card summary-card-green">
-              <div className="summary-card-top"><span className="summary-icon">✓</span><span>Approved</span></div>
-              <strong>{statusCount("MANAGER_APPROVED")}</strong>
-              <small>Telah disetujui</small>
-            </div>
-            <div className="summary-card summary-card-purple">
-              <div className="summary-card-top"><span className="summary-icon">Rp</span><span>Payment</span></div>
-              <strong>{statusCount("READY_FOR_PAYMENT")}</strong>
-              <small>Menunggu pembayaran</small>
-            </div>
-            <div className="summary-card summary-card-teal">
-              <div className="summary-card-top"><span className="summary-icon">✓</span><span>Paid</span></div>
-              <strong>{statusCount("PAID")}</strong>
-              <small>Sudah dibayarkan</small>
-            </div>
+            {isEmployee && (
+              <>
+                <div className="summary-card summary-card-blue"><div className="summary-card-top"><span className="summary-icon">▤</span><span>Total pengajuan</span></div><strong>{summary.total || items.length}</strong><small>Pengajuan saya</small></div>
+                <div className="summary-card summary-card-orange"><div className="summary-card-top"><span className="summary-icon">◷</span><span>Draft</span></div><strong>{statusCount("DRAFT")}</strong><small>Belum dikirim</small></div>
+                <div className="summary-card summary-card-purple"><div className="summary-card-top"><span className="summary-icon">◷</span><span>Menunggu review</span></div><strong>{statusCount("SUBMITTED") + statusCount("MANAGER_APPROVED") + statusCount("FINANCE_REVIEW")}</strong><small>Sedang diproses</small></div>
+                <div className="summary-card summary-card-orange"><div className="summary-card-top"><span className="summary-icon">↻</span><span>Perlu revisi</span></div><strong>{statusCount("REVISION_REQUIRED")}</strong><small>Perlu diperbaiki</small></div>
+                <div className="summary-card summary-card-teal"><div className="summary-card-top"><span className="summary-icon">✓</span><span>Sudah dibayar</span></div><strong>{statusCount("PAID")}</strong><small>Reimbursement selesai</small></div>
+              </>
+            )}
+            {isManager && (
+              <>
+                <div className="summary-card summary-card-orange"><div className="summary-card-top"><span className="summary-icon">◷</span><span>Menunggu approval</span></div><strong>{statusCount("SUBMITTED")}</strong><small>Perlu direview</small></div>
+                <div className="summary-card summary-card-green"><div className="summary-card-top"><span className="summary-icon">✓</span><span>Disetujui</span></div><strong>{statusCount("MANAGER_APPROVED")}</strong><small>Diteruskan ke Finance</small></div>
+                <div className="summary-card summary-card-orange"><div className="summary-card-top"><span className="summary-icon">↻</span><span>Perlu revisi</span></div><strong>{statusCount("REVISION_REQUIRED")}</strong><small>Dikembalikan ke Employee</small></div>
+                <div className="summary-card summary-card-purple"><div className="summary-card-top"><span className="summary-icon">×</span><span>Ditolak</span></div><strong>{statusCount("REJECTED")}</strong><small>Pengajuan ditolak</small></div>
+              </>
+            )}
+            {isFinance && (
+              <>
+                <div className="summary-card summary-card-orange"><div className="summary-card-top"><span className="summary-icon">◷</span><span>Menunggu verifikasi</span></div><strong>{statusCount("MANAGER_APPROVED")}</strong><small>Siap direview Finance</small></div>
+                <div className="summary-card summary-card-purple"><div className="summary-card-top"><span className="summary-icon">◷</span><span>Finance review</span></div><strong>{statusCount("FINANCE_REVIEW")}</strong><small>Sedang diverifikasi</small></div>
+                <div className="summary-card summary-card-green"><div className="summary-card-top"><span className="summary-icon">Rp</span><span>Siap dibayar</span></div><strong>{statusCount("READY_FOR_PAYMENT")}</strong><small>Menunggu pembayaran</small></div>
+                <div className="summary-card summary-card-teal"><div className="summary-card-top"><span className="summary-icon">✓</span><span>Sudah dibayar</span></div><strong>{statusCount("PAID")}</strong><small>Pembayaran selesai</small></div>
+                <div className="summary-card summary-card-blue"><div className="summary-card-top"><span className="summary-icon">Rp</span><span>Total nominal</span></div><strong>Rp {Number(summary.totalAmount).toLocaleString("id-ID")}</strong><small>Total nilai pengajuan</small></div>
+              </>
+            )}
           </section>}
           {notice && (
             <div className="notice">
