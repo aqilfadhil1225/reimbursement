@@ -550,22 +550,33 @@ function App() {
           <div className="sidebar-nav">
             <div className="sidebar-label">Main Menu</div>
             <button className={`sidebar-link ${activePage === "dashboard" ? "sidebar-link-active" : ""}`} type="button" onClick={() => openPage("dashboard")}><span>⌂</span> Dashboard</button>
-            <div className="sidebar-label">Transaksi</div>
-            <button className="sidebar-link" type="button" onClick={() => {
-              if (isEmployee) {
-                setEditingId(null);
-                setShowForm(true);
-                openPage("reimbursement");
-              } else {
-                openQueue();
-              }
-            }}><span>▤</span> Reimbursement <b>⌄</b></button>
-            <button className="sidebar-link" type="button" onClick={() => openQueue("READY_FOR_PAYMENT")}><span>▣</span> Pembayaran <b>⌄</b></button>
-            <div className="sidebar-label">Approval</div>
-            <button className={`sidebar-link ${activePage === "approval" ? "sidebar-link-active" : ""}`} type="button" onClick={openApprovalHistory}><span>✓</span> Riwayat Approval</button>
+            {isEmployee && (
+              <>
+                <div className="sidebar-label">Pengajuan Saya</div>
+                <button className="sidebar-link" type="button" onClick={() => {
+                  setEditingId(null);
+                  setShowForm(true);
+                  openPage("reimbursement");
+                }}><span>▤</span> Pengajuan Saya <b>⌄</b></button>
+              </>
+            )}
+            {isManager && (
+              <>
+                <div className="sidebar-label">Approval</div>
+                <button className="sidebar-link" type="button" onClick={() => openQueue("SUBMITTED")}><span>✓</span> Menunggu Approval <b>⌄</b></button>
+                <button className={`sidebar-link ${activePage === "approval" ? "sidebar-link-active" : ""}`} type="button" onClick={openApprovalHistory}><span>▤</span> Riwayat Approval</button>
+              </>
+            )}
+            {isFinance && (
+              <>
+                <div className="sidebar-label">Finance</div>
+                <button className="sidebar-link" type="button" onClick={() => openQueue()}><span>▤</span> Finance Review <b>⌄</b></button>
+                <button className="sidebar-link" type="button" onClick={() => openQueue("READY_FOR_PAYMENT")}><span>▣</span> Pembayaran <b>⌄</b></button>
+              </>
+            )}
             <div className="sidebar-label">Lainnya</div>
             <button className={`sidebar-link ${activePage === "notifications" ? "sidebar-link-active" : ""}`} type="button" onClick={() => openPage("notifications")}><span>♢</span> Notifikasi {unreadCount > 0 && <i />}</button>
-            <button className={`sidebar-link ${activePage === "monitoring" ? "sidebar-link-active" : ""}`} type="button" onClick={() => openPage("monitoring")}><span>▥</span> Laporan Monitoring</button>
+            {(isFinance || isManager) && <button className={`sidebar-link ${activePage === "monitoring" ? "sidebar-link-active" : ""}`} type="button" onClick={() => openPage("monitoring")}><span>▥</span> Laporan Monitoring</button>}
             <button className="sidebar-link" type="button" onClick={() => {
               setNotice(`${session.name} · ${session.email} · ${roleLabels[session.role]}`);
               openPage("profile");
