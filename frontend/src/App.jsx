@@ -1020,10 +1020,12 @@ function App() {
                           <option value="start">Mulai review finance</option>
                         )}
                         {isFinance && selected.status === "FINANCE_REVIEW" && (
-                          <option value="approve">Siapkan pembayaran</option>
+                          <>
+                            <option value="verify">Setujui verifikasi</option>
+                            <option value="revise">Minta revisi</option>
+                            <option value="reject">Tolak</option>
+                          </>
                         )}
-                        <option value="revise">Minta revisi</option>
-                        <option value="reject">Tolak</option>
                       </select>
                       <textarea
                         placeholder="Catatan review"
