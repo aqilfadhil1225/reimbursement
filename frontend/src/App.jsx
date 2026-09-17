@@ -513,9 +513,16 @@ function App() {
 
   const unreadCount = notifications.filter((item) => !item.isRead).length;
   const statusCount = (status) => summary.byStatus[status]?.count || 0;
-  const visibleItems = activePage === "approval"
-    ? items.filter((item) => item.status !== "DRAFT")
-    : items;
+  const visibleItems = isEmployee
+    ? items
+    : isManager
+      ? items.filter((item) => activePage === "approval" || item.status === "SUBMITTED")
+      : items.filter((item) => [
+        "MANAGER_APPROVED",
+        "FINANCE_REVIEW",
+        "READY_FOR_PAYMENT",
+        "PAID",
+      ].includes(item.status));
   const filteredItems = visibleItems.filter((item) => {
     const query = queueFilters.search.trim().toLowerCase();
     const matchesSearch = !query || [item.category, item.employeeName, item.description]
@@ -817,8 +824,8 @@ function App() {
             <section className="list-section">
               <div className="section-title">
                 <div>
-                  <p className="eyebrow">Live queue</p>
-                  <h2>Reimbursement</h2>
+                  <p className="eyebrow">{isEmployee ? "Pengajuan saya" : isManager ? "Antrean approval" : "Antrean finance"}</p>
+                  <h2>{isEmployee ? "Reimbursement saya" : isManager ? "Pengajuan menunggu approval" : "Finance review"}</h2>
                 </div>
                 <span className="count-label">{items.length} total</span>
               </div>
