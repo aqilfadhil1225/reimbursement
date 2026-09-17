@@ -179,6 +179,34 @@ function App() {
     }));
   };
 
+  const removeExpense = async (index) => {
+    if (actionKey) return;
+    const expense = form.expenses[index];
+    if (!expense?.id) {
+      setForm((current) => ({
+        ...current,
+        expenses: current.expenses.filter((_, expenseIndex) => expenseIndex !== index),
+      }));
+      return;
+    }
+
+    if (!window.confirm("Hapus expense ini?")) return;
+    setActionKey(`delete-expense-${expense.id}`);
+    try {
+      await api.delete(`/reimbursements/${editingId}/expenses/${expense.id}`);
+      setForm((current) => ({
+        ...current,
+        expenses: current.expenses.filter((_, expenseIndex) => expenseIndex !== index),
+      }));
+      setNotice("Expense berhasil dihapus.");
+      await loadData();
+    } catch (error) {
+      setNotice(getErrorMessage(error));
+    } finally {
+      setActionKey("");
+    }
+  };
+
   const startEditing = (item) => {
     setEditingId(item.id);
     setForm({
@@ -829,6 +857,14 @@ function App() {
                           updateExpense(index, "receiptFile", event.target.files?.[0] || null)
                         }
                       />
+                      <button
+                        className="ghost-button danger-button"
+                        type="button"
+                        onClick={() => removeExpense(index)}
+                        disabled={actionKey === `delete-expense-${expense.id}`}
+                      >
+                        Hapus
+                      </button>
                     </div>
                   ))}
                 </div>
