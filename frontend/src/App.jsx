@@ -1010,7 +1010,7 @@ function App() {
                       </div>
                     )}
                   </div>
-                  {isEmployee && selected.status === "DRAFT" && (
+                  {isEmployee && ["DRAFT", "REVISION_REQUIRED"].includes(selected.status) && (
                     <button
                       className="primary-button full-button"
                       type="button"
@@ -1019,7 +1019,9 @@ function App() {
                     >
                       {actionKey === `submit-${selected.id}`
                         ? "Mengirim..."
-                        : "Kirim untuk review"}
+                        : selected.status === "REVISION_REQUIRED"
+                          ? "Kirim ulang untuk review"
+                          : "Kirim untuk review"}
                     </button>
                   )}
                   {((isManager && selected.status === "SUBMITTED") ||
@@ -1078,7 +1080,9 @@ function App() {
                       >
                         {actionKey === `review-${selected.id}`
                           ? "Menyimpan..."
-                          : "Simpan keputusan"}
+                          : isManager
+                            ? "Simpan keputusan manager"
+                            : "Simpan keputusan finance"}
                       </button>
                     </div>
                   )}
