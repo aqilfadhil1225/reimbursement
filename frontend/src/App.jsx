@@ -1133,6 +1133,8 @@ function App() {
               <div><span>Menunggu review</span><strong>{statusCount("SUBMITTED") + statusCount("FINANCE_REVIEW")}</strong></div>
               <div><span>Siap dibayar</span><strong>{statusCount("READY_FOR_PAYMENT")}</strong></div>
               <div><span>Selesai dibayar</span><strong>{statusCount("PAID")}</strong></div>
+              <div><span>Ditolak</span><strong>{statusCount("REJECTED")}</strong></div>
+              <div><span>Perlu revisi</span><strong>{statusCount("REVISION_REQUIRED")}</strong></div>
               <div><span>Total nominal</span><strong>Rp {Number(summary.totalAmount).toLocaleString("id-ID")}</strong></div>
             </div>
             <div className="report-filters">
@@ -1186,7 +1188,7 @@ function App() {
             {notifications.length === 0 ? (
               <div className="empty-state">Belum ada notifikasi.</div>
             ) : (
-              notifications.slice(0, 4).map((notification) => (
+              notifications.map((notification) => (
                 <div
                   className={`notification-row ${notification.isRead ? "read" : ""}`}
                   key={notification.id}
