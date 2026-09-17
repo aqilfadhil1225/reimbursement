@@ -69,54 +69,63 @@ const createReimbursement = async ({
   if (!Array.isArray(expenses)) {
     throw new Error('expenses harus berupa array.');
   }
-  const expenseTotal = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-  if (!expenses.length || !expenses.every((expense) => Number.isFinite(Number(expense.amount)) && Number(expense.amount) > 0)) {
-    throw new Error('Minimal satu expense dengan nominal lebih besar dari nol wajib diisi.');
-  }
-  if (Math.abs(expenseTotal - Number(amount)) > 0.01) {
-    throw new Error('Total expense harus sama dengan total reimbursement.');
+  if (expenses.length) {
+    const expenseTotal = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+    if (!expenses.every((expense) => Number.isFinite(Number(expense.amount)) && Number(expense.amount) > 0)) {
+      throw new Error('Setiap expense harus memiliki nominal lebih besar dari nol.');
+    }
+    if (Math.abs(expenseTotal - Number(amount)) > 0.01) {
+      throw new Error('Total expense harus sama dengan total reimbursement.');
+    }
   }
   validateReceiptUrl(receiptUrl);
 
-  return prisma.reimbursement.create({
-    data: {
-      employeeName,
-      employeeEmail,
-      amount: Number(amount),
-      category,
-      description: description || '',
-      receiptUrl: validateReceiptUrl(receiptUrl) || '',
-      status: normalizedStatus,
-      employeeId: employeeId ? Number(employeeId) : undefined,
-      managerId: managerId ? Number(managerId) : undefined,
-      financeId: financeId ? Number(financeId) : undefined,
-      expenses: { create: expenses.map((expense) => {
-        if (!expense.category || expense.amount === undefined || !expense.expenseDate || !expense.description) {
-          throw new Error('Setiap expense wajib memiliki category, amount, expenseDate, dan description.');
-        }
+  const expenseCreates = expenses.map((expense) => {
+    if (!expense.category || expense.amount === undefined || !expense.expenseDate || !expense.description) {
+      throw new Error('Setiap expense wajib memiliki category, amount, expenseDate, dan description.');
+    }
 
-        const expenseAmount = Number(expense.amount);
-        const expenseDate = new Date(expense.expenseDate);
-        if (!Number.isFinite(expenseAmount) || expenseAmount <= 0 || Number.isNaN(expenseDate.getTime())) {
-          throw new Error('Data expense tidak valid.');
-        }
-        if (expenseDate > new Date()) throw new Error('expenseDate tidak boleh di masa depan.');
+    const expenseAmount = Number(expense.amount);
+    const expenseDate = new Date(expense.expenseDate);
+    if (!Number.isFinite(expenseAmount) || expenseAmount <= 0 || Number.isNaN(expenseDate.getTime())) {
+      throw new Error('Data expense tidak valid.');
+    }
+    if (expenseDate > new Date()) throw new Error('expenseDate tidak boleh di masa depan.');
 
-        return {
-          category: expense.category,
-          amount: expenseAmount,
-          expenseDate,
-          description: expense.description,
-          receiptUrl: validateReceiptUrl(expense.receiptUrl) || null,
-        };
-      }) },
-      history: {
-        create: {
-          status: normalizedStatus,
-          note: 'Reimbursement record created.',
-        },
+    return {
+      category: expense.category,
+      amount: expenseAmount,
+      expenseDate,
+      description: expense.description,
+      receiptUrl: validateReceiptUrl(expense.receiptUrl) || null,
+    };
+  });
+
+  const data = {
+    employeeName,
+    employeeEmail,
+    amount: Number(amount),
+    category,
+    description: description || '',
+    receiptUrl: validateReceiptUrl(receiptUrl) || '',
+    status: normalizedStatus,
+    employeeId: employeeId ? Number(employeeId) : undefined,
+    managerId: managerId ? Number(managerId) : undefined,
+    financeId: financeId ? Number(financeId) : undefined,
+    history: {
+      create: {
+        status: normalizedStatus,
+        note: 'Reimbursement record created.',
       },
     },
+  };
+
+  if (expenseCreates.length) {
+    data.expenses = { create: expenseCreates };
+  }
+
+  return prisma.reimbursement.create({
+    data,
     include: includeRelations,
   });
 };
