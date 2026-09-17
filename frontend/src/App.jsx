@@ -7,6 +7,23 @@ const roleLabels = {
   MANAGER: "Manager",
   FINANCE: "Finance",
 };
+const dashboardConfig = {
+  EMPLOYEE: {
+    title: "Dashboard Employee",
+    description: "Kelola pengajuan reimbursement Anda",
+    welcome: "Pantau pengajuan, expense, dan status pembayaran Anda.",
+  },
+  MANAGER: {
+    title: "Dashboard Manager",
+    description: "Review dan setujui pengajuan reimbursement",
+    welcome: "Periksa pengajuan yang menunggu persetujuan Anda.",
+  },
+  FINANCE: {
+    title: "Dashboard Finance",
+    description: "Verifikasi pengajuan dan proses pembayaran",
+    welcome: "Kelola verifikasi, pembayaran, dan laporan reimbursement.",
+  },
+};
 const statusLabels = {
   DRAFT: "Draft",
   SUBMITTED: "Submitted",
@@ -86,6 +103,7 @@ function App() {
   const isEmployee = session?.role === "EMPLOYEE";
   const isManager = session?.role === "MANAGER";
   const isFinance = session?.role === "FINANCE";
+  const currentDashboard = dashboardConfig[session?.role] || dashboardConfig.EMPLOYEE;
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -595,8 +613,8 @@ function App() {
           <div className="page-header">
             <div>
               <p className="breadcrumb">Home <b>/</b> Dashboard</p>
-              <h1>Dashboard</h1>
-              <p className="muted">Ringkasan aktivitas reimbursement Anda</p>
+              <h1>{currentDashboard.title}</h1>
+              <p className="muted">{currentDashboard.description}</p>
             </div>
             {isEmployee && (
               <button
@@ -614,9 +632,9 @@ function App() {
           </div>
           {activePage === "dashboard" && <section className="welcome-banner">
             <div>
-              <p>Dashboard Overview</p>
-              <h2>Selamat datang, {roleLabels[session.role]}! </h2>
-              <small>Pantau status reimbursement dan aktivitas pengajuan Anda melalui dashboard ini.</small>
+              <p>{roleLabels[session.role]} workspace</p>
+              <h2>Selamat datang, {session.name}!</h2>
+              <small>{currentDashboard.welcome}</small>
               {isEmployee && <button type="button" onClick={() => { setEditingId(null); setShowForm(true); openPage("reimbursement"); }}>＋ &nbsp;Ajukan Reimbursement</button>}
             </div>
           </section>}
