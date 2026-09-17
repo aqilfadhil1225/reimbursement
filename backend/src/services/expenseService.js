@@ -50,13 +50,6 @@ const validateExpense = ({ category, amount, expenseDate, description }) => {
   };
 };
 
-const validateReimbursementTotal = (reimbursement, expenses) => {
-  const total = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-  if (!expenses.length || Math.abs(total - Number(reimbursement.amount)) > 0.01) {
-    throw new Error('Total expense harus sama dengan total reimbursement.');
-  }
-};
-
 const getExpenses = async (reimbursementId, user) => {
   const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
   const reimbursement = await reimbursementModel.findById(parsedReimbursementId, user);
@@ -85,8 +78,6 @@ const createExpense = async (reimbursementId, payload, user) => {
     ...validateExpense(payload),
     receiptUrl: validateReceiptUrl(payload.receiptUrl) || null,
   };
-  const currentExpenses = await expenseModel.findByReimbursementId(parsedReimbursementId);
-  validateReimbursementTotal(reimbursement, [...currentExpenses, expenseData]);
   const expense = await expenseModel.create(expenseData);
   await auditLogModel.create({
     reimbursementId: parsedReimbursementId,
@@ -121,11 +112,6 @@ const updateExpense = async (id, payload, user) => {
 
   if (!Object.keys(data).length) throw new Error('tidak ada data expense yang diubah.');
 
-  const currentExpenses = await expenseModel.findByReimbursementId(expense.reimbursementId);
-  const nextExpenses = currentExpenses.map((currentExpense) => (
-    currentExpense.id === expense.id ? { ...currentExpense, ...data } : currentExpense
-  ));
-  validateReimbursementTotal(reimbursement, nextExpenses);
   const updated = await expenseModel.updateById(validateId(id, 'id expense'), data);
   await auditLogModel.create({
     reimbursementId: expense.reimbursementId,
@@ -142,11 +128,6 @@ const deleteExpense = async (id, user) => {
   if (!expense) return null;
   const reimbursement = await assertEmployeeCanEdit(expense.reimbursementId, user);
   if (!reimbursement) return null;
-  const currentExpenses = await expenseModel.findByReimbursementId(expense.reimbursementId);
-  validateReimbursementTotal(
-    reimbursement,
-    currentExpenses.filter((currentExpense) => currentExpense.id !== parsedId),
-  );
   const deleted = await expenseModel.deleteById(parsedId);
   await auditLogModel.create({
     reimbursementId: expense.reimbursementId,
