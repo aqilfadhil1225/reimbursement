@@ -166,6 +166,14 @@ const submitReimbursement = async (id, actorId, actorRole = 'EMPLOYEE') => {
 };
 
 const managerReview = async (id, action, note, actorId) => {
+  const reimbursement = await reimbursementModel.findById(id, { id: actorId, role: 'MANAGER' });
+  if (!reimbursement) return null;
+  if (reimbursement.status !== STATUS.SUBMITTED) {
+    return {
+      error: 'Manager hanya dapat memproses reimbursement berstatus SUBMITTED.',
+    };
+  }
+
   if (!['approve', 'reject', 'revise'].includes(action)) throw new Error('action must be approve, reject, or revise.');
   if (['reject', 'revise'].includes(action) && (!note || !note.trim())) {
     throw new Error('Catatan wajib diisi untuk penolakan atau permintaan revisi.');
