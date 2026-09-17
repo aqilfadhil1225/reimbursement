@@ -187,6 +187,20 @@ const financeReview = async (id, action, note, actorId) => {
   if (['reject', 'revise'].includes(action) && (!note || !note.trim())) {
     throw new Error('Catatan wajib diisi untuk penolakan atau permintaan revisi.');
   }
+
+  const reimbursement = await reimbursementModel.findById(id, { id: actorId, role: 'FINANCE' });
+  if (!reimbursement) return null;
+
+  const actionsByStatus = {
+    [STATUS.MANAGER_APPROVED]: ['start'],
+    [STATUS.FINANCE_REVIEW]: ['verify', 'approve', 'reject', 'revise'],
+  };
+  if (!actionsByStatus[reimbursement.status]?.includes(action)) {
+    return {
+      error: `Finance tidak dapat melakukan aksi ${action} pada status ${reimbursement.status}.`,
+    };
+  }
+
   const nextStatus = action === 'start' ? STATUS.FINANCE_REVIEW : action === 'verify' || action === 'approve' ? STATUS.READY_FOR_PAYMENT : action === 'reject' ? STATUS.REJECTED : STATUS.REVISION_REQUIRED;
   return updateStatus(id, nextStatus, note || `Finance ${action}d the reimbursement.`, actorId, { financeId: actorId ? Number(actorId) : undefined }, 'FINANCE');
 };
