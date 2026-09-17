@@ -356,7 +356,15 @@ function App() {
   };
 
   const payReimbursement = async () => {
-    if (actionKey || !selected) return;
+    if (actionKey || !selected || !isFinance) return;
+    if (selected.status !== "READY_FOR_PAYMENT") {
+      setNotice("Pembayaran hanya dapat diproses saat status siap dibayar.");
+      return;
+    }
+    if (!paymentForm.method) {
+      setNotice("Pilih metode pembayaran terlebih dahulu.");
+      return;
+    }
     setActionKey(`pay-${selected.id}`);
     try {
       await api.post(`/reimbursements/${selected.id}/payment`, {
