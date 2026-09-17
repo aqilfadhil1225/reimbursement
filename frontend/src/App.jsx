@@ -196,25 +196,17 @@ function App() {
     }
   };
 
-  const submitReimbursement = async (event) => {
+  const saveDraft = async (event) => {
     event.preventDefault();
     if (actionKey) return;
     const validExpenses = form.expenses.filter((expense) =>
-      expense.category.trim(),
+      expense.category.trim() &&
+      expense.amount &&
+      Number.isFinite(Number(expense.amount)) &&
+      Number(expense.amount) > 0 &&
+      expense.expenseDate &&
+      expense.description.trim(),
     );
-    const hasIncompleteExpense = form.expenses.some((expense) => {
-      const hasAnyValue = Object.values(expense).some((value) =>
-        String(value).trim(),
-      );
-      const hasAllValues =
-        expense.category.trim() &&
-        expense.amount &&
-        Number(expense.amount) > 0 &&
-        expense.expenseDate &&
-        expense.description.trim();
-
-      return hasAnyValue && !hasAllValues;
-    });
     const hasInvalidExpense = validExpenses.some(
       (expense) =>
         !expense.amount ||
@@ -223,30 +215,15 @@ function App() {
         !expense.expenseDate ||
         !expense.description.trim(),
     );
-    const expenseTotal = validExpenses.reduce(
-      (total, expense) => total + Number(expense.amount),
-      0,
-    );
     const reimbursementAmount = Number(form.amount);
     if (
       !form.category.trim() ||
-      !form.description.trim() ||
       !form.amount ||
       !Number.isFinite(reimbursementAmount) ||
-      reimbursementAmount <= 0 ||
-      validExpenses.length === 0 ||
-      hasIncompleteExpense ||
+      reimbursementAmount < 0 ||
       hasInvalidExpense
     ) {
-      setNotice(
-        "Lengkapi kategori, deskripsi, dan semua expense yang diisi.",
-      );
-      return;
-    }
-    if (Math.abs(expenseTotal - reimbursementAmount) > 0.01) {
-      setNotice(
-        `Total expense harus sama dengan total reimbursement (Rp ${expenseTotal.toLocaleString("id-ID")}).`,
-      );
+      setNotice("Lengkapi data reimbursement dan expense yang diisi.");
       return;
     }
     setActionKey(editingId ? `edit-${editingId}` : "create");
@@ -258,35 +235,46 @@ function App() {
         receiptUrl: form.receiptUrl.trim(),
       };
       let savedReimbursement;
+      let savedExpenses = [];
+      const expensesPayload = validExpenses.map((expense) => ({
+        ...Object.fromEntries(
+          Object.entries(expense).filter(([key]) => key !== "receiptFile"),
+        ),
+        amount: Number(expense.amount),
+      }));
       if (editingId) {
-        const response = await api.patch(`/reimbursements/${editingId}`, {
-          ...payload,
-          expenses: validExpenses.map((expense) => ({
-            ...Object.fromEntries(
-              Object.entries(expense).filter(([key]) => key !== "receiptFile"),
-            ),
-            amount: Number(expense.amount),
-          })),
-        });
+        const response = await api.patch(`/reimbursements/${editingId}`, payload);
         savedReimbursement = response.data.data;
+        const expenseResponses = await Promise.all(
+          expensesPayload.map((expense) => {
+            const expenseId = expense.id;
+            const expenseData = Object.fromEntries(
+              Object.entries(expense).filter(([key]) => key !== "id"),
+            );
+            return expenseId
+              ? api.patch(`/reimbursements/${editingId}/expenses/${expenseId}`, expenseData)
+              : api.post(`/reimbursements/${editingId}/expenses`, expenseData);
+          }),
+        );
+        savedExpenses = expenseResponses.map((expenseResponse) => expenseResponse.data.data);
       } else {
         const response = await api.post("/reimbursements", {
           ...payload,
-          expenses: validExpenses.map((expense) => ({
-            ...Object.fromEntries(
-              Object.entries(expense).filter(([key]) => key !== "receiptFile"),
-            ),
-            amount: Number(expense.amount),
-          })),
         });
         savedReimbursement = response.data.data;
+        const expenseResponses = await Promise.all(
+          expensesPayload.map((expense) =>
+            api.post(`/reimbursements/${savedReimbursement.id}/expenses`, expense),
+          ),
+        );
+        savedExpenses = expenseResponses.map((expenseResponse) => expenseResponse.data.data);
       }
       if (form.receiptFile) {
         const receiptData = new FormData();
         receiptData.append("receipt", form.receiptFile);
         await api.post(`/reimbursements/${savedReimbursement.id}/receipt`, receiptData);
       }
-      const savedExpenses = savedReimbursement.expenses || [];
+      if (!savedExpenses.length) savedExpenses = savedReimbursement.expenses || [];
       await Promise.all(
         validExpenses.map((expense, index) => {
           const savedExpense = savedExpenses[index];
@@ -311,7 +299,7 @@ function App() {
       setShowForm(false);
       setNotice(
         editingId
-          ? "Perubahan reimbursement berhasil disimpan."
+          ? "Perubahan draft berhasil disimpan."
           : "Pengajuan berhasil disimpan sebagai draft.",
       );
       await loadData();
@@ -648,7 +636,7 @@ function App() {
                 </button>
               </div>
               <form
-                onSubmit={submitReimbursement}
+                onSubmit={saveDraft}
                 className="reimbursement-form"
               >
                 <div className="form-grid">
@@ -730,7 +718,6 @@ function App() {
                   {form.expenses.map((expense, index) => (
                     <div className="expense-row" key={index}>
                       <input
-                        required={index === 0}
                         placeholder="Kategori"
                         value={expense.category}
                         onChange={(event) =>
@@ -738,7 +725,6 @@ function App() {
                         }
                       />
                       <input
-                        required={index === 0}
                         type="number"
                         min="0"
                         placeholder="Nominal"
@@ -748,7 +734,6 @@ function App() {
                         }
                       />
                       <input
-                        required={index === 0}
                         type="date"
                         value={expense.expenseDate}
                         onChange={(event) =>
@@ -760,7 +745,6 @@ function App() {
                         }
                       />
                       <input
-                        required={index === 0}
                         placeholder="Deskripsi"
                         value={expense.description}
                         onChange={(event) =>
@@ -791,7 +775,7 @@ function App() {
                   ))}
                 </div>
                 <button className="primary-button" type="submit">
-                  {editingId ? "Simpan perubahan" : "Simpan draft"}
+                  {editingId ? "Simpan perubahan draft" : "Simpan draft"}
                 </button>
               </form>
             </section>
