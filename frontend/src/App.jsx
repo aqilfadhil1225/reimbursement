@@ -330,6 +330,15 @@ function App() {
       setNotice("Catatan wajib diisi untuk meminta revisi atau menolak pengajuan.");
       return;
     }
+    if (
+      isFinance &&
+      ((selected.status === "MANAGER_APPROVED" && decision.action !== "start") ||
+        (selected.status === "FINANCE_REVIEW" &&
+          !["verify", "revise", "reject"].includes(decision.action)))
+    ) {
+      setNotice("Aksi Finance tidak sesuai dengan status reimbursement.");
+      return;
+    }
     const endpoint = isManager
       ? `/reimbursements/${selected.id}/manager`
       : `/reimbursements/${selected.id}/finance`;
@@ -992,7 +1001,9 @@ function App() {
                         selected.status,
                       ))) && (
                     <div className="decision-box">
-                      <p className="eyebrow">Tindakan review</p>
+                      <p className="eyebrow">
+                        {isFinance ? "Verifikasi finance" : "Tindakan review"}
+                      </p>
                       <select
                         value={decision.action}
                         onChange={(event) =>
@@ -1022,7 +1033,11 @@ function App() {
                         )}
                       </select>
                       <textarea
-                        placeholder="Catatan review"
+                        placeholder={
+                          ["revise", "reject"].includes(decision.action)
+                            ? "Catatan wajib untuk revisi atau penolakan"
+                            : "Catatan review (opsional)"
+                        }
                         value={decision.note}
                         onChange={(event) =>
                           setDecision({ ...decision, note: event.target.value })
