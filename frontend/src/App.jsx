@@ -326,6 +326,10 @@ function App() {
 
   const reviewReimbursement = async () => {
     if (actionKey || !selected || !decision.action) return;
+    if (["revise", "reject"].includes(decision.action) && !decision.note.trim()) {
+      setNotice("Catatan wajib diisi untuk meminta revisi atau menolak pengajuan.");
+      return;
+    }
     const endpoint = isManager
       ? `/reimbursements/${selected.id}/manager`
       : `/reimbursements/${selected.id}/finance`;
@@ -999,7 +1003,13 @@ function App() {
                         }
                       >
                         <option value="">Pilih tindakan</option>
-                        {isManager && <option value="approve">Setujui</option>}
+                        {isManager && (
+                          <>
+                            <option value="approve">Setujui</option>
+                            <option value="revise">Minta revisi</option>
+                            <option value="reject">Tolak</option>
+                          </>
+                        )}
                         {isFinance && selected.status === "MANAGER_APPROVED" && (
                           <option value="start">Mulai review finance</option>
                         )}
