@@ -245,31 +245,29 @@ function App() {
   const saveDraft = async (event) => {
     event.preventDefault();
     if (actionKey) return;
-    const validExpenses = form.expenses.filter((expense) =>
+    const hasExpenseValue = (expense) => Object.values(expense).some((value) =>
+      value !== null && value !== undefined && String(value).trim(),
+    );
+    const isCompleteExpense = (expense) =>
       expense.category.trim() &&
       expense.amount &&
       Number.isFinite(Number(expense.amount)) &&
       Number(expense.amount) > 0 &&
       expense.expenseDate &&
-      expense.description.trim(),
+      expense.description.trim();
+    const hasIncompleteExpense = form.expenses.some((expense) =>
+      hasExpenseValue(expense) && !isCompleteExpense(expense),
     );
-    const hasInvalidExpense = validExpenses.some(
-      (expense) =>
-        !expense.amount ||
-        !Number.isFinite(Number(expense.amount)) ||
-        Number(expense.amount) <= 0 ||
-        !expense.expenseDate ||
-        !expense.description.trim(),
-    );
+    const validExpenses = form.expenses.filter(isCompleteExpense);
     const reimbursementAmount = Number(form.amount);
     if (
       !form.category.trim() ||
       !form.amount ||
       !Number.isFinite(reimbursementAmount) ||
       reimbursementAmount < 0 ||
-      hasInvalidExpense
+      hasIncompleteExpense
     ) {
-      setNotice("Lengkapi data reimbursement dan expense yang diisi.");
+      setNotice("Lengkapi expense yang diisi atau hapus baris expense tersebut.");
       return;
     }
     setActionKey(editingId ? `edit-${editingId}` : "create");
