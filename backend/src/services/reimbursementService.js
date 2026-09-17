@@ -183,7 +183,7 @@ const managerReview = async (id, action, note, actorId) => {
 };
 
 const financeReview = async (id, action, note, actorId) => {
-  if (!['start', 'verify', 'approve', 'reject', 'revise'].includes(action)) throw new Error('action must be start, verify, approve, reject, or revise.');
+  if (!['start', 'verify', 'reject', 'revise'].includes(action)) throw new Error('action must be start, verify, reject, or revise.');
   if (['reject', 'revise'].includes(action) && (!note || !note.trim())) {
     throw new Error('Catatan wajib diisi untuk penolakan atau permintaan revisi.');
   }
@@ -193,7 +193,7 @@ const financeReview = async (id, action, note, actorId) => {
 
   const actionsByStatus = {
     [STATUS.MANAGER_APPROVED]: ['start'],
-    [STATUS.FINANCE_REVIEW]: ['verify', 'approve', 'reject', 'revise'],
+    [STATUS.FINANCE_REVIEW]: ['verify', 'reject', 'revise'],
   };
   if (!actionsByStatus[reimbursement.status]?.includes(action)) {
     return {
@@ -201,7 +201,7 @@ const financeReview = async (id, action, note, actorId) => {
     };
   }
 
-  const nextStatus = action === 'start' ? STATUS.FINANCE_REVIEW : action === 'verify' || action === 'approve' ? STATUS.READY_FOR_PAYMENT : action === 'reject' ? STATUS.REJECTED : STATUS.REVISION_REQUIRED;
+  const nextStatus = action === 'start' ? STATUS.FINANCE_REVIEW : action === 'verify' ? STATUS.READY_FOR_PAYMENT : action === 'reject' ? STATUS.REJECTED : STATUS.REVISION_REQUIRED;
   return updateStatus(id, nextStatus, note || `Finance ${action}d the reimbursement.`, actorId, { financeId: actorId ? Number(actorId) : undefined }, 'FINANCE');
 };
 
