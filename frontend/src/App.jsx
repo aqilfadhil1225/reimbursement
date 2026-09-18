@@ -575,6 +575,15 @@ function App() {
     setNotice("");
   };
 
+  const orderedNotifications = useMemo(
+    () => sortByNewest(notifications),
+    [notifications],
+  );
+  const orderedAuditLogs = useMemo(
+    () => sortByNewest(auditLogs),
+    [auditLogs],
+  );
+
   if (!session)
     return (
       <main className="auth-shell">
@@ -651,14 +660,6 @@ function App() {
       </main>
     );
 
-  const orderedNotifications = useMemo(
-    () => sortByNewest(notifications),
-    [notifications],
-  );
-  const orderedAuditLogs = useMemo(
-    () => sortByNewest(auditLogs),
-    [auditLogs],
-  );
   const unreadCount = orderedNotifications.filter((item) => !item.isRead).length;
   const statusCount = (status) => summary.byStatus[status]?.count || 0;
   const hasManagerAccess = (item) => Number(item.managerId) === Number(session?.id) || item.status === "SUBMITTED";
