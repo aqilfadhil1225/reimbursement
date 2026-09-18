@@ -43,6 +43,11 @@ const statusFilterOptions = [
   ["", "Semua status"],
   ...Object.entries(statusLabels),
 ];
+const canEditDraft = (status) => ["DRAFT", "REVISION_REQUIRED"].includes(status);
+const canSubmitDraft = (status) => ["DRAFT", "REVISION_REQUIRED"].includes(status);
+const canManagerReview = (status) => status === "SUBMITTED";
+const canFinanceReview = (status) => ["MANAGER_APPROVED", "FINANCE_REVIEW"].includes(status);
+const canFinancePay = (status) => status === "READY_FOR_PAYMENT";
 const emptyExpense = {
   category: "",
   amount: "",
@@ -104,6 +109,12 @@ function App() {
   const isManager = session?.role === "MANAGER";
   const isFinance = session?.role === "FINANCE";
   const currentDashboard = dashboardConfig[session?.role] || dashboardConfig.EMPLOYEE;
+  const canEditSelected = selected ? canEditDraft(selected.status) : false;
+  const canSubmitSelected = selected ? canSubmitDraft(selected.status) : false;
+  const canReviewSelected = selected
+    ? (isManager && canManagerReview(selected.status)) || (isFinance && canFinanceReview(selected.status))
+    : false;
+  const canPaySelected = selected ? isFinance && canFinancePay(selected.status) : false;
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -356,6 +367,11 @@ function App() {
 
   const submitDraft = async (id) => {
     if (actionKey) return;
+    const reimbursement = items.find((item) => item.id === id);
+    if (!reimbursement || !canSubmitDraft(reimbursement.status)) {
+      setNotice("Pengajuan hanya bisa dikirim saat status Draft atau Revision Required.");
+      return;
+    }
     setActionKey(`submit-${id}`);
     try {
       await api.patch(`/reimbursements/${id}/submit`);
@@ -370,6 +386,14 @@ function App() {
 
   const reviewReimbursement = async () => {
     if (actionKey || !selected || !decision.action) return;
+    if (isManager && !canManagerReview(selected.status)) {
+      setNotice("Manager hanya dapat memproses reimbursement dengan status Submitted.");
+      return;
+    }
+    if (isFinance && !canFinanceReview(selected.status)) {
+      setNotice("Finance hanya dapat memproses reimbursement yang sudah disetujui manager atau sedang direview.");
+      return;
+    }
     if (["revise", "reject"].includes(decision.action) && !decision.note.trim()) {
       setNotice("Catatan wajib diisi untuk meminta revisi atau menolak pengajuan.");
       return;
@@ -401,7 +425,7 @@ function App() {
 
   const payReimbursement = async () => {
     if (actionKey || !selected || !isFinance) return;
-    if (selected.status !== "READY_FOR_PAYMENT") {
+    if (!canFinancePay(selected.status)) {
       setNotice("Pembayaran hanya dapat diproses saat status siap dibayar.");
       return;
     }
@@ -952,16 +976,15 @@ function App() {
                       >
                         {statusLabels[selected.status]}
                       </span>
-                      {isEmployee &&
-                        ["DRAFT", "REVISION_REQUIRED"].includes(selected.status) && (
-                          <button
-                            className="secondary-button"
-                            type="button"
-                            onClick={() => startEditing(selected)}
-                          >
-                            Edit
-                          </button>
-                        )}
+                      {isEmployee && canEditSelected && (
+                        <button
+                          className="secondary-button"
+                          type="button"
+                          onClick={() => startEditing(selected)}
+                        >
+                          Edit
+                        </button>
+                      )}
                       {isEmployee && selected.status === "DRAFT" && (
                         <button
                           className="ghost-button danger-button"
@@ -1062,7 +1085,7 @@ function App() {
                       </div>
                     )}
                   </div>
-                  {isEmployee && ["DRAFT", "REVISION_REQUIRED"].includes(selected.status) && (
+                  {isEmployee && canSubmitSelected && (
                     <button
                       className="primary-button full-button"
                       type="button"
@@ -1076,11 +1099,7 @@ function App() {
                           : "Kirim untuk review"}
                     </button>
                   )}
-                  {((isManager && selected.status === "SUBMITTED") ||
-                    (isFinance &&
-                      ["MANAGER_APPROVED", "FINANCE_REVIEW"].includes(
-                        selected.status,
-                      ))) && (
+                  {canReviewSelected && (
                     <div className="decision-box">
                       <p className="eyebrow">
                         {isFinance ? "Verifikasi finance" : "Tindakan review"}
@@ -1138,7 +1157,7 @@ function App() {
                       </button>
                     </div>
                   )}
-                  {isFinance && selected.status === "READY_FOR_PAYMENT" && (
+                  {canPaySelected && (
                     <div className="payment-box payment-form">
                       <div>
                         <p className="eyebrow">Payment</p>
