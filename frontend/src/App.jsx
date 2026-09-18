@@ -48,40 +48,65 @@ const canSubmitDraft = (status) => ["DRAFT", "REVISION_REQUIRED"].includes(statu
 const canManagerReview = (status) => status === "SUBMITTED";
 const canFinanceReview = (status) => ["MANAGER_APPROVED", "FINANCE_REVIEW"].includes(status);
 const canFinancePay = (status) => status === "READY_FOR_PAYMENT";
+
+const getRoleWorkflowRules = ({ role }) => {
+  const rules = {
+    EMPLOYEE: {
+      submit: ["DRAFT", "REVISION_REQUIRED"],
+      delete: ["DRAFT"],
+    },
+    MANAGER: {
+      review: ["SUBMITTED"],
+      actions: ["approve", "revise", "reject"],
+    },
+    FINANCE: {
+      review: ["MANAGER_APPROVED", "FINANCE_REVIEW"],
+      pay: ["READY_FOR_PAYMENT"],
+      actions: {
+        MANAGER_APPROVED: ["start"],
+        FINANCE_REVIEW: ["verify", "revise", "reject"],
+      },
+    },
+  };
+
+  if (!rules[role]) return {};
+  return rules[role];
+};
+
 const sortByNewest = (items = []) =>
   [...items].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
 const getValidationError = ({ role, status, action, context }) => {
+  const workflowRules = getRoleWorkflowRules({ role, status, action });
+
   if (context === "submit" && role === "EMPLOYEE") {
-    if (!["DRAFT", "REVISION_REQUIRED"].includes(status)) {
+    if (!(workflowRules.submit || []).includes(status)) {
       return "Pengajuan hanya bisa dikirim saat status Draft atau Revision Required.";
     }
     return "";
   }
 
   if (context === "delete" && role === "EMPLOYEE") {
-    if (status !== "DRAFT") {
+    if (!(workflowRules.delete || []).includes(status)) {
       return "Hanya draft yang dapat dihapus.";
     }
     return "";
   }
 
   if (context === "manager-review" && role === "MANAGER") {
-    if (status !== "SUBMITTED") {
+    if (!(workflowRules.review || []).includes(status)) {
       return "Manager hanya dapat memproses reimbursement dengan status Submitted.";
     }
     return "";
   }
 
   if (context === "finance-review" && role === "FINANCE") {
-    if (!canFinanceReview(status)) {
+    if (!(workflowRules.review || []).includes(status)) {
       return "Finance hanya dapat memproses reimbursement yang sudah disetujui manager atau sedang direview.";
     }
 
-    if (status === "MANAGER_APPROVED" && action !== "start") {
-      return "Aksi Finance tidak sesuai dengan status reimbursement.";
-    }
-
-    if (status === "FINANCE_REVIEW" && !["verify", "revise", "reject"].includes(action)) {
+    const allowedActions = workflowRules.actions?.[status] || [];
+    if (!allowedActions.includes(action)) {
       return "Aksi Finance tidak sesuai dengan status reimbursement.";
     }
 
@@ -89,7 +114,7 @@ const getValidationError = ({ role, status, action, context }) => {
   }
 
   if (context === "pay" && role === "FINANCE") {
-    if (!canFinancePay(status)) {
+    if (!(workflowRules.pay || []).includes(status)) {
       return "Pembayaran hanya dapat diproses saat status siap dibayar.";
     }
     return "";
