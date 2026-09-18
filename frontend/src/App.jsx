@@ -48,6 +48,53 @@ const canSubmitDraft = (status) => ["DRAFT", "REVISION_REQUIRED"].includes(statu
 const canManagerReview = (status) => status === "SUBMITTED";
 const canFinanceReview = (status) => ["MANAGER_APPROVED", "FINANCE_REVIEW"].includes(status);
 const canFinancePay = (status) => status === "READY_FOR_PAYMENT";
+const getValidationError = ({ role, status, action, context }) => {
+  if (context === "submit" && role === "EMPLOYEE") {
+    if (!["DRAFT", "REVISION_REQUIRED"].includes(status)) {
+      return "Pengajuan hanya bisa dikirim saat status Draft atau Revision Required.";
+    }
+    return "";
+  }
+
+  if (context === "delete" && role === "EMPLOYEE") {
+    if (status !== "DRAFT") {
+      return "Hanya draft yang dapat dihapus.";
+    }
+    return "";
+  }
+
+  if (context === "manager-review" && role === "MANAGER") {
+    if (status !== "SUBMITTED") {
+      return "Manager hanya dapat memproses reimbursement dengan status Submitted.";
+    }
+    return "";
+  }
+
+  if (context === "finance-review" && role === "FINANCE") {
+    if (!canFinanceReview(status)) {
+      return "Finance hanya dapat memproses reimbursement yang sudah disetujui manager atau sedang direview.";
+    }
+
+    if (status === "MANAGER_APPROVED" && action !== "start") {
+      return "Aksi Finance tidak sesuai dengan status reimbursement.";
+    }
+
+    if (status === "FINANCE_REVIEW" && !["verify", "revise", "reject"].includes(action)) {
+      return "Aksi Finance tidak sesuai dengan status reimbursement.";
+    }
+
+    return "";
+  }
+
+  if (context === "pay" && role === "FINANCE") {
+    if (!canFinancePay(status)) {
+      return "Pembayaran hanya dapat diproses saat status siap dibayar.";
+    }
+    return "";
+  }
+
+  return "";
+};
 const emptyExpense = {
   category: "",
   amount: "",
@@ -238,7 +285,16 @@ function App() {
   };
 
   const deleteReimbursement = async () => {
-    if (actionKey || !selected || selected.status !== "DRAFT") return;
+    if (actionKey || !selected) return;
+    const validationError = getValidationError({
+      role: "EMPLOYEE",
+      status: selected.status,
+      context: "delete",
+    });
+    if (validationError) {
+      setNotice(validationError);
+      return;
+    }
     if (!window.confirm("Hapus draft reimbursement ini?")) return;
     setActionKey(`delete-${selected.id}`);
     try {
@@ -368,10 +424,21 @@ function App() {
   const submitDraft = async (id) => {
     if (actionKey) return;
     const reimbursement = items.find((item) => item.id === id);
-    if (!reimbursement || !canSubmitDraft(reimbursement.status)) {
-      setNotice("Pengajuan hanya bisa dikirim saat status Draft atau Revision Required.");
+    if (!reimbursement) {
+      setNotice("Data reimbursement tidak ditemukan.");
       return;
     }
+
+    const validationError = getValidationError({
+      role: "EMPLOYEE",
+      status: reimbursement.status,
+      context: "submit",
+    });
+    if (validationError) {
+      setNotice(validationError);
+      return;
+    }
+
     setActionKey(`submit-${id}`);
     try {
       await api.patch(`/reimbursements/${id}/submit`);
@@ -386,27 +453,23 @@ function App() {
 
   const reviewReimbursement = async () => {
     if (actionKey || !selected || !decision.action) return;
-    if (isManager && !canManagerReview(selected.status)) {
-      setNotice("Manager hanya dapat memproses reimbursement dengan status Submitted.");
+
+    const validationError = getValidationError({
+      role: isManager ? "MANAGER" : "FINANCE",
+      status: selected.status,
+      action: decision.action,
+      context: isManager ? "manager-review" : "finance-review",
+    });
+    if (validationError) {
+      setNotice(validationError);
       return;
     }
-    if (isFinance && !canFinanceReview(selected.status)) {
-      setNotice("Finance hanya dapat memproses reimbursement yang sudah disetujui manager atau sedang direview.");
-      return;
-    }
+
     if (["revise", "reject"].includes(decision.action) && !decision.note.trim()) {
       setNotice("Catatan wajib diisi untuk meminta revisi atau menolak pengajuan.");
       return;
     }
-    if (
-      isFinance &&
-      ((selected.status === "MANAGER_APPROVED" && decision.action !== "start") ||
-        (selected.status === "FINANCE_REVIEW" &&
-          !["verify", "revise", "reject"].includes(decision.action)))
-    ) {
-      setNotice("Aksi Finance tidak sesuai dengan status reimbursement.");
-      return;
-    }
+
     const endpoint = isManager
       ? `/reimbursements/${selected.id}/manager`
       : `/reimbursements/${selected.id}/finance`;
@@ -425,10 +488,17 @@ function App() {
 
   const payReimbursement = async () => {
     if (actionKey || !selected || !isFinance) return;
-    if (!canFinancePay(selected.status)) {
-      setNotice("Pembayaran hanya dapat diproses saat status siap dibayar.");
+
+    const validationError = getValidationError({
+      role: "FINANCE",
+      status: selected.status,
+      context: "pay",
+    });
+    if (validationError) {
+      setNotice(validationError);
       return;
     }
+
     if (!paymentForm.method) {
       setNotice("Pilih metode pembayaran terlebih dahulu.");
       return;
