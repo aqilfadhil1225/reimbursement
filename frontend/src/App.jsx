@@ -581,16 +581,20 @@ function App() {
 
   const unreadCount = notifications.filter((item) => !item.isRead).length;
   const statusCount = (status) => summary.byStatus[status]?.count || 0;
+  const hasManagerAccess = (item) => Number(item.managerId) === Number(session?.id) || item.status === "SUBMITTED";
+  const hasFinanceAccess = (item) => Number(item.financeId) === Number(session?.id) || [
+    "MANAGER_APPROVED",
+    "FINANCE_REVIEW",
+    "READY_FOR_PAYMENT",
+  ].includes(item.status);
   const visibleItems = isEmployee
-    ? items
+    ? items.filter((item) => Number(item.employeeId) === Number(session?.id))
     : isManager
-      ? items.filter((item) => activePage === "approval" || item.status === "SUBMITTED")
-      : items.filter((item) => [
-        "MANAGER_APPROVED",
-        "FINANCE_REVIEW",
-        "READY_FOR_PAYMENT",
-        "PAID",
-      ].includes(item.status));
+      ? items.filter((item) => {
+        if (activePage === "approval") return item.status === "SUBMITTED" || Number(item.managerId) === Number(session?.id);
+        return hasManagerAccess(item);
+      })
+      : items.filter((item) => hasFinanceAccess(item));
   const filteredItems = visibleItems.filter((item) => {
     const query = queueFilters.search.trim().toLowerCase();
     const matchesSearch = !query || [item.category, item.employeeName, item.description]
