@@ -48,6 +48,8 @@ const canSubmitDraft = (status) => ["DRAFT", "REVISION_REQUIRED"].includes(statu
 const canManagerReview = (status) => status === "SUBMITTED";
 const canFinanceReview = (status) => ["MANAGER_APPROVED", "FINANCE_REVIEW"].includes(status);
 const canFinancePay = (status) => status === "READY_FOR_PAYMENT";
+const sortByNewest = (items = []) =>
+  [...items].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 const getValidationError = ({ role, status, action, context }) => {
   if (context === "submit" && role === "EMPLOYEE") {
     if (!["DRAFT", "REVISION_REQUIRED"].includes(status)) {
@@ -180,9 +182,9 @@ function App() {
       }
       const [reimbursementResponse, notificationResponse, reportResponse, auditResponse] = await Promise.all(requests);
       setItems(reimbursementResponse.data.data);
-      setNotifications(notificationResponse.data.data);
+      setNotifications(sortByNewest(notificationResponse.data.data));
       setSummary(reportResponse.data.data);
-      setAuditLogs(auditResponse?.data?.data || []);
+      setAuditLogs(sortByNewest(auditResponse?.data?.data || []));
     } catch (error) {
       setNotice(getErrorMessage(error));
     } finally {
@@ -649,7 +651,15 @@ function App() {
       </main>
     );
 
-  const unreadCount = notifications.filter((item) => !item.isRead).length;
+  const orderedNotifications = useMemo(
+    () => sortByNewest(notifications),
+    [notifications],
+  );
+  const orderedAuditLogs = useMemo(
+    () => sortByNewest(auditLogs),
+    [auditLogs],
+  );
+  const unreadCount = orderedNotifications.filter((item) => !item.isRead).length;
   const statusCount = (status) => summary.byStatus[status]?.count || 0;
   const hasManagerAccess = (item) => Number(item.managerId) === Number(session?.id) || item.status === "SUBMITTED";
   const hasFinanceAccess = (item) => Number(item.financeId) === Number(session?.id) || [
@@ -1353,10 +1363,10 @@ function App() {
                 <h2>Notifikasi</h2>
               </div>
             </div>
-            {notifications.length === 0 ? (
+            {orderedNotifications.length === 0 ? (
               <div className="empty-state">Belum ada notifikasi.</div>
             ) : (
-              notifications.map((notification) => (
+              orderedNotifications.map((notification) => (
                 <div
                   className={`notification-row ${notification.isRead ? "read" : ""}`}
                   key={notification.id}
@@ -1421,10 +1431,10 @@ function App() {
                 </div>
                 <span className="count-label">{auditLogs.length} aktivitas</span>
               </div>
-              {auditLogs.length === 0 ? (
+              {orderedAuditLogs.length === 0 ? (
                 <div className="empty-state">Belum ada aktivitas tercatat.</div>
               ) : (
-                auditLogs.slice(0, 10).map((log) => (
+                orderedAuditLogs.slice(0, 10).map((log) => (
                   <div className="notification-row" key={log.id}>
                     <span className="notification-mark">{log.action.slice(0, 1)}</span>
                     <div>
