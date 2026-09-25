@@ -4,6 +4,7 @@ import {
   CircleDollarSign,
   Clock3,
   FileText,
+  KeyRound,
   LayoutDashboard,
   Pencil,
   Plus,
@@ -41,6 +42,7 @@ type EmployeeDashboardProps = {
   setReceiptFile: Dispatch<SetStateAction<File | null>>;
   error: string;
   setError: (value: string) => void;
+  onOpenPasswordModal: () => void;
   handleCreateClaim: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleDeleteClaim: (id: number) => Promise<void>;
   handleUploadReceipt: (id: number, file: File) => Promise<void>;
@@ -67,6 +69,7 @@ export default function EmployeeDashboard({
   setReceiptFile,
   error,
   setError,
+  onOpenPasswordModal,
   handleCreateClaim,
   handleDeleteClaim,
   handleUploadReceipt,
@@ -153,6 +156,14 @@ export default function EmployeeDashboard({
             >
               <FileText className="size-[18px]" />
               <span>Pengajuan saya</span>
+            </button>
+            <button
+              type="button"
+              onClick={onOpenPasswordModal}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            >
+              <KeyRound className="size-[18px]" />
+              <span>Ubah password</span>
             </button>
           </nav>
         </div>

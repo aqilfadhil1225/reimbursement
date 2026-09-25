@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import userService from '../services/userService';
@@ -26,10 +27,37 @@ const getProfile: RequestHandler = async (req, res, next) => {
 const updateProfile: RequestHandler = async (req, res, next) => {
   try {
     const authReq = req as typeof req & { user?: any; body: Record<string, any> };
-    const user = await userService.updateUser(authReq.user.id, {
-      name: authReq.body.name,
-      email: authReq.body.email,
-    });
+    const updatePayload: Record<string, any> = {};
+
+    if (authReq.body.name !== undefined) {
+      updatePayload.name = authReq.body.name;
+    }
+
+    if (authReq.body.email !== undefined) {
+      updatePayload.email = authReq.body.email;
+    }
+
+    if (authReq.body.password !== undefined) {
+      const currentPassword = authReq.body.currentPassword;
+      if (typeof currentPassword !== 'string' || !currentPassword.trim()) {
+        throw new Error('password lama wajib diisi.');
+      }
+
+      if (typeof authReq.body.password !== 'string' || authReq.body.password.length < 6) {
+        throw new Error('password minimal 6 karakter.');
+      }
+
+      const currentUser = await userService.getUserById(authReq.user.id);
+      const passwordMatches = currentUser && await bcrypt.compare(currentPassword, currentUser.password);
+
+      if (!passwordMatches) {
+        throw new Error('password lama salah.');
+      }
+
+      updatePayload.password = authReq.body.password;
+    }
+
+    const user = await userService.updateUser(authReq.user.id, updatePayload);
     return res.json({
       success: true,
       data: {

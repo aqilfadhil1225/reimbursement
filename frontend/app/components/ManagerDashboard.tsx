@@ -5,6 +5,7 @@ import {
   CircleDollarSign,
   Clock3,
   FileText,
+  KeyRound,
   LayoutDashboard,
   RefreshCcw,
   Search,
@@ -27,11 +28,12 @@ import {
 type ManagerDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
+  onOpenPasswordModal: () => void;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handleLogout: () => void;
 };
 
-export default function ManagerDashboard({ user, claims, handleDecision, handleLogout }: ManagerDashboardProps) {
+export default function ManagerDashboard({ user, claims, onOpenPasswordModal, handleDecision, handleLogout }: ManagerDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
@@ -118,14 +120,15 @@ export default function ManagerDashboard({ user, claims, handleDecision, handleL
                 <FileText className="size-[18px]" />
                 <span>Review queue</span>
               </button>
+              <button
+                type="button"
+                onClick={onOpenPasswordModal}
+                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+              >
+                <KeyRound className="size-[18px]" />
+                <span>Ubah password</span>
+              </button>
             </nav>
-          </div>
-
-          <div className="m-4 rounded-2xl bg-indigo-50 p-4">
-            <p className="text-xs font-semibold text-[#4f46e5]">Alur manager</p>
-            <p className="mt-1 text-[11px] leading-5 text-slate-500">
-              Review, approve, request revision, atau reject setiap pengajuan karyawan.
-            </p>
           </div>
 
           <div className="flex items-center gap-3 border-t border-slate-100 p-5">

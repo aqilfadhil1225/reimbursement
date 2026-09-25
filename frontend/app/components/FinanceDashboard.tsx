@@ -5,6 +5,7 @@ import {
   Clock3,
   CreditCard,
   FileText,
+  KeyRound,
   LayoutDashboard,
   Search,
   ShieldAlert,
@@ -26,12 +27,13 @@ import {
 type FinanceDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
+  onOpenPasswordModal: () => void;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handlePayment: (id: number) => Promise<void>;
   handleLogout: () => void;
 };
 
-export default function FinanceDashboard({ user, claims, handleDecision, handlePayment, handleLogout }: FinanceDashboardProps) {
+export default function FinanceDashboard({ user, claims, onOpenPasswordModal, handleDecision, handlePayment, handleLogout }: FinanceDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
@@ -119,14 +121,15 @@ export default function FinanceDashboard({ user, claims, handleDecision, handleP
                 <FileText className="size-[18px]" />
                 <span>Review queue</span>
               </button>
+              <button
+                type="button"
+                onClick={onOpenPasswordModal}
+                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+              >
+                <KeyRound className="size-[18px]" />
+                <span>Ubah password</span>
+              </button>
             </nav>
-          </div>
-
-          <div className="m-4 rounded-2xl bg-indigo-50 p-4">
-            <p className="text-xs font-semibold text-[#4f46e5]">Alur finance</p>
-            <p className="mt-1 text-[11px] leading-5 text-slate-500">
-              Verifikasi klaim, kelola reject/revise, lalu proses pembayaran ke karyawan.
-            </p>
           </div>
 
           <div className="flex items-center gap-3 border-t border-slate-100 p-5">

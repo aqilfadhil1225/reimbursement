@@ -123,3 +123,13 @@ export async function processPayment(token: string, id: number, method: 'BANK_TR
     body: JSON.stringify({ method, reference: reference ?? `AUTO-${Date.now()}`, note: 'Paid from frontend' }),
   }, token);
 }
+
+export async function updateProfilePassword(token: string, data: { currentPassword: string; newPassword: string }) {
+  return request<{ user: unknown; token: string }>('/profile', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      currentPassword: data.currentPassword,
+      password: data.newPassword,
+    }),
+  }, token);
+}

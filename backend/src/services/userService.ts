@@ -48,7 +48,7 @@ const createUser = async (payload: any) => {
   });
 };
 
-const updateUser = (id: unknown, payload: any) => {
+const updateUser = async (id: unknown, payload: any) => {
   const data: any = {};
 
   if (payload.name !== undefined) {
@@ -67,6 +67,13 @@ const updateUser = (id: unknown, payload: any) => {
 
   if (payload.role !== undefined) {
     data.role = normalizeRole(payload.role);
+  }
+
+  if (payload.password !== undefined) {
+    if (typeof payload.password !== 'string' || payload.password.length < 6) {
+      throw new Error('password minimal 6 karakter.');
+    }
+    data.password = await bcrypt.hash(payload.password, 12);
   }
 
   if (!Object.keys(data).length) {
