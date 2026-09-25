@@ -149,14 +149,14 @@ export default function Home() {
       return;
     }
 
-    const confirmed = window.confirm('Yakin ingin menghapus pengajuan ini?');
-    if (!confirmed) return;
+    setClaims((current) => current.filter((claim) => claim.id !== id));
 
     try {
       await deleteClaim(token, id);
       await loadClaims(token);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Draft gagal dihapus.');
+      await loadClaims(token);
     }
   };
 
