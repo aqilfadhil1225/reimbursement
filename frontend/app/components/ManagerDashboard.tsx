@@ -174,18 +174,20 @@ export default function ManagerDashboard({ user, claims, handleDecision, handleL
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {([
-                    ['Total claim', money(summary.total), 'Semua pengajuan team', CircleDollarSign],
-                    ['Menunggu review', `${summary.waiting} item`, 'Butuh keputusan manager', Clock3],
-                    ['Approved', `${summary.approved} item`, 'Sudah lanjut ke finance', ShieldCheck],
-                    ['Rejected', `${summary.rejected} item`, 'Perlu tindak lanjut', ShieldAlert],
-                  ] as Array<[string, string, string, LucideIcon]>).map(([label, value, note, Icon], index) => (
-                    <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.02)]">
-                      <div className="flex items-start justify-between">
-                        <p className="text-xs font-medium text-slate-500">{label}</p>
-                        <span className="flex size-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><Icon className="size-4" /></span>
+                    { label: 'Total claim', value: money(summary.total), note: 'Semua pengajuan team', icon: CircleDollarSign, iconClass: 'bg-slate-100 text-slate-700', noteClass: 'text-slate-600' },
+                    { label: 'Menunggu review', value: `${summary.waiting} item`, note: 'Butuh keputusan manager', icon: Clock3, iconClass: 'bg-amber-100 text-amber-700', noteClass: 'text-amber-700' },
+                    { label: 'Approved', value: `${summary.approved} item`, note: 'Sudah lanjut ke finance', icon: ShieldCheck, iconClass: 'bg-emerald-100 text-emerald-700', noteClass: 'text-emerald-700' },
+                    { label: 'Rejected', value: `${summary.rejected} item`, note: 'Perlu tindak lanjut', icon: ShieldAlert, iconClass: 'bg-red-100 text-red-700', noteClass: 'text-red-700' },
+                  ]).map(({ label, value, note, icon: Icon, iconClass, noteClass }, index) => (
+                    <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+                        <span className={`flex size-9 items-center justify-center rounded-xl ${iconClass}`}>
+                          <Icon className="size-4" />
+                        </span>
                       </div>
-                      <p className="mt-4 text-xl font-bold tracking-tight">{value}</p>
-                      <p className="mt-2 text-[11px] text-emerald-600">{note}</p>
+                      <p className="mt-5 text-[28px] font-bold leading-none tracking-tight text-slate-900">{value}</p>
+                      <p className={`mt-3 text-[11px] font-medium ${noteClass}`}>{note}</p>
                     </div>
                   ))}
                 </div>
@@ -229,16 +231,16 @@ export default function ManagerDashboard({ user, claims, handleDecision, handleL
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] text-left">
+                  <table className="w-full min-w-[900px] border-separate border-spacing-0 text-left">
                     <thead>
-                      <tr className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                        <th className="px-5 py-3 sm:px-6">Pengaju</th>
-                        <th className="px-3 py-3">Deskripsi</th>
-                        <th className="px-3 py-3">Kategori</th>
-                        <th className="px-3 py-3">Tanggal</th>
-                        <th className="px-3 py-3">Jumlah</th>
-                        <th className="px-3 py-3">Status</th>
-                        <th className="px-3 py-3">Aksi</th>
+                      <tr className="bg-slate-100 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <th className="rounded-l-2xl px-5 py-3 text-left sm:px-6">Pengaju</th>
+                        <th className="px-4 py-3 text-left">Deskripsi</th>
+                        <th className="px-4 py-3 text-left">Kategori</th>
+                        <th className="px-4 py-3 text-left">Tanggal</th>
+                        <th className="px-4 py-3 text-left">Jumlah</th>
+                        <th className="px-4 py-3 text-left">Status</th>
+                        <th className="rounded-r-2xl px-4 py-3 text-left">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -250,23 +252,23 @@ export default function ManagerDashboard({ user, claims, handleDecision, handleL
                         </tr>
                       ) : (
                         filteredClaims.map((claim) => (
-                          <tr key={claim.id} className="border-t border-slate-100 text-sm align-top">
-                            <td className="px-5 py-4 sm:px-6">
+                          <tr key={claim.id} className="bg-white text-sm align-top transition hover:bg-slate-50">
+                            <td className="border-b border-slate-200 px-5 py-4 sm:px-6">
                               <div className="flex flex-col">
-                                <span className="font-semibold">{claim.employeeName}</span>
+                                <span className="font-semibold text-slate-800">{claim.employeeName}</span>
                                 <span className="text-xs text-slate-500">{claim.employeeEmail}</span>
                               </div>
                             </td>
-                            <td className="px-3 py-4">
+                            <td className="border-b border-slate-200 px-4 py-4">
                               <p className="max-w-[260px] text-sm leading-6 text-slate-700">
                                 {claim.description || 'Tidak ada deskripsi'}
                               </p>
                             </td>
-                            <td className="px-3 py-4">{claim.category}</td>
-                            <td className="px-3 py-4">{new Date(claim.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</td>
+                            <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{claim.category}</td>
+                            <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{new Date(claim.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</td>
                             <td className="px-3 py-4">{money(claim.amount)}</td>
                             <td className="px-3 py-4">
-                              <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_CLASS[claim.status] ?? 'bg-slate-100 text-slate-700'}`}>
+                              <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold leading-none ${STATUS_CLASS[claim.status] ?? 'border border-slate-200 bg-slate-100 text-slate-700'}`}>
                                 {STATUS_LABEL[claim.status] ?? claim.status}
                               </span>
                             </td>

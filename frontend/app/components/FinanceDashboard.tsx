@@ -228,16 +228,16 @@ export default function FinanceDashboard({ user, claims, handleDecision, handleP
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] text-left">
+                  <table className="w-full min-w-[900px] border-separate border-spacing-0 text-left">
                     <thead>
-                      <tr className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                        <th className="px-5 py-3 sm:px-6">Pengaju</th>
-                        <th className="px-3 py-3">Deskripsi</th>
-                        <th className="px-3 py-3">Kategori</th>
-                        <th className="px-3 py-3">Tanggal</th>
-                        <th className="px-3 py-3">Jumlah</th>
-                        <th className="px-3 py-3">Status</th>
-                        <th className="px-3 py-3">Aksi</th>
+                      <tr className="bg-slate-100 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <th className="rounded-l-2xl px-5 py-3 text-left sm:px-6">Pengaju</th>
+                        <th className="px-4 py-3 text-left">Deskripsi</th>
+                        <th className="px-4 py-3 text-left">Kategori</th>
+                        <th className="px-4 py-3 text-left">Tanggal</th>
+                        <th className="px-4 py-3 text-left">Jumlah</th>
+                        <th className="px-4 py-3 text-left">Status</th>
+                        <th className="rounded-r-2xl px-4 py-3 text-left">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -249,23 +249,23 @@ export default function FinanceDashboard({ user, claims, handleDecision, handleP
                         </tr>
                       ) : (
                         filteredClaims.map((claim) => (
-                          <tr key={claim.id} className="border-t border-slate-100 text-sm align-top">
-                            <td className="px-5 py-4 sm:px-6">
+                          <tr key={claim.id} className="bg-white text-sm align-top transition hover:bg-slate-50">
+                            <td className="border-b border-slate-200 px-5 py-4 sm:px-6">
                               <div className="flex flex-col">
-                                <span className="font-semibold">{claim.employeeName}</span>
+                                <span className="font-semibold text-slate-800">{claim.employeeName}</span>
                                 <span className="text-xs text-slate-500">{claim.employeeEmail}</span>
                               </div>
                             </td>
-                            <td className="px-3 py-4">
+                            <td className="border-b border-slate-200 px-4 py-4">
                               <p className="max-w-[260px] text-sm leading-6 text-slate-700">
                                 {claim.description || 'Tidak ada deskripsi'}
                               </p>
                             </td>
-                            <td className="px-3 py-4">{claim.category}</td>
-                            <td className="px-3 py-4">{new Date(claim.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</td>
+                            <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{claim.category}</td>
+                            <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{new Date(claim.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</td>
                             <td className="px-3 py-4">{money(claim.amount)}</td>
                             <td className="px-3 py-4">
-                              <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_CLASS[claim.status] ?? 'bg-slate-100 text-slate-700'}`}>
+                              <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold leading-none ${STATUS_CLASS[claim.status] ?? 'border border-slate-200 bg-slate-100 text-slate-700'}`}>
                                 {STATUS_LABEL[claim.status] ?? claim.status}
                               </span>
                             </td>

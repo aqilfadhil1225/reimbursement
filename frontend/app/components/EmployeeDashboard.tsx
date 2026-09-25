@@ -260,52 +260,52 @@ export default function EmployeeDashboard({
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] text-left">
+                <table className="w-full min-w-[900px] border-separate border-spacing-0 text-left">
                   <thead>
-                    <tr className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                      <th className="px-5 py-3 sm:px-6">Pengajuan</th>
-                      <th className="px-3 py-3">Deskripsi</th>
-                      <th className="px-3 py-3">Kategori</th>
-                      <th className="px-3 py-3">Tanggal</th>
-                      <th className="px-3 py-3">Jumlah</th>
-                      <th className="px-3 py-3">Status</th>
-                      <th className="px-3 py-3">Aksi</th>
+                    <tr className="bg-slate-100 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      <th className="rounded-l-2xl px-5 py-3 text-left sm:px-6">Pengajuan</th>
+                      <th className="px-4 py-3 text-left">Deskripsi</th>
+                      <th className="px-4 py-3 text-left">Kategori</th>
+                      <th className="px-4 py-3 text-left">Tanggal</th>
+                      <th className="px-4 py-3 text-left">Jumlah</th>
+                      <th className="px-4 py-3 text-left">Status</th>
+                      <th className="rounded-r-2xl px-4 py-3 text-left">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredClaims.map((claim) => (
-                      <tr key={claim.id} className="border-t border-slate-100 text-sm align-top">
-                        <td className="px-5 py-4 sm:px-6">
-                          <div className="flex flex-col">
-                            <span className="font-semibold">#{claim.id}</span>
+                      <tr key={claim.id} className="bg-white text-sm align-top transition hover:bg-slate-50">
+                        <td className="border-b border-slate-200 px-5 py-4 sm:px-6">
+                          <div className="flex flex-col gap-1">
+                            <span className="font-bold text-slate-800">#{claim.id}</span>
                             <span className="text-xs text-slate-500">{claim.employeeName}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-4">
+                        <td className="border-b border-slate-200 px-4 py-4">
                           <p className="max-w-[260px] text-sm leading-6 text-slate-700">
                             {claim.description || 'Tidak ada deskripsi'}
                           </p>
                         </td>
-                        <td className="px-3 py-4">{claim.category}</td>
-                        <td className="px-3 py-4">{formatDate(claim.createdAt)}</td>
-                        <td className="px-3 py-4 font-semibold">{money(claim.amount)}</td>
-                        <td className="px-3 py-4">
-                          <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_CLASS[claim.status] ?? 'bg-slate-100 text-slate-700'}`}>
+                        <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{claim.category}</td>
+                        <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{formatDate(claim.createdAt)}</td>
+                        <td className="border-b border-slate-200 px-4 py-4 font-semibold text-slate-800">{money(claim.amount)}</td>
+                        <td className="border-b border-slate-200 px-4 py-4">
+                          <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold leading-none ${STATUS_CLASS[claim.status] ?? 'border border-slate-200 bg-slate-100 text-slate-700'}`}>
                             {STATUS_LABEL[claim.status] ?? claim.status}
                           </span>
                         </td>
-                        <td className="px-3 py-4">
+                        <td className="border-b border-slate-200 px-4 py-4">
                           <div className="flex flex-wrap gap-2">
                             {['DRAFT', 'REVISION_REQUIRED', 'SUBMITTED'].includes(claim.status) && !['MANAGER_APPROVED', 'FINANCE_REVIEW', 'READY_FOR_PAYMENT', 'PAID'].includes(claim.status) && (
                               <>
-                                <button type="button" onClick={() => handleEditClaim(claim)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50">
+                                <button type="button" onClick={() => handleEditClaim(claim)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                                   <Pencil className="size-3" />
                                   Edit
                                 </button>
 
                                 {claim.status !== 'SUBMITTED' && (
                                   <>
-                                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50">
+                                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                                       <input
                                         type="file"
                                         accept=".jpg,.jpeg,.png,.pdf"
@@ -328,7 +328,7 @@ export default function EmployeeDashboard({
                                       } catch (err) {
                                         setError(err instanceof Error ? err.message : 'Submit gagal.');
                                       }
-                                    }} className="rounded-lg bg-indigo-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-600">Submit</button>
+                                    }} className="rounded-lg bg-indigo-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:bg-indigo-600">Submit</button>
                                   </>
                                 )}
 
@@ -338,7 +338,7 @@ export default function EmployeeDashboard({
                                     claimId: claim.id,
                                     description: claim.description,
                                   });
-                                }} className="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-100">
+                                }} className="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-[11px] font-semibold text-red-600 shadow-sm transition hover:bg-red-100">
                                   <Trash2 className="size-3" />
                                   Hapus
                                 </button>

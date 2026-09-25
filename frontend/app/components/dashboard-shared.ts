@@ -38,14 +38,14 @@ export const STATUS_LABEL: Record<string, string> = {
 };
 
 export const STATUS_CLASS: Record<string, string> = {
-  DRAFT: 'bg-slate-100 text-slate-700',
-  SUBMITTED: 'bg-blue-100 text-blue-700',
-  MANAGER_APPROVED: 'bg-emerald-100 text-emerald-700',
-  FINANCE_REVIEW: 'bg-violet-100 text-violet-700',
-  READY_FOR_PAYMENT: 'bg-purple-100 text-purple-700',
-  PAID: 'bg-emerald-100 text-emerald-700',
-  REJECTED: 'bg-red-100 text-red-700',
-  REVISION_REQUIRED: 'bg-amber-100 text-amber-700',
+  DRAFT: 'border border-slate-200 bg-slate-100 text-slate-700',
+  SUBMITTED: 'border border-blue-200 bg-blue-50 text-blue-700',
+  MANAGER_APPROVED: 'border border-emerald-200 bg-emerald-50 text-emerald-700',
+  FINANCE_REVIEW: 'border border-violet-200 bg-violet-50 text-violet-700',
+  READY_FOR_PAYMENT: 'border border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700',
+  PAID: 'border border-emerald-200 bg-emerald-50 text-emerald-700',
+  REJECTED: 'border border-red-200 bg-red-50 text-red-700',
+  REVISION_REQUIRED: 'border border-amber-200 bg-amber-50 text-amber-700',
 };
 
 export const roleLabels: Record<Role, string> = {
