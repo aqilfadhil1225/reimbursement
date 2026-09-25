@@ -231,7 +231,6 @@ export default function Home() {
     setPasswordModalOpen(false);
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     setShowPasswordInputs({ current: false, next: false, confirm: false });
-    window.alert('Password berhasil diubah.');
   };
 
   const handleLogout = () => {
@@ -384,7 +383,16 @@ export default function Home() {
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-600">Akun</p>
                   <h3 className="mt-2 text-xl font-bold text-slate-900">Ubah password</h3>
                 </div>
-                <button type="button" onClick={() => setPasswordModalOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">X</button>
+                <button
+                  type="button"
+                  onClick={() => setPasswordModalOpen(false)}
+                  className="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Tutup"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className="size-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M6 6L18 18M18 6L6 18" />
+                  </svg>
+                </button>
               </div>
 
               <form
@@ -489,7 +497,16 @@ export default function Home() {
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-600">Akun</p>
                   <h3 className="mt-2 text-xl font-bold text-slate-900">Ubah password</h3>
                 </div>
-                <button type="button" onClick={() => setPasswordModalOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">X</button>
+                <button
+                  type="button"
+                  onClick={() => setPasswordModalOpen(false)}
+                  className="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Tutup"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className="size-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M6 6L18 18M18 6L6 18" />
+                  </svg>
+                </button>
               </div>
 
               <form
@@ -628,7 +645,16 @@ export default function Home() {
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-600">Akun</p>
                 <h3 className="mt-2 text-xl font-bold text-slate-900">Ubah password</h3>
               </div>
-              <button type="button" onClick={() => setPasswordModalOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">X</button>
+              <button
+                type="button"
+                onClick={() => setPasswordModalOpen(false)}
+                className="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Tutup"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="size-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M6 6L18 18M18 6L6 18" />
+                </svg>
+              </button>
             </div>
 
             <form
