@@ -303,35 +303,6 @@ export default function EmployeeDashboard({
                                   Edit
                                 </button>
 
-                                {claim.status !== 'SUBMITTED' && (
-                                  <>
-                                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                                      <input
-                                        type="file"
-                                        accept=".jpg,.jpeg,.png,.pdf"
-                                        className="hidden"
-                                        onChange={async (event) => {
-                                          const file = event.target.files?.[0];
-                                          if (!file) return;
-                                          await handleUploadReceipt(claim.id, file);
-                                          event.target.value = '';
-                                        }}
-                                      />
-                                      Upload bukti
-                                    </label>
-                                    <button type="button" onClick={async () => {
-                                      if (!token) return;
-                                      try {
-                                        const { submitClaim } = await import('@/app/actions/reimbursements');
-                                        await submitClaim(token, claim.id);
-                                        await loadClaims(token);
-                                      } catch (err) {
-                                        setError(err instanceof Error ? err.message : 'Submit gagal.');
-                                      }
-                                    }} className="rounded-lg bg-indigo-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:bg-indigo-600">Submit</button>
-                                  </>
-                                )}
-
                                 <button type="button" onClick={() => {
                                   setDeleteTarget({
                                     open: true,
