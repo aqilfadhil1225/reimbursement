@@ -225,21 +225,23 @@ export default function Home() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb] px-5 py-10 text-slate-900">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl lg:grid-cols-[1.1fr_420px]">
-          <div className="hidden flex-col justify-between bg-[#4f46e5] p-10 text-white lg:flex">
-            <div>
+          <div className="hidden flex-col justify-between bg-[#4f46e5] px-10 py-8 text-white lg:flex">
+            <div className="space-y-8">
               <div className="flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-xl bg-white/15"><CircleDollarSign className="size-5" /></div>
                 <span className="text-xl font-bold">Reimburse<span className="text-blue-100">ly</span></span>
               </div>
-              <div className="mt-20 max-w-md">
-                <p className="text-sm font-medium text-blue-100">Satu alur, tiga peran</p>
-                <h1 className="mt-3 text-4xl font-bold leading-tight">Kelola reimburse tanpa kehilangan jejak.</h1>
-                <p className="mt-5 text-sm leading-6 text-blue-100">
+
+              <div className="max-w-md space-y-4">
+                <p className="text-sm font-medium tracking-[0.08em] text-blue-100 uppercase">Satu alur, tiga peran</p>
+                <h1 className="text-3xl font-bold leading-tight tracking-tight">Kelola reimburse tanpa kehilangan jejak.</h1>
+                <p className="text-sm leading-6 text-blue-100/90">
                   Employee mengajukan, manager meninjau, lalu finance memproses pembayaran.
                 </p>
               </div>
             </div>
-            <p className="text-xs text-blue-200">Workspace reimburse perusahaan</p>
+
+            <p className="text-xs text-blue-200/90">Workspace Reimburse Perusahaan</p>
           </div>
 
           <div className="order-1 p-7 sm:p-10 lg:col-start-2 lg:row-start-1">
