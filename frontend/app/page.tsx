@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CircleDollarSign } from 'lucide-react';
+import { CircleDollarSign, Eye, EyeOff } from 'lucide-react';
 import {
   createClaim,
   deleteClaim,
@@ -40,6 +40,8 @@ export default function Home() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showPasswordInputs, setShowPasswordInputs] = useState({ current: false, next: false, confirm: false });
   const [form, setForm] = useState({ name: '', email: '', password: '', description: '', category: 'Transport', amount: '' });
 
   const isEmployee = user?.role === 'EMPLOYEE';
@@ -228,6 +230,7 @@ export default function Home() {
     setUser(response.user as AuthUser);
     setPasswordModalOpen(false);
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setShowPasswordInputs({ current: false, next: false, confirm: false });
     window.alert('Password berhasil diubah.');
   };
 
@@ -241,6 +244,7 @@ export default function Home() {
     setIsLoggedIn(false);
     setPasswordModalOpen(false);
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setShowPasswordInputs({ current: false, next: false, confirm: false });
     setError('');
   };
 
@@ -314,15 +318,25 @@ export default function Home() {
 
               <label className="block text-xs font-semibold text-slate-600">
                 Password
-                <input
-                  ref={passwordInputRef}
-                  type="password"
-                  value={form.password}
-                  onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-[#4f46e5]"
-                  placeholder="Minimal 6 karakter"
-                  required
-                />
+                <div className="relative mt-2">
+                  <input
+                    ref={passwordInputRef}
+                    type={showLoginPassword ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-3 pr-11 text-sm outline-none transition focus:border-[#4f46e5]"
+                    placeholder="Minimal 6 karakter"
+                    required
+                  />
+                  <button
+                    type="button"
+                    aria-label={showLoginPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                    onClick={() => setShowLoginPassword((value) => !value)}
+                    className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700"
+                  >
+                    {showLoginPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
               </label>
 
               {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
@@ -396,17 +410,50 @@ export default function Home() {
               >
                 <label className="block text-sm font-medium text-slate-700">
                   Password lama
-                  <input type="password" value={passwordForm.currentPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                  <div className="relative mt-2">
+                    <input
+                      type={showPasswordInputs.current ? 'text' : 'password'}
+                      value={passwordForm.currentPassword}
+                      onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      required
+                    />
+                    <button type="button" aria-label={showPasswordInputs.current ? 'Sembunyikan password lama' : 'Tampilkan password lama'} onClick={() => setShowPasswordInputs((current) => ({ ...current, current: !current.current }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                      {showPasswordInputs.current ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
                 </label>
 
                 <label className="block text-sm font-medium text-slate-700">
                   Password baru
-                  <input type="password" value={passwordForm.newPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                  <div className="relative mt-2">
+                    <input
+                      type={showPasswordInputs.next ? 'text' : 'password'}
+                      value={passwordForm.newPassword}
+                      onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      required
+                    />
+                    <button type="button" aria-label={showPasswordInputs.next ? 'Sembunyikan password baru' : 'Tampilkan password baru'} onClick={() => setShowPasswordInputs((current) => ({ ...current, next: !current.next }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                      {showPasswordInputs.next ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
                 </label>
 
                 <label className="block text-sm font-medium text-slate-700">
                   Konfirmasi password baru
-                  <input type="password" value={passwordForm.confirmPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                  <div className="relative mt-2">
+                    <input
+                      type={showPasswordInputs.confirm ? 'text' : 'password'}
+                      value={passwordForm.confirmPassword}
+                      onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      required
+                    />
+                    <button type="button" aria-label={showPasswordInputs.confirm ? 'Sembunyikan konfirmasi password' : 'Tampilkan konfirmasi password'} onClick={() => setShowPasswordInputs((current) => ({ ...current, confirm: !current.confirm }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                      {showPasswordInputs.confirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
                 </label>
 
                 {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
@@ -468,17 +515,50 @@ export default function Home() {
               >
                 <label className="block text-sm font-medium text-slate-700">
                   Password lama
-                  <input type="password" value={passwordForm.currentPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                  <div className="relative mt-2">
+                    <input
+                      type={showPasswordInputs.current ? 'text' : 'password'}
+                      value={passwordForm.currentPassword}
+                      onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      required
+                    />
+                    <button type="button" aria-label={showPasswordInputs.current ? 'Sembunyikan password lama' : 'Tampilkan password lama'} onClick={() => setShowPasswordInputs((current) => ({ ...current, current: !current.current }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                      {showPasswordInputs.current ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
                 </label>
 
                 <label className="block text-sm font-medium text-slate-700">
                   Password baru
-                  <input type="password" value={passwordForm.newPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                  <div className="relative mt-2">
+                    <input
+                      type={showPasswordInputs.next ? 'text' : 'password'}
+                      value={passwordForm.newPassword}
+                      onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      required
+                    />
+                    <button type="button" aria-label={showPasswordInputs.next ? 'Sembunyikan password baru' : 'Tampilkan password baru'} onClick={() => setShowPasswordInputs((current) => ({ ...current, next: !current.next }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                      {showPasswordInputs.next ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
                 </label>
 
                 <label className="block text-sm font-medium text-slate-700">
                   Konfirmasi password baru
-                  <input type="password" value={passwordForm.confirmPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                  <div className="relative mt-2">
+                    <input
+                      type={showPasswordInputs.confirm ? 'text' : 'password'}
+                      value={passwordForm.confirmPassword}
+                      onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      required
+                    />
+                    <button type="button" aria-label={showPasswordInputs.confirm ? 'Sembunyikan konfirmasi password' : 'Tampilkan konfirmasi password'} onClick={() => setShowPasswordInputs((current) => ({ ...current, confirm: !current.confirm }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                      {showPasswordInputs.confirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
                 </label>
 
                 {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
@@ -574,17 +654,50 @@ export default function Home() {
             >
               <label className="block text-sm font-medium text-slate-700">
                 Password lama
-                <input type="password" value={passwordForm.currentPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                <div className="relative mt-2">
+                  <input
+                    type={showPasswordInputs.current ? 'text' : 'password'}
+                    value={passwordForm.currentPassword}
+                    onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                    required
+                  />
+                  <button type="button" aria-label={showPasswordInputs.current ? 'Sembunyikan password lama' : 'Tampilkan password lama'} onClick={() => setShowPasswordInputs((current) => ({ ...current, current: !current.current }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                    {showPasswordInputs.current ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
               </label>
 
               <label className="block text-sm font-medium text-slate-700">
                 Password baru
-                <input type="password" value={passwordForm.newPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                <div className="relative mt-2">
+                  <input
+                    type={showPasswordInputs.next ? 'text' : 'password'}
+                    value={passwordForm.newPassword}
+                    onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                    required
+                  />
+                  <button type="button" aria-label={showPasswordInputs.next ? 'Sembunyikan password baru' : 'Tampilkan password baru'} onClick={() => setShowPasswordInputs((current) => ({ ...current, next: !current.next }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                    {showPasswordInputs.next ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
               </label>
 
               <label className="block text-sm font-medium text-slate-700">
                 Konfirmasi password baru
-                <input type="password" value={passwordForm.confirmPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white" required />
+                <div className="relative mt-2">
+                  <input
+                    type={showPasswordInputs.confirm ? 'text' : 'password'}
+                    value={passwordForm.confirmPassword}
+                    onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                    required
+                  />
+                  <button type="button" aria-label={showPasswordInputs.confirm ? 'Sembunyikan konfirmasi password' : 'Tampilkan konfirmasi password'} onClick={() => setShowPasswordInputs((current) => ({ ...current, confirm: !current.confirm }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
+                    {showPasswordInputs.confirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
               </label>
 
               {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
