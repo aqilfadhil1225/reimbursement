@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CircleDollarSign } from 'lucide-react';
 import {
   createClaim,
@@ -25,6 +25,7 @@ import {
 } from './components/dashboard-shared';
 
 export default function Home() {
+  const passwordInputRef = useRef<HTMLInputElement | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [token, setToken] = useState('');
@@ -274,6 +275,12 @@ export default function Home() {
                   type="email"
                   value={form.email}
                   onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      passwordInputRef.current?.focus();
+                    }
+                  }}
                   className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-[#4f46e5]"
                   placeholder="email@company.com"
                   required
@@ -283,6 +290,7 @@ export default function Home() {
               <label className="block text-xs font-semibold text-slate-600">
                 Password
                 <input
+                  ref={passwordInputRef}
                   type="password"
                   value={form.password}
                   onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
