@@ -272,17 +272,17 @@ export default function FinanceDashboard({ user, claims, handleDecision, handleP
                             <td className="px-3 py-4">
                               <div className="flex flex-wrap gap-2">
                                 {claim.status === 'MANAGER_APPROVED' && (
-                                  <button onClick={() => handleDecision(claim.id, 'start', 'FINANCE')} className="rounded-lg bg-violet-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-violet-600">Start verify</button>
+                                  <button onClick={() => handleDecision(claim.id, 'start', 'FINANCE')} className="rounded-lg bg-violet-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-violet-600">Mulai verifikasi</button>
                                 )}
                                 {claim.status === 'FINANCE_REVIEW' && (
                                   <>
-                                    <button onClick={() => handleDecision(claim.id, 'verify', 'FINANCE')} className="rounded-lg bg-emerald-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-600">Verify</button>
-                                    <button onClick={() => setDecisionDraft({ open: true, claimId: claim.id, action: 'reject', reason: 'Bukti pembayaran atau dokumen pendukung tidak valid.' })} className="rounded-lg bg-red-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-red-600">Reject</button>
-                                    <button onClick={() => setDecisionDraft({ open: true, claimId: claim.id, action: 'revise', reason: 'Ada dokumen yang masih kurang atau belum sesuai prosedur.' })} className="rounded-lg bg-amber-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-amber-600">Revision</button>
+                                    <button onClick={() => handleDecision(claim.id, 'verify', 'FINANCE')} className="rounded-lg bg-emerald-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-600">Setujui</button>
+                                    <button onClick={() => setDecisionDraft({ open: true, claimId: claim.id, action: 'reject', reason: 'Bukti pembayaran atau dokumen pendukung tidak valid.' })} className="rounded-lg bg-red-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-red-600">Tolak</button>
+                                    <button onClick={() => setDecisionDraft({ open: true, claimId: claim.id, action: 'revise', reason: 'Ada dokumen yang masih kurang atau belum sesuai prosedur.' })} className="rounded-lg bg-amber-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-amber-600">Revisi</button>
                                   </>
                                 )}
                                 {claim.status === 'READY_FOR_PAYMENT' && (
-                                  <button onClick={() => handlePayment(claim.id)} className="rounded-lg bg-sky-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-600">Pay</button>
+                                  <button onClick={() => handlePayment(claim.id)} className="rounded-lg bg-sky-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-600">Bayar</button>
                                 )}
                               </div>
                             </td>

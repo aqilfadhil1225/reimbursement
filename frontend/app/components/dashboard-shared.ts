@@ -31,7 +31,7 @@ export const STATUS_LABEL: Record<string, string> = {
   SUBMITTED: 'Submitted',
   MANAGER_APPROVED: 'Manager approved',
   FINANCE_REVIEW: 'Finance review',
-  READY_FOR_PAYMENT: 'Ready for payment',
+  READY_FOR_PAYMENT: 'Siap bayar',
   PAID: 'Paid',
   REJECTED: 'Rejected',
   REVISION_REQUIRED: 'Revision required',
