@@ -80,6 +80,11 @@ export default function EmployeeDashboard({
     open: false,
     message: '',
   });
+  const [deleteTarget, setDeleteTarget] = useState<{ open: boolean; claimId: number | null; description: string }>({
+    open: false,
+    claimId: null,
+    description: '',
+  });
 
   const filteredClaims = useMemo(() => {
     const visible = claims.filter((claim) => {
@@ -259,6 +264,7 @@ export default function EmployeeDashboard({
                   <thead>
                     <tr className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                       <th className="px-5 py-3 sm:px-6">Pengajuan</th>
+                      <th className="px-3 py-3">Deskripsi</th>
                       <th className="px-3 py-3">Kategori</th>
                       <th className="px-3 py-3">Tanggal</th>
                       <th className="px-3 py-3">Jumlah</th>
@@ -268,12 +274,17 @@ export default function EmployeeDashboard({
                   </thead>
                   <tbody>
                     {filteredClaims.map((claim) => (
-                      <tr key={claim.id} className="border-t border-slate-100 text-sm">
+                      <tr key={claim.id} className="border-t border-slate-100 text-sm align-top">
                         <td className="px-5 py-4 sm:px-6">
                           <div className="flex flex-col">
                             <span className="font-semibold">#{claim.id}</span>
                             <span className="text-xs text-slate-500">{claim.employeeName}</span>
                           </div>
+                        </td>
+                        <td className="px-3 py-4">
+                          <p className="max-w-[260px] text-sm leading-6 text-slate-700">
+                            {claim.description || 'Tidak ada deskripsi'}
+                          </p>
                         </td>
                         <td className="px-3 py-4">{claim.category}</td>
                         <td className="px-3 py-4">{formatDate(claim.createdAt)}</td>
@@ -321,10 +332,12 @@ export default function EmployeeDashboard({
                                   </>
                                 )}
 
-                                <button type="button" onClick={async () => {
-                                  if (window.confirm('Yakin ingin menghapus pengajuan ini?')) {
-                                    await handleDeleteClaim(claim.id);
-                                  }
+                                <button type="button" onClick={() => {
+                                  setDeleteTarget({
+                                    open: true,
+                                    claimId: claim.id,
+                                    description: claim.description,
+                                  });
                                 }} className="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-100">
                                   <Trash2 className="size-3" />
                                   Hapus
@@ -397,6 +410,48 @@ export default function EmployeeDashboard({
 
             <div className="mt-5 flex justify-end">
               <button type="button" onClick={() => setRejectPreview({ open: false, message: '' })} className="rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget.open && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setDeleteTarget({ open: false, claimId: null, description: '' })}>
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-600">Hapus pengajuan</p>
+                <h3 className="mt-2 text-xl font-bold text-slate-900">Konfirmasi penghapusan</h3>
+              </div>
+              <button type="button" onClick={() => setDeleteTarget({ open: false, claimId: null, description: '' })} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              Apakah kamu yakin ingin menghapus pengajuan <span className="font-semibold">{deleteTarget.description || 'ini'}?</span>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget({ open: false, claimId: null, description: '' })}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (deleteTarget.claimId !== null) {
+                    await handleDeleteClaim(deleteTarget.claimId);
+                  }
+                  setDeleteTarget({ open: false, claimId: null, description: '' });
+                }}
+                className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                Hapus
+              </button>
             </div>
           </div>
         </div>

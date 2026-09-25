@@ -232,6 +232,7 @@ export default function FinanceDashboard({ user, claims, handleDecision, handleP
                     <thead>
                       <tr className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                         <th className="px-5 py-3 sm:px-6">Pengaju</th>
+                        <th className="px-3 py-3">Deskripsi</th>
                         <th className="px-3 py-3">Kategori</th>
                         <th className="px-3 py-3">Tanggal</th>
                         <th className="px-3 py-3">Jumlah</th>
@@ -242,18 +243,23 @@ export default function FinanceDashboard({ user, claims, handleDecision, handleP
                     <tbody>
                       {filteredClaims.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-5 py-8 text-center text-sm text-slate-500 sm:px-6">
+                          <td colSpan={7} className="px-5 py-8 text-center text-sm text-slate-500 sm:px-6">
                             Tidak ada pengajuan sesuai filter yang dipilih.
                           </td>
                         </tr>
                       ) : (
                         filteredClaims.map((claim) => (
-                          <tr key={claim.id} className="border-t border-slate-100 text-sm">
+                          <tr key={claim.id} className="border-t border-slate-100 text-sm align-top">
                             <td className="px-5 py-4 sm:px-6">
                               <div className="flex flex-col">
                                 <span className="font-semibold">{claim.employeeName}</span>
                                 <span className="text-xs text-slate-500">{claim.employeeEmail}</span>
                               </div>
+                            </td>
+                            <td className="px-3 py-4">
+                              <p className="max-w-[260px] text-sm leading-6 text-slate-700">
+                                {claim.description || 'Tidak ada deskripsi'}
+                              </p>
                             </td>
                             <td className="px-3 py-4">{claim.category}</td>
                             <td className="px-3 py-4">{new Date(claim.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</td>
