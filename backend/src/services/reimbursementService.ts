@@ -39,11 +39,11 @@ const canTransition = (currentStatus: string, nextStatus: string) => {
   const transitions: Record<string, string[]> = {
     [STATUS.DRAFT]: [STATUS.SUBMITTED],
     [STATUS.SUBMITTED]: [STATUS.MANAGER_APPROVED, STATUS.REVISION_REQUIRED, STATUS.REJECTED],
-    [STATUS.MANAGER_APPROVED]: [STATUS.FINANCE_REVIEW, STATUS.REVISION_REQUIRED],
+    [STATUS.MANAGER_APPROVED]: [STATUS.FINANCE_REVIEW, STATUS.REVISION_REQUIRED, STATUS.REJECTED],
     [STATUS.FINANCE_REVIEW]: [STATUS.READY_FOR_PAYMENT, STATUS.REVISION_REQUIRED, STATUS.REJECTED],
     [STATUS.READY_FOR_PAYMENT]: [STATUS.PAID, STATUS.REVISION_REQUIRED],
     [STATUS.REVISION_REQUIRED]: [STATUS.SUBMITTED],
-    [STATUS.REJECTED]: [],
+    [STATUS.REJECTED]: [STATUS.MANAGER_APPROVED, STATUS.REJECTED],
     [STATUS.PAID]: [],
   };
 
@@ -68,8 +68,9 @@ const getReimbursementById = (id: unknown, user: any) => reimbursementModel.find
 const updateReimbursement = async (id: unknown, updates: any, user: any) => {
   const reimbursement = await reimbursementModel.findById(id, user);
   if (!reimbursement) return null;
-  if (reimbursement.status !== STATUS.DRAFT && reimbursement.status !== STATUS.REVISION_REQUIRED) {
-    throw new Error('Reimbursement hanya bisa diubah saat DRAFT atau REVISION_REQUIRED.');
+  const editableStatuses: string[] = [STATUS.DRAFT, STATUS.REVISION_REQUIRED, STATUS.SUBMITTED];
+  if (!editableStatuses.includes(reimbursement.status as string)) {
+    throw new Error('Reimbursement hanya bisa diubah saat DRAFT, REVISION_REQUIRED, atau SUBMITTED sebelum approval.');
   }
   const allowedFields = [
     'employeeName',
@@ -120,8 +121,9 @@ const updateReimbursement = async (id: unknown, updates: any, user: any) => {
 const deleteReimbursement = async (id: unknown, user: any) => {
   const reimbursement = await reimbursementModel.findById(id, user);
   if (!reimbursement) return null;
-  if (reimbursement.status !== STATUS.DRAFT) {
-    throw new Error('Reimbursement hanya bisa dihapus saat DRAFT.');
+  const deletableStatuses: string[] = [STATUS.DRAFT, STATUS.SUBMITTED];
+  if (!deletableStatuses.includes(reimbursement.status as string)) {
+    throw new Error('Reimbursement hanya bisa dihapus saat DRAFT atau SUBMITTED sebelum approval.');
   }
   const deleted = await reimbursementModel.deleteById(id);
   await auditLogModel.create({
@@ -169,13 +171,20 @@ const submitReimbursement = async (id: unknown, actorId: unknown, actorRole = 'E
 const managerReview = async (id: unknown, action: string, note: string | undefined, actorId: unknown) => {
   const reimbursement = await reimbursementModel.findById(id, { id: actorId, role: 'MANAGER' });
   if (!reimbursement) return null;
-  if (reimbursement.status !== STATUS.SUBMITTED) {
+
+  const allowedStatuses: string[] = [STATUS.SUBMITTED, STATUS.MANAGER_APPROVED, STATUS.REJECTED];
+  if (!allowedStatuses.includes(reimbursement.status as string)) {
     return {
-      error: 'Manager hanya dapat memproses reimbursement berstatus SUBMITTED.',
+      error: 'Manager hanya dapat memproses reimbursement berstatus SUBMITTED, MANAGER_APPROVED, atau REJECTED.',
     };
   }
 
   if (!['approve', 'reject', 'revise'].includes(action)) throw new Error('action must be approve, reject, or revise.');
+  if (reimbursement.status === STATUS.MANAGER_APPROVED && action === 'approve') {
+    return {
+      error: 'Keputusan yang sudah disetujui hanya bisa diubah ke revision atau reject.',
+    };
+  }
   if (['reject', 'revise'].includes(action) && (!note || !note.trim())) {
     throw new Error('Catatan wajib diisi untuk penolakan atau permintaan revisi.');
   }
