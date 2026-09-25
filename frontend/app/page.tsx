@@ -63,6 +63,10 @@ export default function Home() {
     }
   }, []);
 
+  const resetAuthForm = () => {
+    setForm({ name: '', email: '', password: '', description: '', category: 'Transport', amount: '' });
+  };
+
   const handleAuth = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
@@ -214,6 +218,7 @@ export default function Home() {
   const handleLogout = () => {
     localStorage.removeItem('reimbursement_token');
     localStorage.removeItem('reimbursement_user');
+    resetAuthForm();
     setToken('');
     setUser(null);
     setClaims([]);
@@ -316,6 +321,7 @@ export default function Home() {
                 onClick={() => {
                   setIsRegistering((value) => !value);
                   setError('');
+                  resetAuthForm();
                 }}
                 className="font-semibold text-[#4f46e5] hover:underline"
               >
