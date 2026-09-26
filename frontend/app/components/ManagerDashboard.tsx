@@ -280,7 +280,7 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
                                 {claim.status === 'SUBMITTED' && (
                                   <button onClick={() => handleDecision(claim.id, 'approve', 'MANAGER')} className="rounded-lg bg-emerald-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-600">Approve</button>
                                 )}
-                                {claim.status !== 'REJECTED' && (
+                                {claim.status !== 'REJECTED' && claim.status !== 'PAID' && (
                                   <>
                                     <button onClick={() => setDecisionDraft({ open: true, claimId: claim.id, action: 'revise', reason: 'Dokumen pendukung belum lengkap atau data yang diajukan perlu diperbaiki.' })} className="rounded-lg bg-amber-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-amber-600">Revision</button>
                                     <button onClick={() => setDecisionDraft({ open: true, claimId: claim.id, action: 'reject', reason: 'Bukti pengeluaran tidak sesuai ketentuan atau data tidak valid.' })} className="rounded-lg bg-red-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-red-600">Reject</button>

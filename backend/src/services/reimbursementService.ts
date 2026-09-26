@@ -179,6 +179,12 @@ const managerReview = async (id: unknown, action: string, note: string | undefin
     };
   }
 
+  if (reimbursement.status === STATUS.PAID) {
+    return {
+      error: 'Reimbursement yang sudah dibayar tidak bisa di-reject atau direvisi lagi oleh manager.',
+    };
+  }
+
   if (!['approve', 'reject', 'revise'].includes(action)) throw new Error('action must be approve, reject, or revise.');
   if (reimbursement.status === STATUS.MANAGER_APPROVED && action === 'approve') {
     return {
