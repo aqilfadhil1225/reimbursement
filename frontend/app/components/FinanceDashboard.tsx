@@ -90,7 +90,6 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
       );
 
       setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null });
-      window.alert('Pembayaran berhasil diproses.');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Pembayaran gagal diproses.';
       window.alert(message);
