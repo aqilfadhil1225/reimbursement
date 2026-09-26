@@ -93,7 +93,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
     <>
       <main className="min-h-screen bg-[#f5f7fb] text-slate-900">
         <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-slate-200 bg-white lg:flex">
-          <div className="flex h-[76px] items-center gap-3 border-b border-slate-100 px-7">
+          <div className="flex h-[76px] items-center gap-3 px-7">
             <div className="flex size-9 items-center justify-center rounded-xl bg-[#4f46e5] text-white">
               <WalletCards className="size-5" />
             </div>
@@ -132,7 +132,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
             </nav>
           </div>
 
-          <div className="flex items-center gap-3 border-t border-slate-100 p-5">
+          <div className="flex items-center gap-3 p-5">
             <div className="flex size-9 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-[#4f46e5]">
               {user.name.slice(0, 2).toUpperCase()}
             </div>
