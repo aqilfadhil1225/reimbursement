@@ -382,6 +382,23 @@ export default function EmployeeDashboard({
                             {claim.status === 'SUBMITTED' && (
                               <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600">Menunggu review</span>
                             )}
+
+                            {claim.status === 'PAID' && (
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                                {claim.payment?.proofUrl ? (
+                                  <a
+                                    href={claim.payment.proofUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100"
+                                  >
+                                    Lihat bukti bayar
+                                  </a>
+                                ) : (
+                                  <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600">Bukti sedang diproses</span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>
