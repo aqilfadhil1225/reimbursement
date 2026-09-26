@@ -182,15 +182,15 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
                     { label: 'Approved', value: `${summary.approved} item`, note: 'Sudah lanjut ke finance', icon: ShieldCheck, iconClass: 'bg-emerald-100 text-emerald-700', noteClass: 'text-emerald-700' },
                     { label: 'Rejected', value: `${summary.rejected} item`, note: 'Perlu tindak lanjut', icon: ShieldAlert, iconClass: 'bg-red-100 text-red-700', noteClass: 'text-red-700' },
                   ]).map(({ label, value, note, icon: Icon, iconClass, noteClass }, index) => (
-                    <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
-                        <span className={`flex size-9 items-center justify-center rounded-xl ${iconClass}`}>
+                    <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.02)]">
+                      <div className="flex items-start justify-between">
+                        <p className="text-xs font-medium text-slate-500">{label}</p>
+                        <span className={`flex size-8 items-center justify-center rounded-lg ${iconClass}`}>
                           <Icon className="size-4" />
                         </span>
                       </div>
-                      <p className="mt-5 text-[28px] font-bold leading-none tracking-tight text-slate-900">{value}</p>
-                      <p className={`mt-3 text-[11px] font-medium ${noteClass}`}>{note}</p>
+                      <p className="mt-4 text-xl font-bold tracking-tight text-slate-900">{value}</p>
+                      <p className={`mt-2 text-[11px] ${noteClass}`}>{note}</p>
                     </div>
                   ))}
                 </div>
