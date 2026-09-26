@@ -42,7 +42,7 @@ export default function Home() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showPasswordInputs, setShowPasswordInputs] = useState({ current: false, next: false, confirm: false });
-  const [form, setForm] = useState({ name: '', email: '', password: '', description: '', category: 'Transport', amount: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', description: '', category: 'Transportasi', amount: '' });
 
   const isEmployee = user?.role === 'EMPLOYEE';
 
@@ -69,7 +69,7 @@ export default function Home() {
   }, []);
 
   const resetAuthForm = () => {
-    setForm({ name: '', email: '', password: '', description: '', category: 'Transport', amount: '' });
+    setForm({ name: '', email: '', password: '', description: '', category: 'Transportasi', amount: '' });
   };
 
   const handleAuth = async (event: React.FormEvent<HTMLFormElement>) => {

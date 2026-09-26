@@ -484,10 +484,15 @@ export default function EmployeeDashboard({
                     onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
                     className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100"
                   >
-                    <option value="Transport">Transport</option>
-                    <option value="Meals">Meals</option>
-                    <option value="Medical">Medical</option>
-                    <option value="Office">Office</option>
+                    <option value="Transportasi">Transportasi</option>
+                    <option value="Makanan & Minuman">Makanan & Minuman</option>
+                    <option value="Kesehatan">Kesehatan</option>
+                    <option value="Perjalanan Dinas">Perjalanan Dinas</option>
+                    <option value="Peralatan Kerja">Peralatan Kerja</option>
+                    <option value="Komunikasi">Komunikasi</option>
+                    <option value="ATK & Office Supplies">ATK & Office Supplies</option>
+                    <option value="Pelatihan & Seminar">Pelatihan & Seminar</option>
+                    <option value="Lainnya">Lainnya</option>
                   </select>
                 </label>
 
