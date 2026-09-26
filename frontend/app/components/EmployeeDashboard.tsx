@@ -489,7 +489,6 @@ export default function EmployeeDashboard({
                     <option value="Kesehatan">Kesehatan</option>
                     <option value="Perjalanan Dinas">Perjalanan Dinas</option>
                     <option value="Peralatan Kerja">Peralatan Kerja</option>
-                    <option value="Komunikasi">Komunikasi</option>
                     <option value="ATK & Office Supplies">ATK & Office Supplies</option>
                     <option value="Pelatihan & Seminar">Pelatihan & Seminar</option>
                   </select>
