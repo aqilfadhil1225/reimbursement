@@ -343,6 +343,16 @@ export default function EmployeeDashboard({
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                                 <button
                                   type="button"
+                                  onClick={() => {
+                                    setError('Pengajuan ditolak. Silakan buat pengajuan baru dengan data yang sudah diperbaiki.');
+                                    setShowNew(true);
+                                  }}
+                                  className="rounded-lg bg-red-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-red-700"
+                                >
+                                  Ajukan ulang
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => setDecisionPreview({
                                     open: true,
                                     kind: 'reject',
@@ -351,16 +361,6 @@ export default function EmployeeDashboard({
                                   className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[11px] font-semibold text-red-700 hover:bg-red-100"
                                 >
                                   Lihat alasan reject
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setError('Pengajuan ditolak. Silakan buat pengajuan baru dengan data yang sudah diperbaiki.');
-                                    setShowNew(true);
-                                  }}
-                                  className="rounded-lg bg-red-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-red-700"
-                                >
-                                  Ajukan ulang
                                 </button>
                               </div>
                             )}
