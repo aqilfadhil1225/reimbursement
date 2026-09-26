@@ -147,13 +147,13 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                 <span>Ringkasan</span>
               </button>
               <button
-                onClick={() => setActiveNav('Review queue')}
+                onClick={() => setActiveNav('Daftar Review')}
                 className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
-                  activeNav === 'Review queue' ? 'bg-indigo-50 text-[#4f46e5]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  activeNav === 'Daftar Review' ? 'bg-indigo-50 text-[#4f46e5]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 <FileText className="size-[18px]" />
-                <span>Review queue</span>
+                <span>Daftar Review</span>
               </button>
               <button
                 type="button"
@@ -191,7 +191,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setActiveNav('Review queue')}
+                onClick={() => setActiveNav('Daftar Review')}
                 className="flex items-center gap-2 rounded-xl bg-[#4f46e5] px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-600"
               >
                 <CheckCircle2 className="size-4" />
@@ -232,7 +232,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
               <div className="mt-2 rounded-2xl border border-slate-200 bg-white">
                 <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                   <div>
-                    <h3 className="font-bold">Review queue</h3>
+                    <h3 className="font-bold">Daftar Review</h3>
                     <p className="mt-1 text-xs text-slate-400">
                       Finance memeriksa, memvalidasi, dan memproses pembayaran pengajuan yang sudah disetujui manager.
                     </p>
@@ -332,7 +332,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
 
                 <div className="border-t border-slate-100 p-5">
                   <div className="mb-3 flex items-center justify-between">
-                    <h4 className="font-bold">Progress after decision</h4>
+                    <h4 className="font-bold">Progress setelah keputusan</h4>
                     <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-600">
                       {reviewQueue.length} item
                     </span>
@@ -340,9 +340,9 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
 
                   <div className="grid gap-3 md:grid-cols-3">
                     {[
-                      { label: 'Review queue', count: reviewQueue.length, icon: FileText, accent: 'text-sky-600 bg-sky-50' },
+                      { label: 'Daftar Review', count: reviewQueue.length, icon: FileText, accent: 'text-sky-600 bg-sky-50' },
                       { label: 'Siap bayar', count: summary.ready, icon: CreditCard, accent: 'text-emerald-600 bg-emerald-50' },
-                      { label: 'Rejected', count: rejectedQueue.length, icon: ShieldAlert, accent: 'text-red-600 bg-red-50' },
+                      { label: 'Ditolak', count: rejectedQueue.length, icon: ShieldAlert, accent: 'text-red-600 bg-red-50' },
                     ].map(({ label, count, icon: Icon, accent }) => (
                       <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                         <div className={`mb-3 flex size-9 items-center justify-center rounded-full ${accent}`}>

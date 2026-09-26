@@ -79,8 +79,9 @@ export default function EmployeeDashboard({
   closeClaimModal,
 }: EmployeeDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan');
-  const [rejectPreview, setRejectPreview] = useState<{ open: boolean; message: string }>({
+  const [decisionPreview, setDecisionPreview] = useState<{ open: boolean; kind: 'reject' | 'revise'; message: string }>({
     open: false,
+    kind: 'reject',
     message: '',
   });
   const [deleteTarget, setDeleteTarget] = useState<{ open: boolean; claimId: number | null; description: string }>({
@@ -117,13 +118,24 @@ export default function EmployeeDashboard({
     return { total, waiting, paid, draft };
   }, [claims, user.email]);
 
-  const getRejectNote = (claim: ClaimRow) => {
-    const rejectEntry = claim.history
+  const getDecisionNote = (claim: ClaimRow, status: 'REJECTED' | 'REVISION_REQUIRED') => {
+    const entry = claim.history
       ?.slice()
       .reverse()
-      .find((entry) => entry.status === 'REJECTED' || entry.note?.toLowerCase().includes('reject'));
+      .find((historyEntry) => {
+        const matchesStatus = historyEntry.status === status;
+        const matchesKeyword = status === 'REJECTED'
+          ? historyEntry.note?.toLowerCase().includes('reject')
+          : historyEntry.note?.toLowerCase().includes('revise') || historyEntry.note?.toLowerCase().includes('revisi');
 
-    return rejectEntry?.note?.trim() || 'Pengajuan ditolak. Silakan periksa catatan dari manager.';
+        return matchesStatus || matchesKeyword;
+      });
+
+    if (status === 'REJECTED') {
+      return entry?.note?.trim() || 'Pengajuan ditolak. Silakan periksa catatan dari manager.';
+    }
+
+    return entry?.note?.trim() || 'Pengajuan membutuhkan revisi. Silakan periksa catatan dari manager.';
   };
 
   return (
@@ -331,9 +343,10 @@ export default function EmployeeDashboard({
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                                 <button
                                   type="button"
-                                  onClick={() => setRejectPreview({
+                                  onClick={() => setDecisionPreview({
                                     open: true,
-                                    message: getRejectNote(claim),
+                                    kind: 'reject',
+                                    message: getDecisionNote(claim, 'REJECTED'),
                                   })}
                                   className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[11px] font-semibold text-red-700 hover:bg-red-100"
                                 >
@@ -352,6 +365,20 @@ export default function EmployeeDashboard({
                               </div>
                             )}
 
+                            {claim.status === 'REVISION_REQUIRED' && (
+                              <button
+                                type="button"
+                                onClick={() => setDecisionPreview({
+                                  open: true,
+                                  kind: 'revise',
+                                  message: getDecisionNote(claim, 'REVISION_REQUIRED'),
+                                })}
+                                className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-semibold text-amber-700 hover:bg-amber-100"
+                              >
+                                Lihat alasan revisi
+                              </button>
+                            )}
+
                             {claim.status === 'SUBMITTED' && (
                               <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600">Menunggu review</span>
                             )}
@@ -367,15 +394,19 @@ export default function EmployeeDashboard({
         </div>
       </section>
 
-      {rejectPreview.open && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setRejectPreview({ open: false, message: '' })}>
+      {decisionPreview.open && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setDecisionPreview({ open: false, kind: 'reject', message: '' })}>
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-600">Reject note</p>
-                <h3 className="mt-2 text-xl font-bold text-slate-900">Alasan penolakan manager</h3>
+                <p className={`text-[10px] font-bold uppercase tracking-[0.18em] ${decisionPreview.kind === 'reject' ? 'text-red-600' : 'text-amber-600'}`}>
+                  {decisionPreview.kind === 'reject' ? 'Reject note' : 'Revision note'}
+                </p>
+                <h3 className="mt-2 text-xl font-bold text-slate-900">
+                  {decisionPreview.kind === 'reject' ? 'Alasan penolakan manager' : 'Alasan revisi dari manager'}
+                </h3>
               </div>
-              <button type="button" onClick={() => setRejectPreview({ open: false, message: '' })} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">
+              <button type="button" onClick={() => setDecisionPreview({ open: false, kind: 'reject', message: '' })} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">
                 <X className="size-4" />
               </button>
             </div>
@@ -383,15 +414,15 @@ export default function EmployeeDashboard({
             <label className="block text-sm font-medium text-slate-700">
               Pesan
               <textarea
-                value={rejectPreview.message}
+                value={decisionPreview.message}
                 readOnly
                 rows={6}
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-red-50 px-3 py-2.5 text-sm text-red-700 outline-none"
+                className={`mt-2 w-full rounded-xl border px-3 py-2.5 text-sm outline-none ${decisionPreview.kind === 'reject' ? 'border-red-200 bg-red-50 text-red-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}
               />
             </label>
 
             <div className="mt-5 flex justify-end">
-              <button type="button" onClick={() => setRejectPreview({ open: false, message: '' })} className="rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">Tutup</button>
+              <button type="button" onClick={() => setDecisionPreview({ open: false, kind: 'reject', message: '' })} className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white ${decisionPreview.kind === 'reject' ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-500 hover:bg-amber-600'}`}>Tutup</button>
             </div>
           </div>
         </div>
