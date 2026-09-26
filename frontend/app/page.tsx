@@ -14,6 +14,7 @@ import {
   submitClaim,
   updateClaim,
   updateProfilePassword,
+  uploadPaymentProof,
   uploadReceipt,
 } from '@/app/actions/reimbursements';
 import EmployeeDashboard from './components/EmployeeDashboard';
@@ -28,6 +29,7 @@ import {
 export default function Home() {
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [token, setToken] = useState('');
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -42,6 +44,7 @@ export default function Home() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showPasswordInputs, setShowPasswordInputs] = useState({ current: false, next: false, confirm: false });
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
   const [form, setForm] = useState({ name: '', email: '', password: '', description: '', category: 'Transportasi', amount: '' });
 
   const isEmployee = user?.role === 'EMPLOYEE';
@@ -56,16 +59,35 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('reimbursement_token');
-    const savedUser = localStorage.getItem('reimbursement_user');
+    const restoreSession = async () => {
+      try {
+        const savedToken = localStorage.getItem('reimbursement_token');
+        const savedUser = localStorage.getItem('reimbursement_user');
 
-    if (savedToken && savedUser) {
-      const parsedUser = JSON.parse(savedUser) as AuthUser;
-      setUser(parsedUser);
-      setToken(savedToken);
-      setIsLoggedIn(true);
-      loadClaims(savedToken);
-    }
+        if (!savedToken || !savedUser) {
+          setIsLoggedIn(false);
+          setUser(null);
+          setToken('');
+          return;
+        }
+
+        const parsedUser = JSON.parse(savedUser) as AuthUser;
+        setUser(parsedUser);
+        setToken(savedToken);
+        setIsLoggedIn(true);
+        await loadClaims(savedToken);
+      } catch (error) {
+        localStorage.removeItem('reimbursement_token');
+        localStorage.removeItem('reimbursement_user');
+        setUser(null);
+        setToken('');
+        setIsLoggedIn(false);
+      } finally {
+        setIsReady(true);
+      }
+    };
+
+    restoreSession();
   }, []);
 
   const resetAuthForm = () => {
@@ -210,10 +232,26 @@ export default function Home() {
     }
   };
 
-  const handlePayment = async (id: number) => {
+  const handlePayment = async (
+    id: number,
+    paymentData?: { method?: 'BANK_TRANSFER' | 'CASH' | 'OTHER'; reference?: string; note?: string },
+    proofFile?: File | null,
+  ) => {
     if (!token) return;
+    setError('');
+
     try {
-      await processPayment(token, id, 'BANK_TRANSFER', `AUTO-${Date.now()}`);
+      const method = paymentData?.method ?? 'BANK_TRANSFER';
+      const reference = paymentData?.reference?.trim() || `AUTO-${Date.now()}`;
+      const note = paymentData?.note?.trim() || `Pembayaran via ${method} pada ${new Date().toLocaleString('id-ID')}`;
+
+      await processPayment(token, id, method, reference, note);
+
+      if (proofFile) {
+        await uploadPaymentProof(token, id, proofFile);
+      }
+
+      setPaymentProofFile(null);
       await loadClaims(token);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Pembayaran gagal diproses.');
@@ -246,6 +284,16 @@ export default function Home() {
     setShowPasswordInputs({ current: false, next: false, confirm: false });
     setError('');
   };
+
+  if (!isReady) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb] px-5 py-10 text-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-5 text-sm font-medium text-slate-600 shadow-sm">
+          Memuat sesi Anda...
+        </div>
+      </main>
+    );
+  }
 
   if (!isLoggedIn || !user) {
     return (

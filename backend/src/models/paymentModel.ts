@@ -9,7 +9,7 @@ const findByReimbursementId = (reimbursementId: unknown) => prisma.payment.findU
 
 const complete = async (
   reimbursementId: unknown,
-  { method, reference, paidAt }: { method: string; reference?: string | null; paidAt: Date },
+  { method, reference, proofUrl, paidAt }: { method: string; reference?: string | null; proofUrl?: string | null; paidAt: Date },
   actorId: number | null,
   note: string,
 ) => prisma.$transaction(async (transaction) => {
@@ -38,12 +38,14 @@ const complete = async (
       method: method as any,
       status: 'COMPLETED' as any,
       reference: reference || null,
+      proofUrl: proofUrl || null,
       paidAt,
     },
     update: {
       method: method as any,
       status: 'COMPLETED' as any,
       reference: reference || null,
+      proofUrl: proofUrl || null,
       paidAt,
     },
   });

@@ -25,6 +25,7 @@ const formatPayment = (payment: any) => ({
   method: payment.method,
   status: payment.status,
   reference: payment.reference,
+  proofUrl: payment.proofUrl,
   paidAt: payment.paidAt,
   createdAt: payment.createdAt,
 });

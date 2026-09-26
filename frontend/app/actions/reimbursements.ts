@@ -117,10 +117,30 @@ export async function financeReview(token: string, id: number, action: 'start' |
   }, token);
 }
 
-export async function processPayment(token: string, id: number, method: 'BANK_TRANSFER' | 'CASH' | 'OTHER' = 'BANK_TRANSFER', reference?: string) {
+export async function processPayment(
+  token: string,
+  id: number,
+  method: 'BANK_TRANSFER' | 'CASH' | 'OTHER' = 'BANK_TRANSFER',
+  reference?: string,
+  note?: string,
+) {
   return request<any>(`/reimbursements/${id}/payment`, {
     method: 'POST',
-    body: JSON.stringify({ method, reference: reference ?? `AUTO-${Date.now()}`, note: 'Paid from frontend' }),
+    body: JSON.stringify({
+      method,
+      reference: reference ?? `AUTO-${Date.now()}`,
+      note: note ?? 'Paid from frontend',
+    }),
+  }, token);
+}
+
+export async function uploadPaymentProof(token: string, id: number, file: File) {
+  const formData = new FormData();
+  formData.append('proof', file);
+
+  return request<any>(`/reimbursements/${id}/payment/proof`, {
+    method: 'POST',
+    body: formData,
   }, token);
 }
 

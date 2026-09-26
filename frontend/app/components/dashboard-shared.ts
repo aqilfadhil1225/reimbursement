@@ -9,6 +9,16 @@ export type ClaimRow = {
   amount: number;
   createdAt: string;
   status: string;
+  payment?: {
+    id?: number;
+    reimbursementId?: number;
+    method?: string;
+    reference?: string | null;
+    proofUrl?: string | null;
+    paidAt?: string;
+    note?: string | null;
+    status?: string;
+  } | null;
   history?: Array<{
     id?: number;
     reimbursementId?: number;

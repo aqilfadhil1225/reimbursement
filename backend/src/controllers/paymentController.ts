@@ -39,7 +39,32 @@ const completePayment: RequestHandler = async (req, res, next) => {
   }
 };
 
+const uploadProof: RequestHandler = async (req, res, next) => {
+  try {
+    const authReq = req as typeof req & { user?: any; params: Record<string, any>; file?: any; protocol: string; get: (header: string) => string };
+    if (!authReq.file) {
+      return res.status(400).json({ success: false, message: 'File bukti transfer wajib dikirim.' });
+    }
+
+    const proofUrl = `${authReq.protocol}://${authReq.get('host')}/uploads/${authReq.file.filename}`;
+    const payment: any = await paymentService.uploadProof(authReq.params.reimbursementId, proofUrl, authReq.user);
+
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Reimbursement tidak ditemukan.' });
+    }
+
+    if (payment.error) {
+      return res.status(400).json({ success: false, message: payment.error });
+    }
+
+    return res.status(201).json({ success: true, data: apiView.formatPayment(payment) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default {
   getPayment,
   completePayment,
+  uploadProof,
 };

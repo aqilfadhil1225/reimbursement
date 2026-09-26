@@ -110,6 +110,7 @@ model Payment {
   method          PaymentMethod
   status          PaymentStatus @default(PENDING)
   reference       String?
+  proofUrl        String?
   paidAt          DateTime?
   createdAt       DateTime      @default(now())
   reimbursement   Reimbursement @relation(fields: [reimbursementId], references: [id], onDelete: Cascade)

@@ -11,7 +11,7 @@ const validateId = (id: unknown, label: string) => {
   return parsedId;
 };
 
-const validatePayment = ({ method, reference }: any) => {
+const validatePayment = ({ method, reference, proofUrl }: any) => {
   const normalizedMethod = typeof method === 'string' ? method.trim().toUpperCase() : method;
 
   if (!paymentModel.PAYMENT_METHODS.includes(normalizedMethod)) {
@@ -22,9 +22,14 @@ const validatePayment = ({ method, reference }: any) => {
     throw new Error('reference harus berupa teks.');
   }
 
+  if (proofUrl !== undefined && proofUrl !== null && typeof proofUrl !== 'string') {
+    throw new Error('proofUrl harus berupa teks URL.');
+  }
+
   return {
     method: normalizedMethod,
     reference: reference ? reference.trim() : null,
+    proofUrl: proofUrl ? proofUrl.trim() : null,
   };
 };
 
@@ -57,7 +62,30 @@ const completePayment = async (reimbursementId: unknown, payload: any, user: any
   );
 };
 
+const uploadProof = async (reimbursementId: unknown, proofUrl: unknown, user: any) => {
+  const parsedReimbursementId = validateId(reimbursementId, 'id reimbursement');
+  const reimbursement = await reimbursementModel.findById(parsedReimbursementId, user);
+  if (!reimbursement) return null;
+
+  if (typeof proofUrl !== 'string' || !proofUrl.trim()) {
+    throw new Error('URL bukti transfer wajib dikirim.');
+  }
+
+  return paymentModel.complete(
+    parsedReimbursementId,
+    {
+      method: 'BANK_TRANSFER',
+      reference: null,
+      proofUrl: proofUrl.trim(),
+      paidAt: new Date(),
+    },
+    user.id,
+    'Bukti transfer upload oleh finance.',
+  );
+};
+
 export default {
   getPayment,
   completePayment,
+  uploadProof,
 };

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   CheckCircle2,
   CircleDollarSign,
@@ -10,6 +10,7 @@ import {
   Search,
   ShieldAlert,
   ShieldCheck,
+  UploadCloud,
   WalletCards,
   X,
   type LucideIcon,
@@ -29,11 +30,12 @@ type FinanceDashboardProps = {
   claims: ClaimRow[];
   onOpenPasswordModal: () => void;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
-  handlePayment: (id: number) => Promise<void>;
+  handlePayment: (id: number, paymentData?: { method?: 'BANK_TRANSFER' | 'CASH' | 'OTHER'; reference?: string; note?: string }, proofFile?: File | null) => Promise<void>;
   handleLogout: () => void;
 };
 
 export default function FinanceDashboard({ user, claims, onOpenPasswordModal, handleDecision, handlePayment, handleLogout }: FinanceDashboardProps) {
+  const paymentProofInputRef = useRef<HTMLInputElement | null>(null);
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
@@ -42,6 +44,14 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
     claimId: null,
     action: 'reject',
     reason: '',
+  });
+  const [paymentDraft, setPaymentDraft] = useState<{ open: boolean; claimId: number | null; method: 'BANK_TRANSFER' | 'CASH' | 'OTHER'; reference: string; note: string; proofFile: File | null }>({
+    open: false,
+    claimId: null,
+    method: 'BANK_TRANSFER',
+    reference: '',
+    note: '',
+    proofFile: null,
   });
 
   const submitDecision = async () => {
@@ -55,6 +65,30 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
 
     await handleDecision(decisionDraft.claimId, decisionDraft.action, 'FINANCE', reason);
     setDecisionDraft({ open: false, claimId: null, action: 'reject', reason: '' });
+  };
+
+  const submitPayment = async () => {
+    if (paymentDraft.claimId === null) return;
+
+    const reference = paymentDraft.reference.trim();
+    const note = paymentDraft.note.trim();
+
+    if (!reference) {
+      window.alert('Nomor bukti transfer atau referensi wajib diisi sebelum bayar.');
+      return;
+    }
+
+    await handlePayment(
+      paymentDraft.claimId,
+      {
+        method: paymentDraft.method,
+        reference,
+        note: note || `Pembayaran ${paymentDraft.method} selesai dengan referensi ${reference}`,
+      },
+      paymentDraft.proofFile,
+    );
+
+    setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null });
   };
 
   const reviewQueue = claims.filter((claim) => ['MANAGER_APPROVED', 'FINANCE_REVIEW', 'READY_FOR_PAYMENT', 'REVISION_REQUIRED'].includes(claim.status));
@@ -285,7 +319,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                                   </>
                                 )}
                                 {claim.status === 'READY_FOR_PAYMENT' && (
-                                  <button onClick={() => handlePayment(claim.id)} className="rounded-lg bg-sky-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-600">Bayar</button>
+                                  <button onClick={() => setPaymentDraft({ open: true, claimId: claim.id, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null })} className="rounded-lg bg-sky-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-600">Bayar</button>
                                 )}
                               </div>
                             </td>
@@ -325,6 +359,103 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
           </div>
         </section>
       </main>
+
+      {paymentDraft.open && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null })}>
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-600">Pembayaran</p>
+                <h3 className="mt-2 text-xl font-bold text-slate-900">Bukti transfer selesai</h3>
+              </div>
+              <button type="button" onClick={() => setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null })} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Metode pembayaran
+                <select
+                  value={paymentDraft.method}
+                  onChange={(event) => setPaymentDraft((current) => ({ ...current, method: event.target.value as 'BANK_TRANSFER' | 'CASH' | 'OTHER' }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:bg-white"
+                >
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="CASH">Tunai</option>
+                  <option value="OTHER">Lainnya</option>
+                </select>
+              </label>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Nomor bukti / referensi transfer
+                <input
+                  value={paymentDraft.reference}
+                  onChange={(event) => setPaymentDraft((current) => ({ ...current, reference: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:bg-white"
+                  placeholder="Contoh: BTR-20260926-001"
+                  required
+                />
+              </label>
+
+              <div className="block text-sm font-medium text-slate-700">
+                <span className="block">Bukti transfer</span>
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={() => paymentProofInputRef.current?.click()}
+                    className={`flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-dashed px-3 py-3 text-left transition ${
+                      paymentDraft.proofFile
+                        ? 'border-emerald-300 bg-emerald-50'
+                        : 'border-sky-200 bg-sky-50 hover:border-sky-300 hover:bg-sky-100/80'
+                    }`}
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-sky-600 shadow-sm">
+                        <UploadCloud className="size-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-slate-800">
+                          {paymentDraft.proofFile ? paymentDraft.proofFile.name : 'Pilih file bukti transfer'}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          {paymentDraft.proofFile ? 'Klik untuk mengganti file' : 'JPG, PNG, atau PDF • Maksimal 5MB'}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="inline-flex shrink-0 rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-sky-700 shadow-sm">
+                      {paymentDraft.proofFile ? 'Ganti' : 'Pilih'}
+                    </span>
+                  </button>
+                  <input
+                    ref={paymentProofInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={(event) => setPaymentDraft((current) => ({ ...current, proofFile: event.target.files?.[0] ?? null }))}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Catatan pembayaran
+                <textarea
+                  value={paymentDraft.note}
+                  onChange={(event) => setPaymentDraft((current) => ({ ...current, note: event.target.value }))}
+                  rows={4}
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:bg-white"
+                  placeholder="Contoh: Transfer berhasil ke rekening bank karyawan sesuai nominal reimbursement."
+                />
+              </label>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null })} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
+              <button type="button" onClick={submitPayment} className="rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-600">Konfirmasi bayar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {decisionDraft.open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setDecisionDraft({ open: false, claimId: null, action: 'reject', reason: '' })}>
