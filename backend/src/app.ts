@@ -59,11 +59,15 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     LIMIT_FILE_SIZE: 400,
   };
 
-  const status = statusByCode[err.code] || err.statusCode || (err.name === 'MulterError' ? 400 : 500);
+  const isOperationalError = err instanceof Error && !!err.message;
+  const status =
+    statusByCode[err.code]
+    || err.statusCode
+    || (err.name === 'MulterError' ? 400 : 500);
 
   res.status(status).json({
     success: false,
-    message: status === 500 ? 'Internal Server Error' : err.message,
+    message: isOperationalError && status < 500 ? err.message : (status === 500 ? 'Internal Server Error' : err.message || 'Terjadi kesalahan pada server.'),
   });
 });
 

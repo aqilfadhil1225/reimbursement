@@ -71,13 +71,11 @@ const uploadProof = async (reimbursementId: unknown, proofUrl: unknown, user: an
     throw new Error('URL bukti transfer wajib dikirim.');
   }
 
-  return paymentModel.complete(
+  return paymentModel.uploadProof(
     parsedReimbursementId,
     {
       method: 'BANK_TRANSFER',
-      reference: null,
       proofUrl: proofUrl.trim(),
-      paidAt: new Date(),
     },
     user.id,
     'Bukti transfer upload oleh finance.',

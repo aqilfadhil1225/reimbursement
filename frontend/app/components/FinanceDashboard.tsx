@@ -78,17 +78,23 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
       return;
     }
 
-    await handlePayment(
-      paymentDraft.claimId,
-      {
-        method: paymentDraft.method,
-        reference,
-        note: note || `Pembayaran ${paymentDraft.method} selesai dengan referensi ${reference}`,
-      },
-      paymentDraft.proofFile,
-    );
+    try {
+      await handlePayment(
+        paymentDraft.claimId,
+        {
+          method: paymentDraft.method,
+          reference,
+          note: note || `Pembayaran ${paymentDraft.method} selesai dengan referensi ${reference}`,
+        },
+        paymentDraft.proofFile,
+      );
 
-    setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null });
+      setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null });
+      window.alert('Pembayaran berhasil diproses.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Pembayaran gagal diproses.';
+      window.alert(message);
+    }
   };
 
   const reviewQueue = claims.filter((claim) => ['MANAGER_APPROVED', 'FINANCE_REVIEW', 'READY_FOR_PAYMENT', 'REVISION_REQUIRED'].includes(claim.status));
