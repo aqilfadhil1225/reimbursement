@@ -121,9 +121,9 @@ const updateReimbursement = async (id: unknown, updates: any, user: any) => {
 const deleteReimbursement = async (id: unknown, user: any) => {
   const reimbursement = await reimbursementModel.findById(id, user);
   if (!reimbursement) return null;
-  const deletableStatuses: string[] = [STATUS.DRAFT, STATUS.SUBMITTED];
+  const deletableStatuses: string[] = [STATUS.DRAFT, STATUS.SUBMITTED, STATUS.REVISION_REQUIRED];
   if (!deletableStatuses.includes(reimbursement.status as string)) {
-    throw new Error('Reimbursement hanya bisa dihapus saat DRAFT atau SUBMITTED sebelum approval.');
+    throw new Error('Reimbursement hanya bisa dihapus saat DRAFT, SUBMITTED, atau REVISION_REQUIRED sebelum approval.');
   }
   const deleted = await reimbursementModel.deleteById(id);
   await auditLogModel.create({
