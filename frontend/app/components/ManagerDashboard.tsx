@@ -91,21 +91,21 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
   return (
     <>
       <main className="min-h-screen bg-[#f5f7fb] text-slate-900">
-        <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-slate-200 bg-white lg:flex">
+        <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-zinc-800 bg-black text-white lg:flex">
           <div className="flex h-[76px] items-center gap-3 px-7">
             <div className="flex size-9 items-center justify-center rounded-xl bg-[#4f46e5] text-white">
               <CircleDollarSign className="size-5" />
             </div>
-            <span className="text-[17px] font-bold tracking-tight">Reimburse<span className="text-[#4f46e5]">ly</span></span>
+            <span className="text-[17px] font-bold tracking-tight">Reimburse<span className="text-indigo-400">ly</span></span>
           </div>
 
           <div className="flex flex-1 flex-col px-4 py-7">
-            <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Workspace</p>
+            <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">Workspace</p>
             <nav className="flex flex-col gap-1">
               <button
                 onClick={() => setActiveNav('Ringkasan')}
                 className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
-                  activeNav === 'Ringkasan' ? 'bg-indigo-50 text-[#4f46e5]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  activeNav === 'Ringkasan' ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <LayoutDashboard className="size-[18px]" />
@@ -114,7 +114,7 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
               <button
                 onClick={() => setActiveNav('Daftar Review')}
                 className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
-                  activeNav === 'Daftar Review' ? 'bg-indigo-50 text-[#4f46e5]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  activeNav === 'Daftar Review' ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <FileText className="size-[18px]" />
@@ -123,7 +123,7 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
               <button
                 type="button"
                 onClick={onOpenPasswordModal}
-                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-zinc-400 hover:bg-white/10 hover:text-white"
               >
                 <KeyRound className="size-[18px]" />
                 <span>Ubah password</span>
@@ -132,14 +132,14 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
           </div>
 
           <div className="flex items-center gap-3 p-5">
-            <div className="flex size-9 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-[#4f46e5]">
+            <div className="flex size-9 items-center justify-center rounded-full bg-indigo-400/20 text-xs font-bold text-indigo-300">
               {user.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold">{user.name}</p>
-              <p className="text-[11px] text-slate-400">{roleLabels[user.role]}</p>
+              <p className="text-[11px] text-zinc-500">{roleLabels[user.role]}</p>
             </div>
-            <button type="button" onClick={handleLogout} className="ml-auto rounded-lg px-2 py-1 text-[11px] text-slate-500 hover:bg-slate-100">
+            <button type="button" onClick={handleLogout} className="ml-auto rounded-lg px-2 py-1 text-[11px] text-zinc-400 hover:bg-white/10 hover:text-white">
               Keluar
             </button>
           </div>
