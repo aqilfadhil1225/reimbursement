@@ -127,10 +127,10 @@ const deleteReimbursement = async (id: unknown, user: any) => {
   }
   const deleted = await reimbursementModel.deleteById(id);
   await auditLogModel.create({
-    reimbursementId: deleted.id,
+    reimbursementId: null,
     actorId: user.id,
     action: 'REIMBURSEMENT_DELETED',
-    details: 'Draft reimbursement dihapus.',
+    details: `Draft reimbursement #${deleted.id} dihapus.`,
   });
   return deleted;
 };
