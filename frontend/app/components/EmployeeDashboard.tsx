@@ -1,7 +1,8 @@
+'use client';
+
 import { useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from 'react';
 import {
   Check,
-  CircleDollarSign,
   Clock3,
   FileText,
   KeyRound,
@@ -139,22 +140,23 @@ export default function EmployeeDashboard({
   };
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-slate-900">
-      <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-zinc-800 bg-black text-white lg:flex">
-        <div className="flex h-[76px] items-center gap-3 px-7">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-[#4f46e5] text-white">
-            <CircleDollarSign className="size-5" />
-          </div>
-          <span className="text-[17px] font-bold tracking-tight">Reimburse<span className="text-indigo-400">ly</span></span>
+    <main className="min-h-screen bg-[#f4f4f4] text-slate-900">
+      {/* Sidebar */}
+      <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-slate-200 bg-white text-slate-900 lg:flex">
+        {/* Logo */}
+        <div className="flex h-[72px] items-center gap-2.5 border-b border-slate-100 px-5">
+          <img src="/logo-microdata.png" alt="Microdata Indonesia" className="h-9 w-auto object-contain" />
         </div>
 
-        <div className="flex flex-1 flex-col px-4 py-7">
-          <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">Workspace</p>
+        <div className="flex flex-1 flex-col px-4 py-6">
+          <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Workspace</p>
           <nav className="flex flex-col gap-1">
             <button
               onClick={() => setActiveNav('Ringkasan')}
-              className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
-                activeNav === 'Ringkasan' ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                activeNav === 'Ringkasan'
+                  ? 'bg-[#E8722A]/10 text-[#E8722A]'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
               }`}
             >
               <LayoutDashboard className="size-[18px]" />
@@ -162,8 +164,10 @@ export default function EmployeeDashboard({
             </button>
             <button
               onClick={() => setActiveNav('Pengajuan saya')}
-              className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
-                activeNav === 'Pengajuan saya' ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                activeNav === 'Pengajuan saya'
+                  ? 'bg-[#E8722A]/10 text-[#E8722A]'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
               }`}
             >
               <FileText className="size-[18px]" />
@@ -172,7 +176,7 @@ export default function EmployeeDashboard({
             <button
               type="button"
               onClick={onOpenPasswordModal}
-              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-zinc-400 hover:bg-white/10 hover:text-white"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             >
               <KeyRound className="size-[18px]" />
               <span>Ubah password</span>
@@ -180,36 +184,34 @@ export default function EmployeeDashboard({
           </nav>
         </div>
 
-        <div className="m-4 rounded-2xl bg-white/5 p-4">
-          <p className="text-xs font-semibold text-indigo-300">Alur reimburse</p>
-          <p className="mt-1 text-[11px] leading-5 text-zinc-400">
-            Ajukan, submit, dan pantau proses reimbursementmu.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 p-5">
-          <div className="flex size-9 items-center justify-center rounded-full bg-indigo-400/20 text-xs font-bold text-indigo-300">
+        {/* User info */}
+        <div className="flex items-center gap-3 border-t border-slate-100 p-4">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E8722A]/15 text-xs font-bold text-[#E8722A]">
             {user.name.slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="truncate text-xs font-semibold">{user.name}</p>
-            <p className="text-[11px] text-zinc-500">{roleLabels[user.role]}</p>
+            <p className="truncate text-xs font-semibold text-slate-800">{user.name}</p>
+            <p className="text-[11px] text-slate-400">{roleLabels[user.role]}</p>
           </div>
-          <button type="button" onClick={handleLogout} className="ml-auto rounded-lg px-2 py-1 text-[11px] text-zinc-400 hover:bg-white/10 hover:text-white">Keluar</button>
+          <button type="button" onClick={handleLogout} className="ml-auto rounded-lg px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+            Keluar
+          </button>
         </div>
       </aside>
 
       <section className="lg:ml-[252px]">
-        <header className="flex min-h-[76px] items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 sm:px-8">
-          <div className="flex items-center gap-3">
-            <div>
-              <p className="text-xs text-slate-400">Selamat pagi, {user.name.split(' ')[0]}</p>
-              <h1 className="text-lg font-bold tracking-tight">{activeNav}</h1>
-            </div>
+        {/* Top header */}
+        <header className="flex min-h-[72px] items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 sm:px-8">
+          <div>
+            <p className="text-xs text-slate-400">Selamat datang, {user.name.split(' ')[0]}</p>
+            <h1 className="text-lg font-bold tracking-tight">{activeNav}</h1>
           </div>
 
           <div className="flex items-center gap-3">
-            <button onClick={() => setShowNew(true)} className="flex items-center gap-2 rounded-xl bg-[#4f46e5] px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-600">
+            <button
+              onClick={() => setShowNew(true)}
+              className="flex items-center gap-2 rounded-lg bg-[#E8722A] px-3.5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#d4641e] active:scale-[0.97]"
+            >
               <Plus className="size-4" />
               Pengajuan baru
             </button>
@@ -222,24 +224,24 @@ export default function EmployeeDashboard({
               <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                 <div>
                   <p className="text-sm text-slate-500">{roleConfig[user.role].greeting}</p>
-                  <h2 className="mt-1 text-2xl font-bold tracking-tight">Dashboard Employee</h2>
+                  <h2 className="mt-1 text-2xl font-black tracking-tight">Dashboard Employee</h2>
                 </div>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {([
-                  ['Total claim', money(summary.total), `${summary.total > 0 ? 'Pengajuan saya' : 'Belum ada pengajuan'}`, CircleDollarSign],
-                  ['Menunggu review', `${summary.waiting} item`, 'Status yang sedang diproses', Clock3],
-                  ['Sudah dibayar', `${summary.paid} item`, 'Pembayaran selesai', Check],
-                  ['Draft / revisi', `${summary.draft} item`, 'Butuh perhatian kamu', Users],
-                ] as Array<[string, string, string, LucideIcon]>).map(([label, value, note, Icon], index) => (
-                  <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.02)]">
+                  ['Total claim', money(summary.total), `${summary.total > 0 ? 'Pengajuan saya' : 'Belum ada pengajuan'}`, Clock3, 'bg-[#E8722A]/10 text-[#E8722A]'],
+                  ['Menunggu review', `${summary.waiting} item`, 'Status yang sedang diproses', Clock3, 'bg-amber-100 text-amber-600'],
+                  ['Sudah dibayar', `${summary.paid} item`, 'Pembayaran selesai', Check, 'bg-emerald-100 text-emerald-600'],
+                  ['Draft / revisi', `${summary.draft} item`, 'Butuh perhatian kamu', Users, 'bg-slate-100 text-slate-600'],
+                ] as Array<[string, string, string, LucideIcon, string]>).map(([label, value, note, Icon, iconClass], index) => (
+                  <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <div className="flex items-start justify-between">
                       <p className="text-xs font-medium text-slate-500">{label}</p>
-                      <span className="flex size-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><Icon className="size-4" /></span>
+                      <span className={`flex size-8 items-center justify-center rounded-lg ${iconClass}`}><Icon className="size-4" /></span>
                     </div>
                     <p className="mt-4 text-xl font-bold tracking-tight">{value}</p>
-                    <p className="mt-2 text-[11px] text-emerald-600">{note}</p>
+                    <p className="mt-2 text-[11px] text-slate-500">{note}</p>
                   </div>
                 ))}
               </div>
@@ -267,14 +269,15 @@ export default function EmployeeDashboard({
                 </div>
               </div>
 
+              {/* Filter tabs */}
               <div className="flex gap-5 overflow-x-auto border-b border-slate-100 px-5 sm:px-6">
                 {['Semua', 'Menunggu', 'Disetujui', 'Ditolak', 'Revision'].map((tab) => (
                   <button
                     type="button"
                     key={tab}
                     onClick={() => setFilter(tab)}
-                    className={`whitespace-nowrap border-b-2 py-3 text-xs font-semibold ${
-                      filter === tab ? 'border-[#4f46e5] text-[#4f46e5]' : 'border-transparent text-slate-400 hover:text-slate-700'
+                    className={`whitespace-nowrap border-b-2 py-3 text-xs font-semibold transition ${
+                      filter === tab ? 'border-[#E8722A] text-[#E8722A]' : 'border-transparent text-slate-400 hover:text-slate-700'
                     }`}
                   >
                     {tab}
@@ -285,39 +288,39 @@ export default function EmployeeDashboard({
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[900px] border-separate border-spacing-0 text-left">
                   <thead>
-                    <tr className="bg-slate-100 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                      <th className="rounded-l-2xl px-5 py-3 text-left sm:px-6">Pengajuan</th>
+                    <tr className="bg-slate-50 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      <th className="rounded-l-xl px-5 py-3 text-left sm:px-6">Pengajuan</th>
                       <th className="px-4 py-3 text-left">Deskripsi</th>
                       <th className="px-4 py-3 text-left">Kategori</th>
                       <th className="px-4 py-3 text-left">Tanggal</th>
                       <th className="px-4 py-3 text-left">Jumlah</th>
                       <th className="px-4 py-3 text-left">Status</th>
-                      <th className="rounded-r-2xl px-4 py-3 text-left">Aksi</th>
+                      <th className="rounded-r-xl px-4 py-3 text-left">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredClaims.map((claim) => (
                       <tr key={claim.id} className="bg-white text-sm align-top transition hover:bg-slate-50">
-                        <td className="border-b border-slate-200 px-5 py-4 sm:px-6">
+                        <td className="border-b border-slate-100 px-5 py-4 sm:px-6">
                           <div className="flex flex-col gap-1">
                             <span className="font-bold text-slate-800">#{claim.id}</span>
                             <span className="text-xs text-slate-500">{claim.employeeName}</span>
                           </div>
                         </td>
-                        <td className="border-b border-slate-200 px-4 py-4">
+                        <td className="border-b border-slate-100 px-4 py-4">
                           <p className="max-w-[260px] text-sm leading-6 text-slate-700">
                             {claim.description || 'Tidak ada deskripsi'}
                           </p>
                         </td>
-                        <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{claim.category}</td>
-                        <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{formatDate(claim.createdAt)}</td>
-                        <td className="border-b border-slate-200 px-4 py-4 font-semibold text-slate-800">{money(claim.amount)}</td>
-                        <td className="border-b border-slate-200 px-4 py-4">
+                        <td className="border-b border-slate-100 px-4 py-4 text-slate-600">{claim.category}</td>
+                        <td className="border-b border-slate-100 px-4 py-4 text-slate-600">{formatDate(claim.createdAt)}</td>
+                        <td className="border-b border-slate-100 px-4 py-4 font-semibold text-slate-800">{money(claim.amount)}</td>
+                        <td className="border-b border-slate-100 px-4 py-4">
                           <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold leading-none ${STATUS_CLASS[claim.status] ?? 'border border-slate-200 bg-slate-100 text-slate-700'}`}>
                             {STATUS_LABEL[claim.status] ?? claim.status}
                           </span>
                         </td>
-                        <td className="border-b border-slate-200 px-4 py-4">
+                        <td className="border-b border-slate-100 px-4 py-4">
                           <div className="flex flex-wrap gap-2">
                             {['DRAFT', 'REVISION_REQUIRED', 'SUBMITTED'].includes(claim.status) && !['MANAGER_APPROVED', 'FINANCE_REVIEW', 'READY_FOR_PAYMENT', 'PAID'].includes(claim.status) && (
                               <>
@@ -411,6 +414,7 @@ export default function EmployeeDashboard({
         </div>
       </section>
 
+      {/* Decision preview modal */}
       {decisionPreview.open && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setDecisionPreview({ open: false, kind: 'reject', message: '' })}>
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
@@ -445,6 +449,7 @@ export default function EmployeeDashboard({
         </div>
       )}
 
+      {/* Delete confirm modal */}
       {deleteTarget.open && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setDeleteTarget({ open: false, claimId: null, description: '' })}>
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
@@ -466,7 +471,7 @@ export default function EmployeeDashboard({
               <button
                 type="button"
                 onClick={() => setDeleteTarget({ open: false, claimId: null, description: '' })}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
               >
                 Batal
               </button>
@@ -478,7 +483,7 @@ export default function EmployeeDashboard({
                   }
                   setDeleteTarget({ open: false, claimId: null, description: '' });
                 }}
-                className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
               >
                 Hapus
               </button>
@@ -487,29 +492,30 @@ export default function EmployeeDashboard({
         </div>
       )}
 
+      {/* New / Edit claim modal */}
       {showNew && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-3 backdrop-blur-[1px] sm:p-6" onClick={() => setShowNew(false)}>
           <form
-            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-indigo-50 shadow-[0_30px_70px_rgba(15,23,42,0.16)] ring-1 ring-slate-200"
+            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
             onClick={(event) => event.stopPropagation()}
             onSubmit={handleCreateClaim}
           >
-            <div className="flex items-start justify-between border-b border-slate-200 bg-white/80 px-5 py-4 backdrop-blur-sm sm:px-6">
+            <div className="flex items-start justify-between border-b border-slate-100 bg-white px-5 py-4 sm:px-6">
               <div>
-                <div className="inline-flex rounded-full bg-indigo-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#4f46e5]">
+                <div className="inline-flex rounded-full bg-[#E8722A]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8722A]">
                   {editingClaimId !== null ? 'Edit pengajuan' : 'Pengajuan baru'}
                 </div>
                 <h2 className="mt-2 text-lg font-bold text-slate-900 sm:text-xl">
                   {editingClaimId !== null ? 'Perbarui data reimbursement' : 'Buat pengajuan reimbursement'}
                 </h2>
               </div>
-              <button type="button" onClick={closeClaimModal} className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-200 hover:text-slate-700" aria-label="Tutup">
+              <button type="button" onClick={closeClaimModal} className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">
                 <X className="size-4" />
               </button>
             </div>
 
             <div className="space-y-5 p-5 sm:p-6">
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[11px] leading-5 text-amber-800">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[11px] leading-5 text-amber-800">
                 Catatan: pengajuan baru masih berstatus Draft. Manager baru akan melihatnya setelah kamu menekan tombol Submit.
               </div>
 
@@ -519,7 +525,7 @@ export default function EmployeeDashboard({
                   <input
                     value={form.description}
                     onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                     placeholder="Contoh: Transport meeting klien"
                     required
                   />
@@ -530,7 +536,7 @@ export default function EmployeeDashboard({
                   <select
                     value={form.category}
                     onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                   >
                     <option value="Transportasi">Transportasi</option>
                     <option value="Makanan & Minuman">Makanan & Minuman</option>
@@ -548,7 +554,7 @@ export default function EmployeeDashboard({
                     type="number"
                     value={form.amount}
                     onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                     placeholder="500000"
                     required
                   />
@@ -561,7 +567,7 @@ export default function EmployeeDashboard({
                       type="file"
                       accept=".jpg,.jpeg,.png,.pdf"
                       onChange={(event) => setReceiptFile(event.target.files?.[0] ?? null)}
-                      className="block w-full text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-100 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-indigo-700"
+                      className="block w-full text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#E8722A]/10 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-[#E8722A]"
                     />
                   </div>
                   <span className="mt-2 block text-[11px] text-slate-500">
@@ -572,9 +578,9 @@ export default function EmployeeDashboard({
 
               {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
-              <div className="flex flex-col-reverse gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">
-                <button type="button" onClick={closeClaimModal} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50">Batal</button>
-                <button type="submit" className="rounded-xl bg-[#4f46e5] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-600">
+              <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+                <button type="button" onClick={closeClaimModal} className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50">Batal</button>
+                <button type="submit" className="rounded-lg bg-[#E8722A] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#d4641e]">
                   {editingClaimId !== null ? 'Simpan perubahan' : 'Simpan pengajuan'}
                 </button>
               </div>

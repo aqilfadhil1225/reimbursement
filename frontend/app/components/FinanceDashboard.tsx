@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import {
   CheckCircle2,
-  CircleDollarSign,
   Clock3,
   CreditCard,
   FileText,
@@ -130,22 +129,23 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
 
   return (
     <>
-      <main className="min-h-screen bg-[#f5f7fb] text-slate-900">
-        <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-zinc-800 bg-black text-white lg:flex">
-          <div className="flex h-[76px] items-center gap-3 px-7">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-[#4f46e5] text-white">
-              <WalletCards className="size-5" />
-            </div>
-            <span className="text-[17px] font-bold tracking-tight">Reimburse<span className="text-indigo-400">ly</span></span>
+      <main className="min-h-screen bg-[#f4f4f4] text-slate-900">
+        {/* Sidebar */}
+        <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-slate-200 bg-white text-slate-900 lg:flex">
+          {/* Logo */}
+          <div className="flex h-[72px] items-center gap-2.5 border-b border-slate-100 px-5">
+            <img src="/logo-microdata.png" alt="Microdata Indonesia" className="h-9 w-auto object-contain" />
           </div>
 
-          <div className="flex flex-1 flex-col px-4 py-7">
-            <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">Workspace</p>
+          <div className="flex flex-1 flex-col px-4 py-6">
+            <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Workspace</p>
             <nav className="flex flex-col gap-1">
               <button
                 onClick={() => setActiveNav('Ringkasan')}
-                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
-                  activeNav === 'Ringkasan' ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                  activeNav === 'Ringkasan'
+                    ? 'bg-[#E8722A]/10 text-[#E8722A]'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                 }`}
               >
                 <LayoutDashboard className="size-[18px]" />
@@ -153,8 +153,10 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
               </button>
               <button
                 onClick={() => setActiveNav('Daftar Review')}
-                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
-                  activeNav === 'Daftar Review' ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                  activeNav === 'Daftar Review'
+                    ? 'bg-[#E8722A]/10 text-[#E8722A]'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                 }`}
               >
                 <FileText className="size-[18px]" />
@@ -163,7 +165,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
               <button
                 type="button"
                 onClick={onOpenPasswordModal}
-                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-zinc-400 hover:bg-white/10 hover:text-white"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
               >
                 <KeyRound className="size-[18px]" />
                 <span>Ubah password</span>
@@ -171,33 +173,33 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
             </nav>
           </div>
 
-          <div className="flex items-center gap-3 p-5">
-            <div className="flex size-9 items-center justify-center rounded-full bg-indigo-400/20 text-xs font-bold text-indigo-300">
+          {/* User info */}
+          <div className="flex items-center gap-3 border-t border-slate-100 p-4">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E8722A]/15 text-xs font-bold text-[#E8722A]">
               {user.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-xs font-semibold">{user.name}</p>
-              <p className="text-[11px] text-zinc-500">{roleLabels[user.role]}</p>
+              <p className="truncate text-xs font-semibold text-slate-800">{user.name}</p>
+              <p className="text-[11px] text-slate-400">{roleLabels[user.role]}</p>
             </div>
-            <button type="button" onClick={handleLogout} className="ml-auto rounded-lg px-2 py-1 text-[11px] text-zinc-400 hover:bg-white/10 hover:text-white">
+            <button type="button" onClick={handleLogout} className="ml-auto rounded-lg px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
               Keluar
             </button>
           </div>
         </aside>
 
         <section className="lg:ml-[252px]">
-          <header className="flex min-h-[76px] items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 sm:px-8">
-            <div className="flex items-center gap-3">
-              <div>
-                <p className="text-xs text-slate-400">Selamat pagi, {user.name.split(' ')[0]}</p>
-                <h1 className="text-lg font-bold tracking-tight">{activeNav}</h1>
-              </div>
+          {/* Top header */}
+          <header className="flex min-h-[72px] items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 sm:px-8">
+            <div>
+              <p className="text-xs text-slate-400">Selamat datang, {user.name.split(' ')[0]}</p>
+              <h1 className="text-lg font-bold tracking-tight">{activeNav}</h1>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setActiveNav('Daftar Review')}
-                className="flex items-center gap-2 rounded-xl bg-[#4f46e5] px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-600"
+                className="flex items-center gap-2 rounded-lg bg-[#E8722A] px-3.5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#d4641e] active:scale-[0.97]"
               >
                 <CheckCircle2 className="size-4" />
                 Review now
@@ -211,24 +213,24 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                 <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                   <div>
                     <p className="text-sm text-slate-500">{roleConfig[user.role].greeting}</p>
-                    <h2 className="mt-1 text-2xl font-bold tracking-tight">Dashboard Finance</h2>
+                    <h2 className="mt-1 text-2xl font-black tracking-tight">Dashboard Finance</h2>
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {([
-                    ['Total klaim', money(summary.total), 'Semua pengajuan', CircleDollarSign],
-                    ['Menunggu verifikasi', `${summary.waiting} item`, 'Butuh review finance', Clock3],
-                    ['Siap bayar', `${summary.ready} item`, 'Siap diproses pembayaran', CreditCard],
-                    ['Paid', `${summary.paid} item`, 'Sudah dibayarkan', ShieldCheck],
-                  ] as Array<[string, string, string, LucideIcon]>).map(([label, value, note, Icon], index) => (
-                    <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.02)]">
+                    ['Total klaim', money(summary.total), 'Semua pengajuan', WalletCards, 'bg-[#E8722A]/10 text-[#E8722A]'],
+                    ['Menunggu verifikasi', `${summary.waiting} item`, 'Butuh review finance', Clock3, 'bg-amber-100 text-amber-600'],
+                    ['Siap bayar', `${summary.ready} item`, 'Siap diproses pembayaran', CreditCard, 'bg-sky-100 text-sky-600'],
+                    ['Paid', `${summary.paid} item`, 'Sudah dibayarkan', ShieldCheck, 'bg-emerald-100 text-emerald-600'],
+                  ] as Array<[string, string, string, LucideIcon, string]>).map(([label, value, note, Icon, iconClass], index) => (
+                    <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                       <div className="flex items-start justify-between">
                         <p className="text-xs font-medium text-slate-500">{label}</p>
-                        <span className="flex size-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><Icon className="size-4" /></span>
+                        <span className={`flex size-8 items-center justify-center rounded-lg ${iconClass}`}><Icon className="size-4" /></span>
                       </div>
                       <p className="mt-4 text-xl font-bold tracking-tight">{value}</p>
-                      <p className="mt-2 text-[11px] text-emerald-600">{note}</p>
+                      <p className="mt-2 text-[11px] text-slate-500">{note}</p>
                     </div>
                   ))}
                 </div>
@@ -254,14 +256,15 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                   </div>
                 </div>
 
+                {/* Filter tabs */}
                 <div className="flex gap-5 overflow-x-auto border-b border-slate-100 px-5 sm:px-6">
                   {['Semua', 'Menunggu', 'Siap bayar', 'Ditolak', 'Revision'].map((tab) => (
                     <button
                       key={tab}
                       type="button"
                       onClick={() => setFilter(tab)}
-                      className={`whitespace-nowrap border-b-2 py-3 text-xs font-semibold ${
-                        filter === tab ? 'border-[#4f46e5] text-[#4f46e5]' : 'border-transparent text-slate-400 hover:text-slate-700'
+                      className={`whitespace-nowrap border-b-2 py-3 text-xs font-semibold transition ${
+                        filter === tab ? 'border-[#E8722A] text-[#E8722A]' : 'border-transparent text-slate-400 hover:text-slate-700'
                       }`}
                     >
                       {tab}
@@ -272,14 +275,14 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[900px] border-separate border-spacing-0 text-left">
                     <thead>
-                      <tr className="bg-slate-100 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        <th className="rounded-l-2xl px-5 py-3 text-left sm:px-6">Pengaju</th>
+                      <tr className="bg-slate-50 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <th className="rounded-l-xl px-5 py-3 text-left sm:px-6">Pengaju</th>
                         <th className="px-4 py-3 text-left">Deskripsi</th>
                         <th className="px-4 py-3 text-left">Kategori</th>
                         <th className="px-4 py-3 text-left">Tanggal</th>
                         <th className="px-4 py-3 text-left">Jumlah</th>
                         <th className="px-4 py-3 text-left">Status</th>
-                        <th className="rounded-r-2xl px-4 py-3 text-left">Aksi</th>
+                        <th className="rounded-r-xl px-4 py-3 text-left">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -292,29 +295,29 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                       ) : (
                         filteredClaims.map((claim) => (
                           <tr key={claim.id} className="bg-white text-sm align-top transition hover:bg-slate-50">
-                            <td className="border-b border-slate-200 px-5 py-4 sm:px-6">
+                            <td className="border-b border-slate-100 px-5 py-4 sm:px-6">
                               <div className="flex flex-col">
                                 <span className="font-semibold text-slate-800">{claim.employeeName}</span>
                                 <span className="text-xs text-slate-500">{claim.employeeEmail}</span>
                               </div>
                             </td>
-                            <td className="border-b border-slate-200 px-4 py-4">
+                            <td className="border-b border-slate-100 px-4 py-4">
                               <p className="max-w-[260px] text-sm leading-6 text-slate-700">
                                 {claim.description || 'Tidak ada deskripsi'}
                               </p>
                             </td>
-                            <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{claim.category}</td>
-                            <td className="border-b border-slate-200 px-4 py-4 text-slate-600">{new Date(claim.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</td>
-                            <td className="px-3 py-4">{money(claim.amount)}</td>
-                            <td className="px-3 py-4">
+                            <td className="border-b border-slate-100 px-4 py-4 text-slate-600">{claim.category}</td>
+                            <td className="border-b border-slate-100 px-4 py-4 text-slate-600">{new Date(claim.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</td>
+                            <td className="border-b border-slate-100 px-3 py-4 font-semibold text-slate-800">{money(claim.amount)}</td>
+                            <td className="border-b border-slate-100 px-3 py-4">
                               <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold leading-none ${STATUS_CLASS[claim.status] ?? 'border border-slate-200 bg-slate-100 text-slate-700'}`}>
                                 {STATUS_LABEL[claim.status] ?? claim.status}
                               </span>
                             </td>
-                            <td className="px-3 py-4">
+                            <td className="border-b border-slate-100 px-3 py-4">
                               <div className="flex flex-wrap gap-2">
                                 {claim.status === 'MANAGER_APPROVED' && (
-                                  <button onClick={() => handleDecision(claim.id, 'start', 'FINANCE')} className="rounded-lg bg-violet-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-violet-600">Mulai verifikasi</button>
+                                  <button onClick={() => handleDecision(claim.id, 'start', 'FINANCE')} className="rounded-lg bg-[#E8722A] px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-[#d4641e]">Mulai verifikasi</button>
                                 )}
                                 {claim.status === 'FINANCE_REVIEW' && (
                                   <>
@@ -338,14 +341,14 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                 <div className="border-t border-slate-100 p-5">
                   <div className="mb-3 flex items-center justify-between">
                     <h4 className="font-bold">Progress setelah keputusan</h4>
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-600">
+                    <span className="rounded-full bg-[#E8722A]/10 px-2.5 py-1 text-[10px] font-semibold text-[#E8722A]">
                       {reviewQueue.length} item
                     </span>
                   </div>
 
                   <div className="grid gap-3 md:grid-cols-3">
                     {[
-                      { label: 'Daftar Review', count: reviewQueue.length, icon: FileText, accent: 'text-sky-600 bg-sky-50' },
+                      { label: 'Daftar Review', count: reviewQueue.length, icon: FileText, accent: 'text-[#E8722A] bg-[#E8722A]/10' },
                       { label: 'Siap bayar', count: summary.ready, icon: CreditCard, accent: 'text-emerald-600 bg-emerald-50' },
                       { label: 'Ditolak', count: rejectedQueue.length, icon: ShieldAlert, accent: 'text-red-600 bg-red-50' },
                     ].map(({ label, count, icon: Icon, accent }) => (
@@ -365,12 +368,13 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
         </section>
       </main>
 
+      {/* Payment modal */}
       {paymentDraft.open && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null })}>
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-600">Pembayaran</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8722A]">Pembayaran</p>
                 <h3 className="mt-2 text-xl font-bold text-slate-900">Bukti transfer selesai</h3>
               </div>
               <button type="button" onClick={() => setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null })} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">
@@ -384,7 +388,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                 <select
                   value={paymentDraft.method}
                   onChange={(event) => setPaymentDraft((current) => ({ ...current, method: event.target.value as 'BANK_TRANSFER' | 'CASH' | 'OTHER' }))}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:bg-white"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                 >
                   <option value="BANK_TRANSFER">Bank Transfer</option>
                   <option value="CASH">Tunai</option>
@@ -397,7 +401,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                 <input
                   value={paymentDraft.reference}
                   onChange={(event) => setPaymentDraft((current) => ({ ...current, reference: event.target.value }))}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:bg-white"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                   placeholder="Contoh: BTR-20260926-001"
                   required
                 />
@@ -412,11 +416,11 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                     className={`flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-dashed px-3 py-3 text-left transition ${
                       paymentDraft.proofFile
                         ? 'border-emerald-300 bg-emerald-50'
-                        : 'border-sky-200 bg-sky-50 hover:border-sky-300 hover:bg-sky-100/80'
+                        : 'border-[#E8722A]/30 bg-[#E8722A]/5 hover:border-[#E8722A]/50 hover:bg-[#E8722A]/10'
                     }`}
                   >
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-sky-600 shadow-sm">
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#E8722A] shadow-sm">
                         <UploadCloud className="size-5" />
                       </div>
                       <div className="min-w-0">
@@ -428,7 +432,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                         </div>
                       </div>
                     </div>
-                    <span className="inline-flex shrink-0 rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-sky-700 shadow-sm">
+                    <span className="inline-flex shrink-0 rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#E8722A] shadow-sm">
                       {paymentDraft.proofFile ? 'Ganti' : 'Pilih'}
                     </span>
                   </button>
@@ -448,26 +452,27 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                   value={paymentDraft.note}
                   onChange={(event) => setPaymentDraft((current) => ({ ...current, note: event.target.value }))}
                   rows={4}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:bg-white"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                   placeholder="Contoh: Transfer berhasil ke rekening bank karyawan sesuai nominal reimbursement."
                 />
               </label>
             </div>
 
             <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null })} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
-              <button type="button" onClick={submitPayment} className="rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-600">Konfirmasi bayar</button>
+              <button type="button" onClick={() => setPaymentDraft({ open: false, claimId: null, method: 'BANK_TRANSFER', reference: '', note: '', proofFile: null })} className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
+              <button type="button" onClick={submitPayment} className="rounded-lg bg-[#E8722A] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#d4641e]">Konfirmasi bayar</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Decision modal */}
       {decisionDraft.open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setDecisionDraft({ open: false, claimId: null, action: 'reject', reason: '' })}>
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8722A]">
                   {decisionDraft.action === 'reject' ? 'Reject reimbursement' : 'Revision required'}
                 </p>
                 <h3 className="mt-2 text-xl font-bold text-slate-900">
@@ -485,14 +490,14 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
                 value={decisionDraft.reason}
                 onChange={(event) => setDecisionDraft((current) => ({ ...current, reason: event.target.value }))}
                 rows={5}
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-violet-500 focus:bg-white focus:ring-4 focus:ring-violet-100"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                 placeholder={decisionDraft.action === 'reject' ? 'Contoh: Bukti pembayaran tidak valid atau dokumen belum sesuai prosedur.' : 'Contoh: Dokumen pendukung belum lengkap dan perlu dilengkapi terlebih dahulu.'}
               />
             </label>
 
             <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setDecisionDraft({ open: false, claimId: null, action: 'reject', reason: '' })} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
-              <button type="button" onClick={submitDecision} className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white ${decisionDraft.action === 'reject' ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-500 hover:bg-amber-600'}`}>
+              <button type="button" onClick={() => setDecisionDraft({ open: false, claimId: null, action: 'reject', reason: '' })} className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
+              <button type="button" onClick={submitDecision} className={`rounded-lg px-4 py-2.5 text-sm font-semibold text-white ${decisionDraft.action === 'reject' ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-500 hover:bg-amber-600'}`}>
                 {decisionDraft.action === 'reject' ? 'Kirim reject' : 'Kirim revisi'}
               </button>
             </div>
