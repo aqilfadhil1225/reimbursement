@@ -133,7 +133,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
         {/* Sidebar */}
         <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-slate-200 bg-white text-slate-900 lg:flex">
           {/* Logo */}
-          <div className="flex h-[72px] items-center gap-2.5 border-b border-slate-100 px-5">
+          <div className="flex h-[72px] items-center gap-2.5 px-5">
             <img src="/logo-microdata.png" alt="Microdata Indonesia" className="h-9 w-auto object-contain" />
           </div>
 
@@ -174,7 +174,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
           </div>
 
           {/* User info */}
-          <div className="flex items-center gap-3 border-t border-slate-100 p-4">
+          <div className="flex items-center gap-3 p-4">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E8722A]/15 text-xs font-bold text-[#E8722A]">
               {user.name.slice(0, 2).toUpperCase()}
             </div>
@@ -190,7 +190,7 @@ export default function FinanceDashboard({ user, claims, onOpenPasswordModal, ha
 
         <section className="lg:ml-[252px]">
           {/* Top header */}
-          <header className="flex min-h-[72px] items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 sm:px-8">
+          <header className="flex min-h-[72px] items-center justify-between gap-4 bg-white px-5 py-4 sm:px-8">
             <div>
               <p className="text-xs text-slate-400">Selamat datang, {user.name.split(' ')[0]}</p>
               <h1 className="text-lg font-bold tracking-tight">{activeNav}</h1>
