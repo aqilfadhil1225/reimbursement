@@ -11,8 +11,8 @@ Backend untuk sistem reimbursement berbasis Express, Prisma, dan PostgreSQL.
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/reimbursement?schema=public"
 JWT_SECRET="ganti_dengan_secret_random_yang_aman"
-PORT=3000
-CORS_ORIGIN="http://localhost:5173"
+PORT=3001
+CORS_ORIGIN="http://localhost:3000"
 ```
 
 File `.env` jangan di-commit karena berisi konfigurasi rahasia.
