@@ -59,8 +59,7 @@ reimbursement/
 - Git
 - Node.js 20.9 atau lebih baru
 - PostgreSQL
-- Corepack/pnpm 12.3.4 untuk frontend
-- npm untuk backend
+- npm untuk frontend dan backend
 
 ## Clone repository
 
@@ -89,8 +88,8 @@ Terminal 2, jalankan frontend:
 
 ```bash
 cd frontend
-corepack pnpm install --frozen-lockfile
-corepack pnpm dev
+npm ci
+npm run dev
 ```
 
 Frontend berjalan di [http://localhost:3000](http://localhost:3000) dan menggunakan API backend di `http://localhost:3001/api` secara default. Detail konfigurasi, build produksi, dan troubleshooting tersedia di [README frontend](frontend/README.md).

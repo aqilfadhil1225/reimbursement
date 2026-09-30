@@ -6,7 +6,7 @@ Frontend untuk aplikasi reimbursement, dibuat dengan Next.js App Router, React, 
 
 - Git
 - Node.js 20.9 atau lebih baru
-- Corepack dan pnpm 12.3.4
+- npm
 - Backend Reimbursement dan PostgreSQL yang sudah dikonfigurasi
 
 ## Clone dan instalasi
@@ -18,10 +18,10 @@ git clone https://github.com/aqilfadhil1225/reimbursement.git
 cd reimbursement/frontend
 ```
 
-Install dependency menggunakan versi pnpm yang ditetapkan di `package.json`:
+Install dependency dari lockfile npm:
 
 ```bash
-corepack pnpm install --frozen-lockfile
+npm ci
 ```
 
 ## Konfigurasi backend
@@ -59,18 +59,18 @@ Backend secara default berjalan di `http://localhost:3001`.
 Kemudian, dari folder `frontend`, jalankan development server:
 
 ```bash
-corepack pnpm dev
+npm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000) di browser. Port frontend dapat diubah dengan argumen Next.js, misalnya `corepack pnpm dev -- --port 3002`.
+Buka [http://localhost:3000](http://localhost:3000) di browser. Port frontend dapat diubah dengan argumen Next.js, misalnya `npm run dev -- --port 3002`.
 
 ## Build produksi
 
 Dari folder `frontend`:
 
 ```bash
-corepack pnpm build
-corepack pnpm start
+npm run build
+npm run start
 ```
 
 Perintah `start` menjalankan build produksi Next.js, bukan development server.
@@ -94,7 +94,7 @@ frontend/
 ├── public/                       # Aset statis, seperti logo
 ├── next.config.mjs               # Konfigurasi Next.js
 ├── package.json                  # Dependency dan script frontend
-├── pnpm-lock.yaml                # Lockfile pnpm
+├── package-lock.json             # Lockfile npm
 └── tsconfig.json                 # Konfigurasi TypeScript
 ```
 
