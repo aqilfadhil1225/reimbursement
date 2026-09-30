@@ -23,6 +23,7 @@ import {
   type AuthUser,
   type ClaimRow,
 } from './dashboard-shared';
+import SidebarProfile from './SidebarProfile';
 
 type ManagerDashboardProps = {
   user: AuthUser;
@@ -134,18 +135,7 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
           </div>
 
           {/* User info */}
-          <div className="flex items-center gap-3 p-4">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E8722A]/15 text-xs font-bold text-[#E8722A]">
-              {user.name.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-xs font-semibold text-slate-800">{user.name}</p>
-              <p className="text-[11px] text-slate-400">{roleLabels[user.role]}</p>
-            </div>
-            <button type="button" onClick={handleLogout} className="ml-auto rounded-lg px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
-              Keluar
-            </button>
-          </div>
+          <SidebarProfile user={user} onLogout={handleLogout} />
         </aside>
 
         <section className="lg:ml-[252px]">
