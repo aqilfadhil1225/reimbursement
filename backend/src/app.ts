@@ -1,8 +1,10 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
+import swaggerUi from 'swagger-ui-express';
 
 import config from './config';
+import openApiDocument from './docs/openapi';
 import reimbursementRoutes from './routes/reimbursementRoutes';
 import expenseRoutes from './routes/expenseRoutes';
 import paymentRoutes from './routes/paymentRoutes';
@@ -39,6 +41,8 @@ app.get('/', (_req: Request, res: Response) => {
     app: config.appName,
   });
 });
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/reimbursements', authenticate, reimbursementRoutes);

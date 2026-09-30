@@ -35,7 +35,13 @@ npm run prisma:migrate
 npm run dev
 ```
 
-Server berjalan di `http://localhost:3000`.
+Server berjalan di `http://localhost:3001`.
+
+## Dokumentasi API (Swagger)
+
+Jalankan backend, lalu buka Swagger UI di [`http://localhost:3001/api-docs`](http://localhost:3001/api-docs). Dokumentasi mencakup endpoint, format request dan response, upload file, serta autentikasi Bearer.
+
+Untuk mencoba endpoint yang memerlukan autentikasi, login melalui `POST /api/auth/login`, salin nilai `token` dari response, klik **Authorize** di Swagger UI, lalu masukkan token tersebut.
 
 ## Authentication
 
