@@ -21,7 +21,10 @@ export default function MobileDashboardNav({
   ];
 
   return (
-    <nav aria-label="Navigasi dashboard" className="grid grid-cols-4 border-t border-slate-100 bg-white px-2 py-2 lg:hidden">
+    <nav
+      aria-label="Navigasi dashboard"
+      className="flex gap-1.5 overflow-x-auto border-y border-slate-100 bg-white px-3 py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hidden"
+    >
       {items.map(({ label, icon: Icon, action }) => {
         const isActive = activeNav === label;
 
@@ -31,30 +34,32 @@ export default function MobileDashboardNav({
             type="button"
             onClick={action}
             aria-current={isActive ? 'page' : undefined}
-            className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[10px] font-semibold transition ${
-              isActive ? 'text-[#E8722A]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+            className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border px-2.5 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722A] sm:px-3 sm:text-xs ${
+              isActive
+                ? 'border-[#E8722A]/15 bg-[#E8722A]/10 text-[#D65F19] shadow-sm'
+                : 'border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-800'
             }`}
           >
-            <Icon className="size-4" />
-            <span className="max-w-full truncate">{label}</span>
+            <Icon className="size-4 shrink-0" />
+            <span>{label}</span>
           </button>
         );
       })}
       <button
         type="button"
         onClick={onOpenPasswordModal}
-        className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[10px] font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+        className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2.5 text-[11px] font-semibold text-slate-500 transition hover:border-slate-200 hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722A] sm:px-3 sm:text-xs"
       >
-        <KeyRound className="size-4" />
-        <span className="max-w-full truncate">Password</span>
+        <KeyRound className="size-4 shrink-0" />
+        <span>Password</span>
       </button>
       <button
         type="button"
         onClick={onLogout}
-        className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[10px] font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+        className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2.5 text-[11px] font-semibold text-slate-500 transition hover:border-slate-200 hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722A] sm:px-3 sm:text-xs"
       >
-        <LogOut className="size-4" />
-        <span className="max-w-full truncate">Keluar</span>
+        <LogOut className="size-4 shrink-0" />
+        <span>Keluar</span>
       </button>
     </nav>
   );
