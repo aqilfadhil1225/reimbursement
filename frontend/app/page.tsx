@@ -301,16 +301,16 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-[#f4f4f4] text-slate-900" style={{ fontFamily: "'Inter', 'Outfit', sans-serif" }}>
         {/* Navbar */}
-        <nav className="flex items-center justify-between border-b border-slate-200 bg-white/90 px-6 py-3.5 backdrop-blur-md">
-          <div className="flex items-center gap-3">
+        <nav className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white/90 px-4 py-3.5 backdrop-blur-md sm:px-6">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <img
               src="/logo-microdata.png"
               alt="Microdata Indonesia"
-              className="h-10 w-auto object-contain"
+              className="h-8 w-auto object-contain sm:h-10"
             />
-            <span className="text-base font-bold tracking-tight text-slate-900">Reimbursement</span>
+            <span className="truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base">Reimbursement</span>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex shrink-0 items-center gap-3 sm:gap-5">
             {/* Login text link - mirip referensi */}
             <button
               type="button"
@@ -331,7 +331,7 @@ export default function Home() {
                 setError('');
                 resetAuthForm();
               }}
-              className="rounded-lg bg-[#E8722A] px-5 py-2 text-sm font-bold text-white transition hover:bg-[#d4641e] active:scale-[0.97]"
+              className="rounded-lg bg-[#E8722A] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#d4641e] active:scale-[0.97] sm:px-5"
             >
               Daftar
             </button>
@@ -339,7 +339,7 @@ export default function Home() {
         </nav>
 
         {/* Main content */}
-        <main className="flex min-h-[calc(100vh-57px)] items-center justify-center px-5 py-10">
+        <main className="flex min-h-[calc(100vh-57px)] items-center justify-center px-4 py-7 sm:px-5 sm:py-10">
           <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[1fr_420px] lg:items-center">
 
             {/* Left: Headline */}
@@ -373,7 +373,7 @@ export default function Home() {
             </div>
 
             {/* Right: Form card */}
-            <div className="w-full rounded-3xl border border-slate-200 bg-white px-8 py-9 shadow-xl">
+            <div className="w-full rounded-3xl border border-slate-200 bg-white px-5 py-6 shadow-xl sm:px-8 sm:py-9">
               {/* Mobile logo */}
               <div className="mb-6 flex items-center gap-2 lg:hidden">
                 <img

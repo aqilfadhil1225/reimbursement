@@ -24,6 +24,7 @@ import {
   type ClaimRow,
 } from './dashboard-shared';
 import SidebarProfile from './SidebarProfile';
+import MobileDashboardNav from './MobileDashboardNav';
 
 type ManagerDashboardProps = {
   user: AuthUser;
@@ -140,7 +141,7 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
 
         <section className="lg:ml-[252px]">
           {/* Top header */}
-          <header className="flex min-h-[72px] items-center justify-between gap-4 bg-white px-5 py-4 sm:px-8">
+          <header className="flex min-h-[72px] items-center justify-between gap-3 bg-white px-4 py-3 sm:px-8 sm:py-4">
             <div>
               <p className="text-xs text-slate-400">Selamat datang, {user.name.split(' ')[0]}</p>
               <h1 className="text-lg font-bold tracking-tight">{activeNav}</h1>
@@ -149,15 +150,22 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setActiveNav('Daftar Review')}
-                className="flex items-center gap-2 rounded-lg bg-[#E8722A] px-3.5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#d4641e] active:scale-[0.97]"
+                className="flex shrink-0 items-center gap-2 rounded-lg bg-[#E8722A] px-2.5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#d4641e] active:scale-[0.97] sm:px-3.5"
               >
                 <CheckCircle2 className="size-4" />
-                Review now
+                <span className="hidden min-[360px]:inline">Review now</span>
               </button>
             </div>
           </header>
+          <MobileDashboardNav
+            activeNav={activeNav}
+            listLabel="Daftar Review"
+            onNavigate={setActiveNav}
+            onOpenPasswordModal={onOpenPasswordModal}
+            onLogout={handleLogout}
+          />
 
-          <div className="mx-auto max-w-[1440px] px-5 py-7 sm:px-8 lg:px-10">
+          <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-8 sm:py-7 lg:px-10">
             {activeNav === 'Ringkasan' ? (
               <>
                 <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
@@ -167,22 +175,22 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                   {([
                     { label: 'Total claim', value: money(summary.total), note: 'Semua pengajuan team', icon: Check, iconClass: 'bg-[#E8722A]/10 text-[#E8722A]', noteClass: 'text-slate-500' },
                     { label: 'Menunggu review', value: `${summary.waiting} item`, note: 'Butuh keputusan manager', icon: Clock3, iconClass: 'bg-amber-100 text-amber-600', noteClass: 'text-amber-600' },
                     { label: 'Approved', value: `${summary.approved} item`, note: 'Sudah lanjut ke finance', icon: ShieldCheck, iconClass: 'bg-emerald-100 text-emerald-700', noteClass: 'text-emerald-600' },
                     { label: 'Rejected', value: `${summary.rejected} item`, note: 'Perlu tindak lanjut', icon: ShieldAlert, iconClass: 'bg-red-100 text-red-700', noteClass: 'text-red-600' },
                   ]).map(({ label, value, note, icon: Icon, iconClass, noteClass }, index) => (
-                    <div key={`${label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div key={`${label}-${index}`} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5">
                       <div className="flex items-start justify-between">
                         <p className="text-xs font-medium text-slate-500">{label}</p>
                         <span className={`flex size-8 items-center justify-center rounded-lg ${iconClass}`}>
                           <Icon className="size-4" />
                         </span>
                       </div>
-                      <p className="mt-4 text-xl font-bold tracking-tight text-slate-900">{value}</p>
-                      <p className={`mt-2 text-[11px] ${noteClass}`}>{note}</p>
+                      <p className="mt-3 break-words text-base font-bold tracking-tight text-slate-900 sm:mt-4 sm:text-xl">{value}</p>
+                      <p className={`mt-2 text-[10px] leading-4 sm:text-[11px] ${noteClass}`}>{note}</p>
                     </div>
                   ))}
                 </div>
