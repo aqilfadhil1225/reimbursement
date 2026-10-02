@@ -374,16 +374,6 @@ export default function Home() {
 
             {/* Right: Form card */}
             <div className="w-full rounded-3xl border border-slate-200 bg-white px-5 py-6 shadow-xl sm:px-8 sm:py-9">
-              {/* Mobile logo */}
-              <div className="mb-6 flex items-center gap-2 lg:hidden">
-                <img
-                  src="/logo-microdata.png"
-                  alt="Microdata Indonesia"
-                  className="h-9 w-auto object-contain"
-                />
-                <span className="text-base font-bold tracking-tight text-slate-900">Reimburse<span className="text-[#e07b39]">ly</span></span>
-              </div>
-
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#e07b39]">
                 {isRegistering ? 'Buat akun baru' : 'Selamat datang kembali'}
               </p>
