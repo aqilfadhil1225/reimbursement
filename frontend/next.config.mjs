@@ -25,8 +25,15 @@ export default withPWA({
     runtimeCaching: [
       {
         urlPattern: ({ request }) => request.mode === 'navigate',
-        handler: 'NetworkOnly',
-        options: {},
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'navigation-pages',
+          networkTimeoutSeconds: 3,
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 7 * 24 * 60 * 60,
+          },
+        },
       },
     ],
   },

@@ -4,7 +4,7 @@ export default function OfflinePage() {
       <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
         <h1 className="text-xl font-bold">Kamu sedang offline</h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Halaman dan data reimbursement membutuhkan koneksi internet. Sambungkan kembali ke internet untuk melanjutkan.
+          Kerangka aplikasi dapat dibuka tanpa internet, tetapi login, data reimbursement, dan semua aksi memerlukan koneksi internet.
         </p>
         <a
           href="/"
