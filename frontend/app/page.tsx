@@ -504,7 +504,7 @@ export default function Home() {
             <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-600">Akun</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8722A]">Akun</p>
                   <h3 className="mt-2 text-xl font-bold text-slate-900">Ubah password</h3>
                 </div>
                 <button
@@ -547,7 +547,7 @@ export default function Home() {
                       type={showPasswordInputs.current ? 'text' : 'password'}
                       value={passwordForm.currentPassword}
                       onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                       required
                     />
                     <button type="button" aria-label={showPasswordInputs.current ? 'Sembunyikan password lama' : 'Tampilkan password lama'} onClick={() => setShowPasswordInputs((current) => ({ ...current, current: !current.current }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -563,7 +563,7 @@ export default function Home() {
                       type={showPasswordInputs.next ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                       required
                     />
                     <button type="button" aria-label={showPasswordInputs.next ? 'Sembunyikan password baru' : 'Tampilkan password baru'} onClick={() => setShowPasswordInputs((current) => ({ ...current, next: !current.next }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -579,7 +579,7 @@ export default function Home() {
                       type={showPasswordInputs.confirm ? 'text' : 'password'}
                       value={passwordForm.confirmPassword}
                       onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                       required
                     />
                     <button type="button" aria-label={showPasswordInputs.confirm ? 'Sembunyikan konfirmasi password' : 'Tampilkan konfirmasi password'} onClick={() => setShowPasswordInputs((current) => ({ ...current, confirm: !current.confirm }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -592,7 +592,7 @@ export default function Home() {
 
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={() => setPasswordModalOpen(false)} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
-                  <button type="submit" className="rounded-xl bg-[#4f46e5] px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-600">Simpan</button>
+                  <button type="submit" className="rounded-xl bg-[#E8722A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d4641e]">Simpan</button>
                 </div>
               </form>
             </div>
@@ -618,7 +618,7 @@ export default function Home() {
             <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-600">Akun</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8722A]">Akun</p>
                   <h3 className="mt-2 text-xl font-bold text-slate-900">Ubah password</h3>
                 </div>
                 <button
@@ -661,7 +661,7 @@ export default function Home() {
                       type={showPasswordInputs.current ? 'text' : 'password'}
                       value={passwordForm.currentPassword}
                       onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                       required
                     />
                     <button type="button" aria-label={showPasswordInputs.current ? 'Sembunyikan password lama' : 'Tampilkan password lama'} onClick={() => setShowPasswordInputs((current) => ({ ...current, current: !current.current }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -677,7 +677,7 @@ export default function Home() {
                       type={showPasswordInputs.next ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                       required
                     />
                     <button type="button" aria-label={showPasswordInputs.next ? 'Sembunyikan password baru' : 'Tampilkan password baru'} onClick={() => setShowPasswordInputs((current) => ({ ...current, next: !current.next }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -693,7 +693,7 @@ export default function Home() {
                       type={showPasswordInputs.confirm ? 'text' : 'password'}
                       value={passwordForm.confirmPassword}
                       onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                       required
                     />
                     <button type="button" aria-label={showPasswordInputs.confirm ? 'Sembunyikan konfirmasi password' : 'Tampilkan konfirmasi password'} onClick={() => setShowPasswordInputs((current) => ({ ...current, confirm: !current.confirm }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -706,7 +706,7 @@ export default function Home() {
 
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={() => setPasswordModalOpen(false)} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
-                  <button type="submit" className="rounded-xl bg-[#4f46e5] px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-600">Simpan</button>
+                  <button type="submit" className="rounded-xl bg-[#E8722A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d4641e]">Simpan</button>
                 </div>
               </form>
             </div>
@@ -766,7 +766,7 @@ export default function Home() {
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-600">Akun</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8722A]">Akun</p>
                 <h3 className="mt-2 text-xl font-bold text-slate-900">Ubah password</h3>
               </div>
               <button
@@ -809,7 +809,7 @@ export default function Home() {
                     type={showPasswordInputs.current ? 'text' : 'password'}
                     value={passwordForm.currentPassword}
                     onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                     required
                   />
                   <button type="button" aria-label={showPasswordInputs.current ? 'Sembunyikan password lama' : 'Tampilkan password lama'} onClick={() => setShowPasswordInputs((current) => ({ ...current, current: !current.current }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -825,7 +825,7 @@ export default function Home() {
                     type={showPasswordInputs.next ? 'text' : 'password'}
                     value={passwordForm.newPassword}
                     onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                     required
                   />
                   <button type="button" aria-label={showPasswordInputs.next ? 'Sembunyikan password baru' : 'Tampilkan password baru'} onClick={() => setShowPasswordInputs((current) => ({ ...current, next: !current.next }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -841,7 +841,7 @@ export default function Home() {
                     type={showPasswordInputs.confirm ? 'text' : 'password'}
                     value={passwordForm.confirmPassword}
                     onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20"
                     required
                   />
                   <button type="button" aria-label={showPasswordInputs.confirm ? 'Sembunyikan konfirmasi password' : 'Tampilkan konfirmasi password'} onClick={() => setShowPasswordInputs((current) => ({ ...current, confirm: !current.confirm }))} className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700">
@@ -854,7 +854,7 @@ export default function Home() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setPasswordModalOpen(false)} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
-                <button type="submit" className="rounded-xl bg-[#4f46e5] px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-600">Simpan</button>
+                <button type="submit" className="rounded-xl bg-[#E8722A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d4641e]">Simpan</button>
               </div>
             </form>
           </div>
