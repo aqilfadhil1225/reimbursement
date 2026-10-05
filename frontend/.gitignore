@@ -19,6 +19,10 @@ __v0_jsx-dev-runtime.ts
 out/
 dist/
 coverage/
+public/sw.js
+public/workbox-*.js
+public/fallback-*.js
+public/worker-*.js
 *.log
 build.log
 npm-debug.log*

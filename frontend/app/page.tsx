@@ -90,6 +90,17 @@ export default function Home() {
     restoreSession();
   }, []);
 
+  useEffect(() => {
+    if (!isReady || !isLoggedIn || user?.role !== 'EMPLOYEE') return;
+
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('mode') !== 'new-claim') return;
+
+    setShowNew(true);
+    url.searchParams.delete('mode');
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  }, [isReady, isLoggedIn, user?.role]);
+
   const resetAuthForm = () => {
     setForm({ name: '', email: '', password: '', description: '', category: 'Transportasi', amount: '' });
   };

@@ -1,4 +1,4 @@
-const BACKEND_AUTH_URL = 'http://localhost:3001/api/auth';
+const BACKEND_AUTH_URL = `${process.env.BACKEND_API_URL ?? 'http://localhost:3001/api'}/auth`;
 
 async function proxyAuthRequest(request: Request) {
   const url = new URL(request.url);
