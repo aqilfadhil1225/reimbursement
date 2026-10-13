@@ -68,9 +68,6 @@ export default function EmployeeNewClaimContent({
           <ArrowLeft className="size-4" />
           Kembali ke ringkasan
         </button>
-        <div className="flex size-11 items-center justify-center rounded-xl bg-[#E8722A]/10 text-[#E8722A]">
-          <ReceiptText className="size-5" />
-        </div>
         <p className="mt-4 text-xs font-bold uppercase tracking-[0.16em] text-[#E8722A]">Pengajuan reimbursement</p>
         <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Ajukan pengeluaran baru</h2>
         <p className="mt-2 text-sm text-slate-500">Lengkapi detail pengeluaran yang ingin diganti.</p>
