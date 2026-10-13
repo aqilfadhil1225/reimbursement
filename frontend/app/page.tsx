@@ -42,7 +42,7 @@ type GoogleIdentityApi = {
         options: {
           theme: 'outline';
           size: 'large';
-          text: 'signin_with';
+          text: 'signin_with' | 'signup_with';
           shape: 'rectangular';
           width: number;
         },
@@ -194,7 +194,7 @@ export default function Home() {
   }, [googleScriptReady]);
 
   useEffect(() => {
-    if (!googleScriptReady || !GOOGLE_CLIENT_ID || isLoggedIn || isRegistering || !googleButtonRef.current) return;
+    if (!googleScriptReady || !GOOGLE_CLIENT_ID || isLoggedIn || !googleButtonRef.current) return;
 
     const google = (window as Window & { google?: GoogleIdentityApi }).google;
     if (!google) return;
@@ -203,7 +203,7 @@ export default function Home() {
     google.accounts.id.renderButton(googleButtonRef.current, {
       theme: 'outline',
       size: 'large',
-      text: 'signin_with',
+      text: isRegistering ? 'signup_with' : 'signin_with',
       shape: 'rectangular',
       width: Math.min(360, googleButtonRef.current.clientWidth),
     });
@@ -570,27 +570,25 @@ export default function Home() {
                 </button>
               </form>
 
-              {!isRegistering && (
-                <div className="mt-5">
-                  <div className="mb-4 flex items-center gap-3 text-xs text-slate-400">
-                    <span className="h-px flex-1 bg-slate-200" />
-                    <span>atau</span>
-                    <span className="h-px flex-1 bg-slate-200" />
-                  </div>
-                  {GOOGLE_CLIENT_ID ? (
-                    <div ref={googleButtonRef} className="flex justify-center" />
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleGoogleLogin}
-                      className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
-                    >
-                      <span className="font-bold text-[#4285F4]">G</span>
-                      Masuk dengan Google
-                    </button>
-                  )}
+              <div className="mt-5">
+                <div className="mb-4 flex items-center gap-3 text-xs text-slate-400">
+                  <span className="h-px flex-1 bg-slate-200" />
+                  <span>atau</span>
+                  <span className="h-px flex-1 bg-slate-200" />
                 </div>
-              )}
+                {GOOGLE_CLIENT_ID ? (
+                  <div ref={googleButtonRef} className="flex justify-center" />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
+                  >
+                    <span className="font-bold text-[#4285F4]">G</span>
+                    {isRegistering ? 'Daftar dengan Google' : 'Masuk dengan Google'}
+                  </button>
+                )}
+              </div>
 
               <div className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-400">
                 <span>{isRegistering ? 'Sudah punya akun?' : 'Belum punya akun?'}</span>
