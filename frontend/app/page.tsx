@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Script from 'next/script';
 import { Eye, EyeOff } from 'lucide-react';
 import {
   createClaim,
@@ -8,6 +9,7 @@ import {
   financeReview,
   listClaims,
   loginUser,
+  loginWithGoogle,
   managerReview,
   processPayment,
   registerUser,
@@ -26,11 +28,38 @@ import {
   type Role,
 } from './components/dashboard-shared';
 
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+type GoogleIdentityApi = {
+  accounts: {
+    id: {
+      initialize: (options: {
+        client_id: string;
+        callback: (response: { credential: string }) => void;
+      }) => void;
+      renderButton: (
+        element: HTMLElement,
+        options: {
+          theme: 'outline';
+          size: 'large';
+          text: 'signin_with';
+          shape: 'rectangular';
+          width: number;
+        },
+      ) => void;
+    };
+  };
+};
+
 export default function Home() {
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+  const googleInitializedRef = useRef(false);
+  const googleLoginHandlerRef = useRef<(credential: string) => Promise<void>>(async () => {});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [googleScriptReady, setGoogleScriptReady] = useState(false);
   const [token, setToken] = useState('');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [error, setError] = useState('');
@@ -124,6 +153,72 @@ export default function Home() {
       await loadClaims(nextToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Auth gagal. Coba lagi.');
+    }
+  };
+
+  googleLoginHandlerRef.current = async (credential) => {
+    setError('');
+
+    try {
+      const payload = await loginWithGoogle(credential);
+      const nextUser = payload.user as AuthUser;
+      const nextToken = payload.token;
+      localStorage.setItem('reimbursement_token', nextToken);
+      localStorage.setItem('reimbursement_user', JSON.stringify(nextUser));
+      setToken(nextToken);
+      setUser(nextUser);
+      setIsLoggedIn(true);
+      await loadClaims(nextToken);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login dengan Google gagal. Coba lagi.');
+    }
+  };
+
+  useEffect(() => {
+    if (!googleScriptReady || !GOOGLE_CLIENT_ID || googleInitializedRef.current) return;
+
+    const google = (window as Window & { google?: GoogleIdentityApi }).google;
+    if (!google) return;
+
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (response) => {
+        if (!response.credential) {
+          setError('Google tidak mengembalikan token autentikasi.');
+          return;
+        }
+        void googleLoginHandlerRef.current(response.credential);
+      },
+    });
+    googleInitializedRef.current = true;
+  }, [googleScriptReady]);
+
+  useEffect(() => {
+    if (!googleScriptReady || !GOOGLE_CLIENT_ID || isLoggedIn || isRegistering || !googleButtonRef.current) return;
+
+    const google = (window as Window & { google?: GoogleIdentityApi }).google;
+    if (!google) return;
+
+    googleButtonRef.current.replaceChildren();
+    google.accounts.id.renderButton(googleButtonRef.current, {
+      theme: 'outline',
+      size: 'large',
+      text: 'signin_with',
+      shape: 'rectangular',
+      width: Math.min(360, googleButtonRef.current.clientWidth),
+    });
+  }, [googleScriptReady, isLoggedIn, isRegistering]);
+
+  const handleGoogleLogin = () => {
+    setError('');
+
+    if (!GOOGLE_CLIENT_ID) {
+      setError('Google SSO belum dikonfigurasi. Tambahkan NEXT_PUBLIC_GOOGLE_CLIENT_ID di frontend/.env.local dan GOOGLE_CLIENT_ID di backend/.env.');
+      return;
+    }
+
+    if (!googleScriptReady) {
+      setError('Layanan Google belum siap. Periksa koneksi internet lalu coba lagi.');
     }
   };
 
@@ -311,6 +406,13 @@ export default function Home() {
   if (!isLoggedIn || !user) {
     return (
       <div className="min-h-screen bg-[#f4f4f4] text-slate-900" style={{ fontFamily: "'Inter', 'Outfit', sans-serif" }}>
+        {GOOGLE_CLIENT_ID && (
+          <Script
+            src="https://accounts.google.com/gsi/client"
+            strategy="afterInteractive"
+            onReady={() => setGoogleScriptReady(true)}
+          />
+        )}
         {/* Navbar */}
         <nav className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white/90 px-4 py-3.5 backdrop-blur-md sm:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -467,6 +569,28 @@ export default function Home() {
                   {isRegistering ? 'Daftar Sekarang →' : 'Masuk →'}
                 </button>
               </form>
+
+              {!isRegistering && (
+                <div className="mt-5">
+                  <div className="mb-4 flex items-center gap-3 text-xs text-slate-400">
+                    <span className="h-px flex-1 bg-slate-200" />
+                    <span>atau</span>
+                    <span className="h-px flex-1 bg-slate-200" />
+                  </div>
+                  {GOOGLE_CLIENT_ID ? (
+                    <div ref={googleButtonRef} className="flex justify-center" />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleGoogleLogin}
+                      className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
+                    >
+                      <span className="font-bold text-[#4285F4]">G</span>
+                      Masuk dengan Google
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-400">
                 <span>{isRegistering ? 'Sudah punya akun?' : 'Belum punya akun?'}</span>

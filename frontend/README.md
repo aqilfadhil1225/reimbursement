@@ -39,9 +39,16 @@ Jika backend API berjalan di alamat lain, buat file `.env.local` di folder `fron
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=client-id-dari-google-cloud
 ```
 
-Ganti port atau host sesuai alamat backend. Route proxy autentikasi di `app/api/auth/[...all]/route.ts` juga mengarah ke `http://localhost:3001/api/auth`; jika backend menggunakan port berbeda, sesuaikan URL di file tersebut.
+Ganti port atau host sesuai alamat backend. Untuk mengaktifkan tombol Google SSO,
+buat OAuth client bertipe Web application di Google Cloud Console, tambahkan
+origin frontend (misalnya `http://localhost:3000`) ke daftar JavaScript origins,
+dan gunakan client ID yang sama pada `GOOGLE_CLIENT_ID` di `backend/.env`.
+Route proxy autentikasi di `app/api/auth/[...all]/route.ts` juga mengarah ke
+`http://localhost:3001/api/auth`; jika backend menggunakan port berbeda,
+sesuaikan URL di file tersebut.
 
 ## Menjalankan aplikasi
 

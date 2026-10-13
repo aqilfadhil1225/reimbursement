@@ -11,4 +11,5 @@ export default {
   appName: 'Reimbursement API',
   corsOrigin: parseCorsOrigins(),
   jwtSecret: process.env.JWT_SECRET || 'development-secret-change-me',
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
 };

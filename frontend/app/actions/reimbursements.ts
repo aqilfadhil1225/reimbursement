@@ -38,6 +38,13 @@ export async function loginUser(data: { email: string; password: string }) {
   });
 }
 
+export async function loginWithGoogle(credential: string) {
+  return request<{ user: unknown; token: string }>('/auth/google', {
+    method: 'POST',
+    body: JSON.stringify({ credential }),
+  });
+}
+
 export async function registerUser(data: { name: string; email: string; password: string }) {
   return request<{ user: unknown; token: string }>('/auth/register', {
     method: 'POST',

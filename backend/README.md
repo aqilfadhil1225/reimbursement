@@ -11,6 +11,7 @@ Backend untuk sistem reimbursement berbasis Express, Prisma, dan PostgreSQL.
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/reimbursement?schema=public"
 JWT_SECRET="ganti_dengan_secret_random_yang_aman"
+GOOGLE_CLIENT_ID="client-id-dari-google-cloud"
 PORT=3001
 CORS_ORIGIN="http://localhost:3000"
 ```
@@ -83,6 +84,27 @@ Authorization: Bearer TOKEN_LOGIN
 ```
 
 Role yang tersedia hanya `EMPLOYEE`, `MANAGER`, dan `FINANCE`.
+
+Login dengan Google:
+
+```http
+POST /api/auth/google
+Content-Type: application/json
+```
+
+```json
+{
+  "credential": "google-id-token"
+}
+```
+
+Atur `GOOGLE_CLIENT_ID` pada `backend/.env` dan ID klien yang sama sebagai
+`NEXT_PUBLIC_GOOGLE_CLIENT_ID` pada `frontend/.env.local`. Buat kredensial
+OAuth tipe Web application di Google Cloud Console dan daftarkan origin frontend
+(misalnya `http://localhost:3000`) sebagai JavaScript origin yang diizinkan.
+Token diverifikasi backend; akun baru dibuat dengan role `EMPLOYEE`, sedangkan
+email Google terverifikasi yang sudah terdaftar akan memakai akun dan role yang
+sudah ada.
 
 ## Endpoint utama
 

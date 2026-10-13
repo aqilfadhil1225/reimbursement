@@ -1,7 +1,14 @@
 import bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import authModel from '../models/authModel';
+
+const googleClient = new OAuth2Client(config.googleClientId);
+
+const authError = (message: string, statusCode: number) =>
+  Object.assign(new Error(message), { statusCode });
 
 const validateCredentials = ({ name, email, password }: { name?: unknown; email?: unknown; password?: unknown }) => {
   if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
@@ -64,7 +71,57 @@ const login = async ({ email, password }: { email?: unknown; password?: unknown 
   return { user: publicUser(user), token: createToken(user) };
 };
 
+const loginWithGoogle = async (credential: unknown) => {
+  if (typeof credential !== 'string' || !credential) {
+    throw authError('Token Google wajib diisi.', 400);
+  }
+
+  if (!config.googleClientId) {
+    throw authError('Google SSO belum dikonfigurasi di server.', 503);
+  }
+
+  let ticket;
+  try {
+    ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: config.googleClientId,
+    });
+  } catch {
+    throw authError('Token Google tidak valid atau sudah kedaluwarsa.', 401);
+  }
+
+  const profile = ticket.getPayload();
+  if (!profile?.email || profile.email_verified !== true) {
+    throw authError('Akun Google harus memiliki email terverifikasi.', 401);
+  }
+
+  const email = profile.email.trim().toLowerCase();
+  let user = await authModel.findUserByEmail(email);
+
+  if (!user) {
+    const password = await bcrypt.hash(randomBytes(32).toString('hex'), 12);
+    try {
+      user = await authModel.createUser({
+        name: profile.name?.trim() || email.split('@')[0],
+        email,
+        password,
+        role: 'EMPLOYEE',
+      });
+    } catch (error) {
+      if (typeof error !== 'object' || error === null || !('code' in error) || error.code !== 'P2002') {
+        throw error;
+      }
+
+      user = await authModel.findUserByEmail(email);
+      if (!user) throw error;
+    }
+  }
+
+  return { user: publicUser(user), token: createToken(user) };
+};
+
 export default {
   register,
   login,
+  loginWithGoogle,
 };

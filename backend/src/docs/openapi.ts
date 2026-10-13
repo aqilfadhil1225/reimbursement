@@ -141,6 +141,18 @@ const openApiDocument = {
         successDescription: 'Login berhasil. Token dikembalikan pada data.token.',
       }),
     },
+    '/api/auth/google': {
+      post: operation({
+        tag: 'Authentication',
+        summary: 'Login dengan Google',
+        description: 'Memvalidasi Google ID token. Akun baru dibuat dengan role EMPLOYEE; akun dengan email terdaftar masuk ke akun tersebut tanpa mengubah role.',
+        isPublic: true,
+        body: jsonBody('Google Identity Services credential.', ['credential'], {
+          credential: { type: 'string', description: 'Google ID token dari Google Identity Services.' },
+        }),
+        successDescription: 'Login berhasil. Token aplikasi dikembalikan pada data.token.',
+      }),
+    },
     '/api/reimbursements': {
       get: operation({
         tag: 'Reimbursements',
