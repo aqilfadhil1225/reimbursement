@@ -96,6 +96,17 @@ export default function EmployeeDashboard({
   });
 
   useEffect(() => {
+    const page = document.documentElement;
+    if (activeNav === 'Ajukan baru') {
+      page.classList.add('hide-page-scrollbar');
+    } else {
+      page.classList.remove('hide-page-scrollbar');
+    }
+
+    return () => page.classList.remove('hide-page-scrollbar');
+  }, [activeNav]);
+
+  useEffect(() => {
     if (showNew && editingClaimId === null) {
       setActiveNav('Ajukan baru');
       setShowNew(false);

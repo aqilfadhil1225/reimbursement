@@ -165,3 +165,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+html.hide-page-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.hide-page-scrollbar::-webkit-scrollbar {
+  display: none;
+}
