@@ -1,9 +1,10 @@
-import { FileText, KeyRound, LayoutDashboard, LogOut } from 'lucide-react';
+import { FilePlus2, FileText, KeyRound, LayoutDashboard, LogOut } from 'lucide-react';
 
 type MobileDashboardNavProps = {
   activeNav: string;
   listLabel: string;
   onNavigate: (label: string) => void;
+  onCreate?: () => void;
   onOpenPasswordModal: () => void;
   onLogout: () => void;
 };
@@ -12,6 +13,7 @@ export default function MobileDashboardNav({
   activeNav,
   listLabel,
   onNavigate,
+  onCreate,
   onOpenPasswordModal,
   onLogout,
 }: MobileDashboardNavProps) {
@@ -45,6 +47,21 @@ export default function MobileDashboardNav({
           </button>
         );
       })}
+      {onCreate && (
+        <button
+          type="button"
+          onClick={onCreate}
+          aria-current={activeNav === 'Ajukan baru' ? 'page' : undefined}
+          className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border px-2.5 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722A] sm:px-3 sm:text-xs ${
+            activeNav === 'Ajukan baru'
+              ? 'border-[#E8722A]/15 bg-[#E8722A]/10 text-[#D65F19] shadow-sm'
+              : 'border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-800'
+          }`}
+        >
+          <FilePlus2 className="size-4 shrink-0" />
+          <span>Ajukan baru</span>
+        </button>
+      )}
       <button
         type="button"
         onClick={onOpenPasswordModal}

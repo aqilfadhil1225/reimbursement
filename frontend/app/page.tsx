@@ -125,10 +125,13 @@ export default function Home() {
     const url = new URL(window.location.href);
     if (url.searchParams.get('mode') !== 'new-claim') return;
 
-    setShowNew(true);
+    if (isEmployee) {
+      setShowNew(true);
+    }
+
     url.searchParams.delete('mode');
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
-  }, [isReady, isLoggedIn, user?.role]);
+  }, [isReady, isLoggedIn, isEmployee]);
 
   const resetAuthForm = () => {
     setForm({ name: '', email: '', password: '', description: '', category: 'Transportasi', amount: '' });
@@ -230,7 +233,7 @@ export default function Home() {
     setError('');
   };
 
-  const handleCreateClaim = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateClaim = async (event: React.FormEvent<HTMLFormElement>): Promise<boolean> => {
     event.preventDefault();
     setError('');
 
@@ -267,8 +270,10 @@ export default function Home() {
 
       closeClaimModal();
       await loadClaims(token);
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Pengajuan gagal diproses.');
+      return false;
     }
   };
 

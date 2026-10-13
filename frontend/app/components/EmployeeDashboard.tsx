@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from 'react';
+import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from 'react';
 import {
   Check,
   Clock3,
+  FilePlus2,
   FileText,
   KeyRound,
   LayoutDashboard,
@@ -27,6 +28,7 @@ import {
 } from './dashboard-shared';
 import SidebarProfile from './SidebarProfile';
 import MobileDashboardNav from './MobileDashboardNav';
+import EmployeeNewClaimContent from './EmployeeNewClaimContent';
 
 type EmployeeDashboardProps = {
   user: AuthUser;
@@ -46,7 +48,7 @@ type EmployeeDashboardProps = {
   error: string;
   setError: (value: string) => void;
   onOpenPasswordModal: () => void;
-  handleCreateClaim: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleCreateClaim: (event: FormEvent<HTMLFormElement>) => Promise<boolean>;
   handleDeleteClaim: (id: number) => Promise<void>;
   handleUploadReceipt: (id: number, file: File) => Promise<void>;
   handleEditClaim: (claim: ClaimRow) => void;
@@ -92,6 +94,13 @@ export default function EmployeeDashboard({
     claimId: null,
     description: '',
   });
+
+  useEffect(() => {
+    if (showNew && editingClaimId === null) {
+      setActiveNav('Ajukan baru');
+      setShowNew(false);
+    }
+  }, [showNew, editingClaimId, setShowNew]);
 
   const filteredClaims = useMemo(() => {
     const visible = claims.filter((claim) => {
@@ -147,7 +156,7 @@ export default function EmployeeDashboard({
       <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-slate-200 bg-white text-slate-900 lg:flex">
         {/* Logo */}
         <div className="flex h-[72px] items-center gap-2.5 px-5">
-          <img src="/logo-microdata.png" alt="Microdata Indonesia" className="h-9 w-auto object-contain" />
+          <img src="/logo-microdata.png" alt="Microdata Indonesia" className="h-11 w-auto object-contain" />
         </div>
 
         <div className="flex flex-1 flex-col px-4 py-6">
@@ -177,6 +186,18 @@ export default function EmployeeDashboard({
             </button>
             <button
               type="button"
+              onClick={() => setActiveNav('Ajukan baru')}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                activeNav === 'Ajukan baru'
+                  ? 'bg-[#E8722A]/10 text-[#E8722A]'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+              }`}
+            >
+              <FilePlus2 className="size-[18px]" />
+              <span>Ajukan baru</span>
+            </button>
+            <button
+              type="button"
               onClick={onOpenPasswordModal}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             >
@@ -200,7 +221,7 @@ export default function EmployeeDashboard({
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowNew(true)}
+              onClick={() => setActiveNav('Ajukan baru')}
               className="flex shrink-0 items-center gap-2 rounded-lg bg-[#E8722A] px-2.5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#d4641e] active:scale-[0.97] sm:px-3.5"
             >
               <Plus className="size-4" />
@@ -212,12 +233,30 @@ export default function EmployeeDashboard({
           activeNav={activeNav}
           listLabel="Pengajuan saya"
           onNavigate={setActiveNav}
+          onCreate={() => setActiveNav('Ajukan baru')}
           onOpenPasswordModal={onOpenPasswordModal}
           onLogout={handleLogout}
         />
 
         <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-8 sm:py-7 lg:px-10">
-          {activeNav === 'Ringkasan' ? (
+          {activeNav === 'Ajukan baru' ? (
+            <EmployeeNewClaimContent
+              form={form}
+              setForm={setForm}
+              receiptFile={receiptFile}
+              setReceiptFile={setReceiptFile}
+              error={error}
+              setError={setError}
+              handleCreateClaim={handleCreateClaim}
+              onCancel={() => {
+                setForm((current) => ({ ...current, description: '', amount: '' }));
+                setReceiptFile(null);
+                setError('');
+                setActiveNav('Ringkasan');
+              }}
+              onSuccess={() => setActiveNav('Pengajuan saya')}
+            />
+          ) : activeNav === 'Ringkasan' ? (
             <>
               <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                 <div>
@@ -346,7 +385,7 @@ export default function EmployeeDashboard({
                                   type="button"
                                   onClick={() => {
                                     setError('Pengajuan ditolak. Silakan buat pengajuan baru dengan data yang sudah diperbaiki.');
-                                    setShowNew(true);
+                                    setActiveNav('Ajukan baru');
                                   }}
                                   className="rounded-lg bg-red-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-red-700"
                                 >
@@ -491,12 +530,12 @@ export default function EmployeeDashboard({
       )}
 
       {/* New / Edit claim modal */}
-      {showNew && (
+      {showNew && editingClaimId !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-3 backdrop-blur-[1px] sm:p-6" onClick={() => setShowNew(false)}>
           <form
             className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-h-[calc(100dvh-3rem)]"
             onClick={(event) => event.stopPropagation()}
-            onSubmit={handleCreateClaim}
+            onSubmit={async (event) => { await handleCreateClaim(event); }}
           >
             <div className="flex items-start justify-between border-b border-slate-100 bg-white px-5 py-4 sm:px-6">
               <div>
