@@ -2,6 +2,14 @@
 
 Backend untuk sistem reimbursement berbasis Express, Prisma, dan PostgreSQL.
 
+## Pengujian
+
+Jalankan pengujian unit untuk validasi object storage dan migrasi upload lokal:
+
+```bash
+npm test
+```
+
 ## Menjalankan project
 
 1. Pastikan PostgreSQL aktif.
