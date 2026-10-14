@@ -31,6 +31,9 @@ const isReceiptObjectKey = (objectKey: string) =>
   /^reimbursement-receipts\/[1-9]\d*\/[a-f0-9]{32}\.(jpg|png|pdf)$/.test(objectKey)
   || /^expense-receipts\/[1-9]\d*\/[1-9]\d*\/[a-f0-9]{32}\.(jpg|png|pdf)$/.test(objectKey);
 
+const isPaymentProofObjectKey = (objectKey: string) =>
+  /^payment-proofs\/[1-9]\d*\/[a-f0-9]{32}\.(jpg|png|pdf)$/.test(objectKey);
+
 const isValidEvidenceFile = (file: { buffer: Buffer; mimetype: string }) => {
   const { buffer, mimetype } = file;
   if (mimetype === 'image/jpeg') {
@@ -96,6 +99,11 @@ const formatReceiptUrl = (receiptUrl: string | null | undefined) => {
   return createObjectUrl(receiptUrl, 24 * 60 * 60);
 };
 
+const formatPaymentProofUrl = (proofUrl: string | null | undefined) => {
+  if (typeof proofUrl !== 'string' || !isPaymentProofObjectKey(proofUrl)) return proofUrl;
+  return createObjectUrl(proofUrl, 24 * 60 * 60);
+};
+
 const deleteObject = async (objectKey: string) => {
   validateObjectKey(objectKey);
   const { bucket } = getMinioConfig();
@@ -111,8 +119,10 @@ export default {
   uploadObject,
   createObjectUrl,
   formatReceiptUrl,
+  formatPaymentProofUrl,
   deleteObject,
   isProfilePhotoObjectKey,
   isReceiptObjectKey,
+  isPaymentProofObjectKey,
   isValidEvidenceFile,
 };

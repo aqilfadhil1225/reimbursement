@@ -117,6 +117,7 @@ const uploadProof = async (
     where: { reimbursementId: reimbursement.id },
   });
 
+  const previousProofUrl = existingPayment?.proofUrl ?? null;
   const payment = await transaction.payment.upsert({
     where: { reimbursementId: reimbursement.id },
     create: {
@@ -155,7 +156,7 @@ const uploadProof = async (
     },
   });
 
-  return payment;
+  return { payment, previousProofUrl };
 });
 
 export default {

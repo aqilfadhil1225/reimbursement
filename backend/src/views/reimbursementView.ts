@@ -12,13 +12,14 @@ const formatHistory = async (history: any) => ({
 });
 
 const formatReimbursement = async (reimbursement: any) => {
-  const [employee, manager, finance, history, receiptUrl, expenses] = await Promise.all([
+  const [employee, manager, finance, history, receiptUrl, expenses, payment] = await Promise.all([
     reimbursement.employee ? apiView.formatUser(reimbursement.employee) : null,
     reimbursement.manager ? apiView.formatUser(reimbursement.manager) : null,
     reimbursement.finance ? apiView.formatUser(reimbursement.finance) : null,
     Promise.all((reimbursement.history || []).map(formatHistory)),
     objectStorageService.formatReceiptUrl(reimbursement.receiptUrl),
     Promise.all((reimbursement.expenses || []).map(apiView.formatExpense)),
+    reimbursement.payment ? apiView.formatPayment(reimbursement.payment) : null,
   ]);
 
   return {
@@ -40,7 +41,7 @@ const formatReimbursement = async (reimbursement: any) => {
     finance,
     expenses,
     history,
-    payment: reimbursement.payment ? apiView.formatPayment(reimbursement.payment) : null,
+    payment,
     notifications: (reimbursement.notifications || []).map(apiView.formatNotification),
     auditLogs: (reimbursement.auditLogs || []).map(apiView.formatAuditLog),
   };

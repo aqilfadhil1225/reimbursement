@@ -310,7 +310,7 @@ const openApiDocument = {
       post: operation({
         tag: 'Payments',
         summary: 'Upload payment proof',
-        description: 'Hanya FINANCE.',
+        description: 'Hanya FINANCE saat reimbursement berstatus READY_FOR_PAYMENT atau PAID. JPG, PNG, atau PDF maksimal 5 MB.',
         parameters: [reimbursementIdParameter],
         body: uploadBody('proof', 'File bukti pembayaran.'),
         successCode: 201,

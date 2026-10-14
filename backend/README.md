@@ -50,8 +50,14 @@ Bukti reimbursement dan bukti expense baru juga disimpan di MinIO, masing-masing
 dengan prefix `reimbursement-receipts/` dan `expense-receipts/`. API mengirimkan
 presigned URL dengan masa berlaku 24 jam; referensi file lama yang masih berupa
 URL lokal tetap berfungsi. Upload bukti menerima JPG, PNG, atau PDF sampai 5 MB
-dan memeriksa signature file sebelum menyimpannya. Upload bukti pembayaran belum
-dipindahkan pada tahap ini.
+dan memeriksa signature file sebelum menyimpannya.
+
+Bukti pembayaran baru disimpan di MinIO dengan prefix `payment-proofs/` dan
+ditampilkan melalui presigned URL 24 jam. Upload hanya tersedia untuk FINANCE
+saat reimbursement berstatus `READY_FOR_PAYMENT` atau `PAID`. File harus berupa
+JPG, PNG, atau PDF sampai 5 MB dan signature isinya divalidasi. URL bukti
+pembayaran lama tetap berfungsi; saat bukti MinIO diganti, objek terdahulu
+dihapus setelah perubahan database berhasil.
 4. Install dependency:
 
 ```bash
