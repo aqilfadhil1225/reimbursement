@@ -65,6 +65,13 @@ const updateUser = async (id: unknown, payload: any) => {
     data.email = payload.email.trim().toLowerCase();
   }
 
+  if (payload.avatarUrl !== undefined) {
+    if (typeof payload.avatarUrl !== 'string' || !payload.avatarUrl.trim()) {
+      throw new Error('avatarUrl tidak valid.');
+    }
+    data.avatarUrl = payload.avatarUrl.trim();
+  }
+
   if (payload.role !== undefined) {
     data.role = normalizeRole(payload.role);
   }

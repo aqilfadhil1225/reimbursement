@@ -161,7 +161,18 @@ export async function updateProfilePassword(token: string, data: { currentPasswo
   }, token);
 }
 
-export async function updateProfileName(token: string, name: string) {
+export async function updateProfile(token: string, name: string, avatar?: File) {
+  if (avatar) {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('avatar', avatar);
+
+    return request<{ user: unknown; token: string }>('/profile', {
+      method: 'PATCH',
+      body: formData,
+    }, token);
+  }
+
   return request<{ user: unknown; token: string }>('/profile', {
     method: 'PATCH',
     body: JSON.stringify({ name }),

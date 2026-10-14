@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   BadgeCheck,
   Check,
@@ -18,15 +18,19 @@ import { money, roleLabels, type AuthUser, type ClaimRow } from './dashboard-sha
 type ProfileSecurityContentProps = {
   user: AuthUser;
   claims: ClaimRow[];
-  onUpdateName: (name: string) => Promise<void>;
+  onUpdateProfile: (name: string, avatar?: File) => Promise<void>;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   onLogout: () => void;
 };
 
 const fieldClassName = 'mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20';
 
-export default function ProfileSecurityContent({ user, claims, onUpdateName, onChangePassword, onLogout }: ProfileSecurityContentProps) {
+export default function ProfileSecurityContent({ user, claims, onUpdateProfile, onChangePassword, onLogout }: ProfileSecurityContentProps) {
   const [name, setName] = useState(user.name);
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState('');
+  const [photoError, setPhotoError] = useState('');
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,6 +41,17 @@ export default function ProfileSecurityContent({ user, claims, onUpdateName, onC
   const [passwordError, setPasswordError] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+  useEffect(() => {
+    if (!selectedPhoto) {
+      setPhotoPreviewUrl('');
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(selectedPhoto);
+    setPhotoPreviewUrl(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [selectedPhoto]);
 
   const userClaims = claims.filter((claim) => user.role !== 'EMPLOYEE' || claim.employeeEmail === user.email);
   const approvedClaims = userClaims.filter((claim) => ['MANAGER_APPROVED', 'FINANCE_REVIEW', 'READY_FOR_PAYMENT', 'PAID'].includes(claim.status));
@@ -50,13 +65,16 @@ export default function ProfileSecurityContent({ user, claims, onUpdateName, onC
       setProfileError('Nama lengkap wajib diisi.');
       return;
     }
+    if (nextName === user.name && !selectedPhoto) return;
 
     try {
       setIsSavingProfile(true);
       setProfileError('');
+      setPhotoError('');
       setProfileStatus('');
-      await onUpdateName(nextName);
+      await onUpdateProfile(nextName, selectedPhoto ?? undefined);
       setName(nextName);
+      setSelectedPhoto(null);
       setProfileStatus('Profil berhasil diperbarui.');
     } catch (error) {
       setProfileError(error instanceof Error ? error.message : 'Profil gagal diperbarui.');
@@ -137,8 +155,10 @@ export default function ProfileSecurityContent({ user, claims, onUpdateName, onC
         </div>
         <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-[#E8722A]/10 text-lg font-bold text-[#E8722A] ring-1 ring-[#E8722A]/15">
-              {user.name.slice(0, 2).toUpperCase()}
+            <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#E8722A]/10 text-lg font-bold text-[#E8722A] ring-1 ring-[#E8722A]/15">
+              {(photoPreviewUrl || user.avatarUrl) ? (
+                <img src={photoPreviewUrl || user.avatarUrl || undefined} alt={`Foto profil ${user.name}`} className="size-full object-cover" />
+              ) : user.name.slice(0, 2).toUpperCase()}
             </span>
             <div className="min-w-0">
               <h3 className="break-words text-lg font-bold text-slate-900">{user.name}</h3>
@@ -172,16 +192,54 @@ export default function ProfileSecurityContent({ user, claims, onUpdateName, onC
           </div>
           <form onSubmit={submitProfile} className="space-y-4">
             <div className="flex items-center gap-3">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#E8722A]/10 text-sm font-bold text-[#E8722A]">{name.slice(0, 2).toUpperCase()}</span>
-              <span className="text-xs text-slate-500">Foto profil belum tersedia.</span>
+              <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#E8722A]/10 text-sm font-bold text-[#E8722A]">
+                {(photoPreviewUrl || user.avatarUrl) ? (
+                  <img src={photoPreviewUrl || user.avatarUrl || undefined} alt="Pratinjau foto profil" className="size-full object-cover" />
+                ) : name.slice(0, 2).toUpperCase()}
+              </span>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                aria-label="Pilih foto profil"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setPhotoError('');
+                  setProfileError('');
+                  setProfileStatus('');
+                  if (!file) return;
+                  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                    setPhotoError('Foto harus berupa JPG, PNG, atau WebP.');
+                    event.target.value = '';
+                    return;
+                  }
+                  if (file.size > 5 * 1024 * 1024) {
+                    setPhotoError('Ukuran foto maksimal 5 MB.');
+                    event.target.value = '';
+                    return;
+                  }
+                  setSelectedPhoto(file);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:border-[#E8722A]/40 hover:bg-[#E8722A]/5 hover:text-[#D65F19]"
+              >
+                Pilih foto
+              </button>
+              {selectedPhoto && <span className="min-w-0 truncate text-xs text-slate-500">{selectedPhoto.name}</span>}
             </div>
+            <p className="text-[11px] text-slate-500">JPG, PNG, atau WebP. Maksimal 5 MB.</p>
             <label className="block text-xs font-semibold text-slate-600">
               Nama lengkap
               <input value={name} onChange={(event) => setName(event.target.value)} className={fieldClassName} required maxLength={120} />
             </label>
+            {photoError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{photoError}</p>}
             {profileError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{profileError}</p>}
             {profileStatus && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{profileStatus}</p>}
-            <button type="submit" disabled={isSavingProfile || name.trim() === user.name} className="w-full rounded-xl bg-[#E8722A] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#d4641e] disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="submit" disabled={isSavingProfile || (name.trim() === user.name && !selectedPhoto)} className="w-full rounded-xl bg-[#E8722A] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#d4641e] disabled:cursor-not-allowed disabled:opacity-50">
               {isSavingProfile ? 'Menyimpan...' : 'Simpan profil'}
             </button>
           </form>

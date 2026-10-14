@@ -29,13 +29,13 @@ import ProfileSecurityContent from './ProfileSecurityContent';
 type ManagerDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
-  onUpdateProfileName: (name: string) => Promise<void>;
+  onUpdateProfile: (name: string, avatar?: File) => Promise<void>;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handleLogout: () => void;
 };
 
-export default function ManagerDashboard({ user, claims, onUpdateProfileName, onChangePassword, handleDecision, handleLogout }: ManagerDashboardProps) {
+export default function ManagerDashboard({ user, claims, onUpdateProfile, onChangePassword, handleDecision, handleLogout }: ManagerDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
@@ -174,7 +174,7 @@ export default function ManagerDashboard({ user, claims, onUpdateProfileName, on
               <ProfileSecurityContent
                 user={user}
                 claims={claims}
-                onUpdateName={onUpdateProfileName}
+                onUpdateProfile={onUpdateProfile}
                 onChangePassword={onChangePassword}
                 onLogout={handleLogout}
               />

@@ -15,7 +15,7 @@ import {
   registerUser,
   submitClaim,
   updateClaim,
-  updateProfileName,
+  updateProfile,
   updateProfilePassword,
   uploadPaymentProof,
   uploadReceipt,
@@ -382,10 +382,10 @@ export default function Home() {
     setUser(response.user as AuthUser);
   };
 
-  const handleUpdateProfileName = async (name: string) => {
+  const handleUpdateProfile = async (name: string, avatar?: File) => {
     if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
 
-    const response = await updateProfileName(token, name);
+    const response = await updateProfile(token, name, avatar);
     localStorage.setItem('reimbursement_token', response.token);
     localStorage.setItem('reimbursement_user', JSON.stringify(response.user));
     setToken(response.token);
@@ -630,7 +630,7 @@ export default function Home() {
         <ManagerDashboard
           user={user}
           claims={claims}
-          onUpdateProfileName={handleUpdateProfileName}
+          onUpdateProfile={handleUpdateProfile}
           onChangePassword={handleChangePassword}
           handleDecision={handleDecision}
           handleLogout={handleLogout}
@@ -744,7 +744,7 @@ export default function Home() {
         <FinanceDashboard
           user={user}
           claims={claims}
-          onUpdateProfileName={handleUpdateProfileName}
+          onUpdateProfile={handleUpdateProfile}
           onChangePassword={handleChangePassword}
           handleDecision={handleDecision}
           handlePayment={handlePayment}
@@ -880,7 +880,7 @@ export default function Home() {
         setReceiptFile={setReceiptFile}
         error={error}
         setError={setError}
-        onUpdateProfileName={handleUpdateProfileName}
+        onUpdateProfile={handleUpdateProfile}
         onChangePassword={handleChangePassword}
         handleCreateClaim={handleCreateClaim}
         handleDeleteClaim={handleDeleteClaim}

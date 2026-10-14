@@ -48,7 +48,7 @@ type EmployeeDashboardProps = {
   setReceiptFile: Dispatch<SetStateAction<File | null>>;
   error: string;
   setError: (value: string) => void;
-  onUpdateProfileName: (name: string) => Promise<void>;
+  onUpdateProfile: (name: string, avatar?: File) => Promise<void>;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   handleCreateClaim: (event: FormEvent<HTMLFormElement>) => Promise<boolean>;
   handleDeleteClaim: (id: number) => Promise<void>;
@@ -76,7 +76,7 @@ export default function EmployeeDashboard({
   setReceiptFile,
   error,
   setError,
-  onUpdateProfileName,
+  onUpdateProfile,
   onChangePassword,
   handleCreateClaim,
   handleDeleteClaim,
@@ -277,7 +277,7 @@ export default function EmployeeDashboard({
             <ProfileSecurityContent
               user={user}
               claims={claims}
-              onUpdateName={onUpdateProfileName}
+              onUpdateProfile={onUpdateProfile}
               onChangePassword={onChangePassword}
               onLogout={handleLogout}
             />

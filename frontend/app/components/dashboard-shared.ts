@@ -34,6 +34,7 @@ export type AuthUser = {
   name: string;
   email: string;
   role: Role;
+  avatarUrl?: string | null;
 };
 
 export const STATUS_LABEL: Record<string, string> = {
