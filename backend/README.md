@@ -28,9 +28,15 @@ Variabel `MINIO_*` menyiapkan konfigurasi object storage. Endpoint diisi sebagai
 hostname atau IP tanpa `http://` atau path; port dan penggunaan SSL diatur
 terpisah. Client MinIO dikonfigurasi melalui `getMinioClient()`, sedangkan
 `ensureMinioBucket()` memeriksa bucket dan membuatnya jika belum ada. Keduanya
-belum dijalankan otomatis saat server mulai; integrasi upload akan memanggilnya
-pada tahap berikutnya. Jangan gunakan contoh access key atau secret key di
-production.
+tidak dijalankan otomatis saat server mulai; layanan upload akan memastikan
+bucket tersedia ketika menyimpan objek. Jangan gunakan contoh access key atau
+secret key di production.
+
+Layanan `objectStorageService` menyediakan operasi upload, penghapusan, dan URL
+presigned untuk mengakses objek privat. Gunakan object key relatif yang tidak
+mengandung data sensitif; URL akses berlaku 5 menit secara default dan masa
+berlakunya dapat diatur per pemanggilan hingga maksimum 7 hari. Simpan object key
+di database, bukan URL presigned, karena URL tersebut akan kedaluwarsa.
 4. Install dependency:
 
 ```bash

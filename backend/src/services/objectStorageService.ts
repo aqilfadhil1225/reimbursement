@@ -1,0 +1,88 @@
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Readable } from 'node:stream';
+import { ensureMinioBucket, getMinioClient } from '../config/minio';
+import { getMinioConfig } from '../config';
+
+const DEFAULT_URL_EXPIRY_SECONDS = 300;
+const MAX_URL_EXPIRY_SECONDS = 7 * 24 * 60 * 60;
+
+const validateObjectKey = (objectKey: string) => {
+  if (
+    !objectKey
+    || Buffer.byteLength(objectKey, 'utf8') > 1024
+    || objectKey.startsWith('/')
+    || objectKey.includes('\\')
+    || /[\u0000-\u001f\u007f]/.test(objectKey)
+    || objectKey.split('/').some((segment) => !segment || segment === '.' || segment === '..')
+  ) {
+    throw new Error('Object key must be a valid relative S3 key.');
+  }
+};
+
+const uploadObject = async (
+  objectKey: string,
+  body: Buffer | Uint8Array | Readable,
+  contentType: string,
+) => {
+  validateObjectKey(objectKey);
+  if (!contentType.trim()) {
+    throw new Error('Content type is required when uploading an object.');
+  }
+
+  const { bucket } = getMinioConfig();
+  const client = getMinioClient();
+  await ensureMinioBucket();
+
+  await client.send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: objectKey,
+    Body: body,
+    ContentType: contentType,
+  }));
+
+  return objectKey;
+};
+
+const createObjectUrl = async (
+  objectKey: string,
+  expiresIn = DEFAULT_URL_EXPIRY_SECONDS,
+) => {
+  validateObjectKey(objectKey);
+  if (!Number.isInteger(expiresIn) || expiresIn < 1 || expiresIn > MAX_URL_EXPIRY_SECONDS) {
+    throw new Error(`Presigned URL expiry must be between 1 and ${MAX_URL_EXPIRY_SECONDS} seconds.`);
+  }
+
+  const { bucket } = getMinioConfig();
+  const client = getMinioClient();
+
+  return getSignedUrl(
+    client,
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: objectKey,
+    }),
+    { expiresIn },
+  );
+};
+
+const deleteObject = async (objectKey: string) => {
+  validateObjectKey(objectKey);
+  const { bucket } = getMinioConfig();
+  const client = getMinioClient();
+
+  await client.send(new DeleteObjectCommand({
+    Bucket: bucket,
+    Key: objectKey,
+  }));
+};
+
+export default {
+  uploadObject,
+  createObjectUrl,
+  deleteObject,
+};
