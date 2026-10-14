@@ -11,6 +11,7 @@ import {
   Mail,
   ShieldCheck,
   Smartphone,
+  X,
   UserRound,
 } from 'lucide-react';
 import { money, roleLabels, type AuthUser, type ClaimRow } from './dashboard-shared';
@@ -18,7 +19,7 @@ import { money, roleLabels, type AuthUser, type ClaimRow } from './dashboard-sha
 type ProfileSecurityContentProps = {
   user: AuthUser;
   claims: ClaimRow[];
-  onUpdateProfile: (name: string, avatar?: File) => Promise<void>;
+  onUpdateProfile: (name: string, avatar?: File, removeAvatar?: boolean) => Promise<void>;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   onLogout: () => void;
 };
@@ -28,6 +29,7 @@ const fieldClassName = 'mt-2 w-full rounded-xl border border-slate-200 bg-slate-
 export default function ProfileSecurityContent({ user, claims, onUpdateProfile, onChangePassword, onLogout }: ProfileSecurityContentProps) {
   const [name, setName] = useState(user.name);
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState('');
   const [photoError, setPhotoError] = useState('');
   const photoInputRef = useRef<HTMLInputElement | null>(null);
@@ -65,16 +67,17 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
       setProfileError('Nama lengkap wajib diisi.');
       return;
     }
-    if (nextName === user.name && !selectedPhoto) return;
+    if (nextName === user.name && !selectedPhoto && !removePhoto) return;
 
     try {
       setIsSavingProfile(true);
       setProfileError('');
       setPhotoError('');
       setProfileStatus('');
-      await onUpdateProfile(nextName, selectedPhoto ?? undefined);
+      await onUpdateProfile(nextName, selectedPhoto ?? undefined, removePhoto);
       setName(nextName);
       setSelectedPhoto(null);
+      setRemovePhoto(false);
       setProfileStatus('Profil berhasil diperbarui.');
     } catch (error) {
       setProfileError(error instanceof Error ? error.message : 'Profil gagal diperbarui.');
@@ -156,7 +159,7 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
         <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#E8722A]/10 text-lg font-bold text-[#E8722A] ring-1 ring-[#E8722A]/15">
-              {(photoPreviewUrl || user.avatarUrl) ? (
+              {(photoPreviewUrl || (!removePhoto && user.avatarUrl)) ? (
                 <img src={photoPreviewUrl || user.avatarUrl || undefined} alt={`Foto profil ${user.name}`} className="size-full object-cover" />
               ) : user.name.slice(0, 2).toUpperCase()}
             </span>
@@ -193,7 +196,7 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
           <form onSubmit={submitProfile} className="space-y-4">
             <div className="flex items-center gap-3">
               <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#E8722A]/10 text-sm font-bold text-[#E8722A]">
-                {(photoPreviewUrl || user.avatarUrl) ? (
+                {(photoPreviewUrl || (!removePhoto && user.avatarUrl)) ? (
                   <img src={photoPreviewUrl || user.avatarUrl || undefined} alt="Pratinjau foto profil" className="size-full object-cover" />
                 ) : name.slice(0, 2).toUpperCase()}
               </span>
@@ -220,6 +223,7 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
                     return;
                   }
                   setSelectedPhoto(file);
+                  setRemovePhoto(false);
                 }}
               />
               <button
@@ -229,9 +233,24 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
               >
                 Pilih foto
               </button>
+              {(selectedPhoto || (!removePhoto && user.avatarUrl)) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPhoto(null);
+                    setRemovePhoto(Boolean(user.avatarUrl));
+                    if (photoInputRef.current) photoInputRef.current.value = '';
+                  }}
+                  className="inline-flex items-center gap-1 rounded-xl px-2.5 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                >
+                  <X className="size-3.5" />
+                  Hapus foto
+                </button>
+              )}
               {selectedPhoto && <span className="min-w-0 truncate text-xs text-slate-500">{selectedPhoto.name}</span>}
             </div>
             <p className="text-[11px] text-slate-500">JPG, PNG, atau WebP. Maksimal 5 MB.</p>
+            {removePhoto && <p className="text-xs text-slate-500">Foto akan dihapus setelah profil disimpan.</p>}
             <label className="block text-xs font-semibold text-slate-600">
               Nama lengkap
               <input value={name} onChange={(event) => setName(event.target.value)} className={fieldClassName} required maxLength={120} />

@@ -382,10 +382,10 @@ export default function Home() {
     setUser(response.user as AuthUser);
   };
 
-  const handleUpdateProfile = async (name: string, avatar?: File) => {
+  const handleUpdateProfile = async (name: string, avatar?: File, removeAvatar = false) => {
     if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
 
-    const response = await updateProfile(token, name, avatar);
+    const response = await updateProfile(token, name, avatar, removeAvatar);
     localStorage.setItem('reimbursement_token', response.token);
     localStorage.setItem('reimbursement_user', JSON.stringify(response.user));
     setToken(response.token);

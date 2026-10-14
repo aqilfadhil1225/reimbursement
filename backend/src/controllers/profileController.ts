@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import fs from 'fs/promises';
+import path from 'path';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../config';
@@ -11,6 +12,27 @@ const createToken = (user: any) => jwt.sign(
   config.jwtSecret,
   { expiresIn: '1d' },
 );
+
+const removeStoredProfilePhoto = async (avatarUrl: unknown) => {
+  if (typeof avatarUrl !== 'string') return;
+
+  let filename: string;
+  try {
+    filename = path.basename(new URL(avatarUrl).pathname);
+  } catch {
+    return;
+  }
+
+  if (!/^profile-\d+-[a-f0-9]+\.(jpg|png|webp)$/.test(filename)) return;
+
+  try {
+    await fs.unlink(path.join(__dirname, '../../uploads', filename));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      console.error('Failed to remove the previous profile photo:', error);
+    }
+  }
+};
 
 const getProfile: RequestHandler = async (req, res, next) => {
   try {
@@ -37,9 +59,26 @@ const updateProfile: RequestHandler = async (req, res, next) => {
     };
     const updatePayload: Record<string, any> = {};
     uploadedPhoto = authReq.file;
+    const removeAvatar = authReq.body.removeAvatar === true || authReq.body.removeAvatar === 'true';
+
+    if (authReq.body.removeAvatar !== undefined && !removeAvatar && authReq.body.removeAvatar !== false && authReq.body.removeAvatar !== 'false') {
+      throw Object.assign(new Error('Permintaan penghapusan foto profil tidak valid.'), { statusCode: 400 });
+    }
+    if (uploadedPhoto && removeAvatar) {
+      throw Object.assign(new Error('Foto profil tidak dapat diganti dan dihapus sekaligus.'), { statusCode: 400 });
+    }
 
     if (authReq.body.name !== undefined) {
       updatePayload.name = authReq.body.name;
+    }
+
+    const currentUser = uploadedPhoto || removeAvatar ? await userService.getUserById(authReq.user.id) : null;
+    if ((uploadedPhoto || removeAvatar) && !currentUser) {
+      throw Object.assign(new Error('User tidak ditemukan.'), { statusCode: 404 });
+    }
+
+    if (removeAvatar) {
+      updatePayload.avatarUrl = null;
     }
 
     if (uploadedPhoto) {
@@ -73,8 +112,8 @@ const updateProfile: RequestHandler = async (req, res, next) => {
         throw new Error('password minimal 6 karakter.');
       }
 
-      const currentUser = await userService.getUserById(authReq.user.id);
-      const passwordMatches = currentUser && await bcrypt.compare(currentPassword, currentUser.password);
+      const passwordUser = await userService.getUserById(authReq.user.id);
+      const passwordMatches = passwordUser && await bcrypt.compare(currentPassword, passwordUser.password);
 
       if (!passwordMatches) {
         throw new Error('password lama salah.');
@@ -84,6 +123,9 @@ const updateProfile: RequestHandler = async (req, res, next) => {
     }
 
     const user = await userService.updateUser(authReq.user.id, updatePayload);
+    if (currentUser?.avatarUrl && currentUser.avatarUrl !== user.avatarUrl) {
+      await removeStoredProfilePhoto(currentUser.avatarUrl);
+    }
     return res.json({
       success: true,
       data: {

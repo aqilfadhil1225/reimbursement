@@ -48,7 +48,7 @@ type EmployeeDashboardProps = {
   setReceiptFile: Dispatch<SetStateAction<File | null>>;
   error: string;
   setError: (value: string) => void;
-  onUpdateProfile: (name: string, avatar?: File) => Promise<void>;
+  onUpdateProfile: (name: string, avatar?: File, removeAvatar?: boolean) => Promise<void>;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   handleCreateClaim: (event: FormEvent<HTMLFormElement>) => Promise<boolean>;
   handleDeleteClaim: (id: number) => Promise<void>;

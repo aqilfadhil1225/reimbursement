@@ -29,7 +29,7 @@ import ProfileSecurityContent from './ProfileSecurityContent';
 type FinanceDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
-  onUpdateProfile: (name: string, avatar?: File) => Promise<void>;
+  onUpdateProfile: (name: string, avatar?: File, removeAvatar?: boolean) => Promise<void>;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handlePayment: (id: number, paymentData?: { method?: 'BANK_TRANSFER' | 'CASH' | 'OTHER'; reference?: string; note?: string }, proofFile?: File | null) => Promise<void>;

@@ -66,10 +66,10 @@ const updateUser = async (id: unknown, payload: any) => {
   }
 
   if (payload.avatarUrl !== undefined) {
-    if (typeof payload.avatarUrl !== 'string' || !payload.avatarUrl.trim()) {
+    if (payload.avatarUrl !== null && (typeof payload.avatarUrl !== 'string' || !payload.avatarUrl.trim())) {
       throw new Error('avatarUrl tidak valid.');
     }
-    data.avatarUrl = payload.avatarUrl.trim();
+    data.avatarUrl = payload.avatarUrl === null ? null : payload.avatarUrl.trim();
   }
 
   if (payload.role !== undefined) {

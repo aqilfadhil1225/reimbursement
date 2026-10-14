@@ -161,11 +161,12 @@ export async function updateProfilePassword(token: string, data: { currentPasswo
   }, token);
 }
 
-export async function updateProfile(token: string, name: string, avatar?: File) {
+export async function updateProfile(token: string, name: string, avatar?: File, removeAvatar = false) {
   if (avatar) {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('avatar', avatar);
+    if (removeAvatar) formData.append('removeAvatar', 'true');
 
     return request<{ user: unknown; token: string }>('/profile', {
       method: 'PATCH',
@@ -175,6 +176,6 @@ export async function updateProfile(token: string, name: string, avatar?: File) 
 
   return request<{ user: unknown; token: string }>('/profile', {
     method: 'PATCH',
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name, ...(removeAvatar ? { removeAvatar: true } : {}) }),
   }, token);
 }
