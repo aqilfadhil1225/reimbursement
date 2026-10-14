@@ -29,12 +29,14 @@ import ProfileSecurityContent from './ProfileSecurityContent';
 type FinanceDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
+  onUpdateProfileName: (name: string) => Promise<void>;
+  onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handlePayment: (id: number, paymentData?: { method?: 'BANK_TRANSFER' | 'CASH' | 'OTHER'; reference?: string; note?: string }, proofFile?: File | null) => Promise<void>;
   handleLogout: () => void;
 };
 
-export default function FinanceDashboard({ user, claims, handleDecision, handlePayment, handleLogout }: FinanceDashboardProps) {
+export default function FinanceDashboard({ user, claims, onUpdateProfileName, onChangePassword, handleDecision, handlePayment, handleLogout }: FinanceDashboardProps) {
   const paymentProofInputRef = useRef<HTMLInputElement | null>(null);
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
@@ -209,7 +211,13 @@ export default function FinanceDashboard({ user, claims, handleDecision, handleP
 
           <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-8 sm:py-7 lg:px-10">
             {activeNav === 'Profil & keamanan' ? (
-              <ProfileSecurityContent user={user} />
+              <ProfileSecurityContent
+                user={user}
+                claims={claims}
+                onUpdateName={onUpdateProfileName}
+                onChangePassword={onChangePassword}
+                onLogout={handleLogout}
+              />
             ) : activeNav === 'Ringkasan' ? (
               <>
                 <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">

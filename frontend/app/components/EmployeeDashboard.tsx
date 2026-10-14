@@ -48,6 +48,8 @@ type EmployeeDashboardProps = {
   setReceiptFile: Dispatch<SetStateAction<File | null>>;
   error: string;
   setError: (value: string) => void;
+  onUpdateProfileName: (name: string) => Promise<void>;
+  onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   handleCreateClaim: (event: FormEvent<HTMLFormElement>) => Promise<boolean>;
   handleDeleteClaim: (id: number) => Promise<void>;
   handleUploadReceipt: (id: number, file: File) => Promise<void>;
@@ -74,6 +76,8 @@ export default function EmployeeDashboard({
   setReceiptFile,
   error,
   setError,
+  onUpdateProfileName,
+  onChangePassword,
   handleCreateClaim,
   handleDeleteClaim,
   handleUploadReceipt,
@@ -270,7 +274,13 @@ export default function EmployeeDashboard({
               onSuccess={() => setActiveNav('Pengajuan saya')}
             />
           ) : activeNav === 'Profil & keamanan' ? (
-            <ProfileSecurityContent user={user} />
+            <ProfileSecurityContent
+              user={user}
+              claims={claims}
+              onUpdateName={onUpdateProfileName}
+              onChangePassword={onChangePassword}
+              onLogout={handleLogout}
+            />
           ) : activeNav === 'Ringkasan' ? (
             <>
               <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">

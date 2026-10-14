@@ -160,3 +160,10 @@ export async function updateProfilePassword(token: string, data: { currentPasswo
     }),
   }, token);
 }
+
+export async function updateProfileName(token: string, name: string) {
+  return request<{ user: unknown; token: string }>('/profile', {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+  }, token);
+}

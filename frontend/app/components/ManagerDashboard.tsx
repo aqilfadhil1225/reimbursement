@@ -29,11 +29,13 @@ import ProfileSecurityContent from './ProfileSecurityContent';
 type ManagerDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
+  onUpdateProfileName: (name: string) => Promise<void>;
+  onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handleLogout: () => void;
 };
 
-export default function ManagerDashboard({ user, claims, handleDecision, handleLogout }: ManagerDashboardProps) {
+export default function ManagerDashboard({ user, claims, onUpdateProfileName, onChangePassword, handleDecision, handleLogout }: ManagerDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
@@ -169,7 +171,13 @@ export default function ManagerDashboard({ user, claims, handleDecision, handleL
 
           <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-8 sm:py-7 lg:px-10">
             {activeNav === 'Profil & keamanan' ? (
-              <ProfileSecurityContent user={user} />
+              <ProfileSecurityContent
+                user={user}
+                claims={claims}
+                onUpdateName={onUpdateProfileName}
+                onChangePassword={onChangePassword}
+                onLogout={handleLogout}
+              />
             ) : activeNav === 'Ringkasan' ? (
               <>
                 <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">

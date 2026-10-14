@@ -15,6 +15,7 @@ import {
   registerUser,
   submitClaim,
   updateClaim,
+  updateProfileName,
   updateProfilePassword,
   uploadPaymentProof,
   uploadReceipt,
@@ -372,16 +373,23 @@ export default function Home() {
   };
 
   const handleChangePassword = async (currentPassword: string, newPassword: string) => {
-    if (!token) return;
+    if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
 
     const response = await updateProfilePassword(token, { currentPassword, newPassword });
     localStorage.setItem('reimbursement_token', response.token);
     localStorage.setItem('reimbursement_user', JSON.stringify(response.user));
     setToken(response.token);
     setUser(response.user as AuthUser);
-    setPasswordModalOpen(false);
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setShowPasswordInputs({ current: false, next: false, confirm: false });
+  };
+
+  const handleUpdateProfileName = async (name: string) => {
+    if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
+
+    const response = await updateProfileName(token, name);
+    localStorage.setItem('reimbursement_token', response.token);
+    localStorage.setItem('reimbursement_user', JSON.stringify(response.user));
+    setToken(response.token);
+    setUser(response.user as AuthUser);
   };
 
   const handleLogout = () => {
@@ -622,6 +630,8 @@ export default function Home() {
         <ManagerDashboard
           user={user}
           claims={claims}
+          onUpdateProfileName={handleUpdateProfileName}
+          onChangePassword={handleChangePassword}
           handleDecision={handleDecision}
           handleLogout={handleLogout}
         />
@@ -734,6 +744,8 @@ export default function Home() {
         <FinanceDashboard
           user={user}
           claims={claims}
+          onUpdateProfileName={handleUpdateProfileName}
+          onChangePassword={handleChangePassword}
           handleDecision={handleDecision}
           handlePayment={handlePayment}
           handleLogout={handleLogout}
@@ -868,6 +880,8 @@ export default function Home() {
         setReceiptFile={setReceiptFile}
         error={error}
         setError={setError}
+        onUpdateProfileName={handleUpdateProfileName}
+        onChangePassword={handleChangePassword}
         handleCreateClaim={handleCreateClaim}
         handleDeleteClaim={handleDeleteClaim}
         handleUploadReceipt={handleUploadReceipt}
