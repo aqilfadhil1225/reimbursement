@@ -8,7 +8,7 @@ const listReimbursements: RequestHandler = async (req, res, next) => {
     const reimbursements = await reimbursementService.getAllReimbursements(authReq.user);
     return res.json({
       success: true,
-      data: reimbursementView.formatReimbursements(reimbursements),
+      data: await reimbursementView.formatReimbursements(reimbursements),
     });
   } catch (error) {
     return next(error);
@@ -24,7 +24,7 @@ const getReimbursement: RequestHandler = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Reimbursement not found.' });
     }
 
-    return res.json({ success: true, data: reimbursementView.formatReimbursement(reimbursement) });
+    return res.json({ success: true, data: await reimbursementView.formatReimbursement(reimbursement) });
   } catch (error) {
     return next(error);
   }
@@ -37,7 +37,7 @@ const updateReimbursement: RequestHandler = async (req, res, next) => {
     if (!reimbursement) {
       return res.status(404).json({ success: false, message: 'Reimbursement tidak ditemukan.' });
     }
-    return res.json({ success: true, data: reimbursementView.formatReimbursement(reimbursement) });
+    return res.json({ success: true, data: await reimbursementView.formatReimbursement(reimbursement) });
   } catch (error) {
     return next(error);
   }
@@ -71,7 +71,7 @@ const createReimbursement: RequestHandler = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      data: reimbursementView.formatReimbursement(reimbursement),
+      data: await reimbursementView.formatReimbursement(reimbursement),
     });
   } catch (error: any) {
     return res.status(400).json({ success: false, message: error.message });
@@ -91,7 +91,7 @@ const submitReimbursement: RequestHandler = async (req, res, next) => {
       return res.status(400).json({ success: false, message: result.error });
     }
 
-    return res.json({ success: true, data: reimbursementView.formatReimbursement(result) });
+    return res.json({ success: true, data: await reimbursementView.formatReimbursement(result) });
   } catch (error) {
     return next(error);
   }
@@ -111,7 +111,7 @@ const managerDecision: RequestHandler = async (req, res, next) => {
       return res.status(400).json({ success: false, message: result.error });
     }
 
-    return res.json({ success: true, data: reimbursementView.formatReimbursement(result) });
+    return res.json({ success: true, data: await reimbursementView.formatReimbursement(result) });
   } catch (error) {
     return next(error);
   }
@@ -131,7 +131,7 @@ const financeDecision: RequestHandler = async (req, res, next) => {
       return res.status(400).json({ success: false, message: result.error });
     }
 
-    return res.json({ success: true, data: reimbursementView.formatReimbursement(result) });
+    return res.json({ success: true, data: await reimbursementView.formatReimbursement(result) });
   } catch (error) {
     return next(error);
   }
@@ -152,7 +152,7 @@ const uploadReceipt: RequestHandler = async (req, res, next) => {
     }
     const receiptUrl = `${authReq.protocol}://${authReq.get('host')}/uploads/${authReq.file.filename}`;
     const updated = await reimbursementService.updateReimbursement(authReq.params.id, { receiptUrl }, authReq.user);
-    return res.json({ success: true, data: reimbursementView.formatReimbursement(updated) });
+    return res.json({ success: true, data: await reimbursementView.formatReimbursement(updated) });
   } catch (error) {
     return next(error);
   }

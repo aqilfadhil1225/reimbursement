@@ -24,6 +24,9 @@ const validateObjectKey = (objectKey: string) => {
   }
 };
 
+const isProfilePhotoObjectKey = (objectKey: string, userId: number) =>
+  new RegExp(`^profile-photos/${userId}/[a-f0-9]{32}\\.(jpg|png|webp)$`).test(objectKey);
+
 const uploadObject = async (
   objectKey: string,
   body: Buffer | Uint8Array | Readable,
@@ -85,4 +88,5 @@ export default {
   uploadObject,
   createObjectUrl,
   deleteObject,
+  isProfilePhotoObjectKey,
 };

@@ -6,7 +6,7 @@ const listUsers: RequestHandler = async (req, res, next) => {
   try {
     const authReq = req as typeof req & { query: Record<string, any> };
     const users = await userService.getUsers(authReq.query.role);
-    return res.json({ success: true, data: users.map(apiView.formatUser) });
+    return res.json({ success: true, data: await Promise.all(users.map(apiView.formatUser)) });
   } catch (error) {
     return next(error);
   }
@@ -21,7 +21,7 @@ const getUser: RequestHandler = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
     }
 
-    return res.json({ success: true, data: apiView.formatUser(user) });
+    return res.json({ success: true, data: await apiView.formatUser(user) });
   } catch (error) {
     return next(error);
   }
@@ -31,7 +31,7 @@ const createUser: RequestHandler = async (req, res, next) => {
   try {
     const authReq = req as typeof req & { body: Record<string, any> };
     const user = await userService.createUser(authReq.body);
-    return res.status(201).json({ success: true, data: apiView.formatUser(user) });
+    return res.status(201).json({ success: true, data: await apiView.formatUser(user) });
   } catch (error) {
     return next(error);
   }
@@ -41,7 +41,7 @@ const updateUser: RequestHandler = async (req, res, next) => {
   try {
     const authReq = req as typeof req & { params: Record<string, any>; body: Record<string, any> };
     const user = await userService.updateUser(authReq.params.id, authReq.body);
-    return res.json({ success: true, data: apiView.formatUser(user) });
+    return res.json({ success: true, data: await apiView.formatUser(user) });
   } catch (error) {
     return next(error);
   }

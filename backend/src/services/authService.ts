@@ -4,6 +4,7 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import authModel from '../models/authModel';
+import apiView from '../views/apiView';
 
 const googleClient = new OAuth2Client(config.googleClientId);
 
@@ -27,17 +28,7 @@ const validateCredentials = ({ name, email, password }: { name?: unknown; email?
   };
 };
 
-const publicUser = (user: any) => ({
-  id: user.id,
-  name: user.name,
-  email: user.email,
-  role: user.role,
-  avatarUrl: user.avatarUrl ?? null,
-  googleLinked: Boolean(user.googleId),
-  hasLocalPassword: user.hasLocalPassword ?? true,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-});
+const publicUser = async (user: any) => apiView.formatUser(user);
 
 const createToken = (user: any) => jwt.sign(
   { id: user.id, name: user.name, email: user.email, role: user.role },
@@ -82,7 +73,7 @@ const register = async (payload: any) => {
   const password = await bcrypt.hash(data.password, 12);
   const user = await authModel.createUser({ ...data, password });
 
-  return { user: publicUser(user), token: createToken(user) };
+  return { user: await publicUser(user), token: createToken(user) };
 };
 
 const login = async ({ email, password }: { email?: unknown; password?: unknown }) => {
@@ -97,7 +88,7 @@ const login = async ({ email, password }: { email?: unknown; password?: unknown 
     throw new Error('email atau password salah.');
   }
 
-  return { user: publicUser(user), token: createToken(user) };
+  return { user: await publicUser(user), token: createToken(user) };
 };
 
 const loginWithGoogle = async (credential: unknown) => {
@@ -142,7 +133,7 @@ const loginWithGoogle = async (credential: unknown) => {
     }
   }
 
-  return { user: publicUser(user), token: createToken(user) };
+  return { user: await publicUser(user), token: createToken(user) };
 };
 
 export default {

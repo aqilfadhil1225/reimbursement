@@ -1,11 +1,13 @@
 import { RequestHandler } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
+import { randomBytes } from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import userService from '../services/userService';
 import authService from '../services/authService';
+import objectStorageService from '../services/objectStorageService';
 import apiView from '../views/apiView';
 
 const createToken = (user: any) => jwt.sign(
@@ -14,8 +16,17 @@ const createToken = (user: any) => jwt.sign(
   { expiresIn: '1d' },
 );
 
-const removeStoredProfilePhoto = async (avatarUrl: unknown) => {
+const removeStoredProfilePhoto = async (avatarUrl: unknown, userId: number) => {
   if (typeof avatarUrl !== 'string') return;
+
+  if (objectStorageService.isProfilePhotoObjectKey(avatarUrl, userId)) {
+    try {
+      await objectStorageService.deleteObject(avatarUrl);
+    } catch (error) {
+      console.error('Failed to remove the previous profile photo from MinIO:', error);
+    }
+    return;
+  }
 
   let filename: string;
   try {
@@ -42,7 +53,7 @@ const getProfile: RequestHandler = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
     }
-    return res.json({ success: true, data: apiView.formatUser(user) });
+    return res.json({ success: true, data: await apiView.formatUser(user) });
   } catch (error) {
     return next(error);
   }
@@ -65,7 +76,7 @@ const linkGoogleAccount: RequestHandler = async (req, res, next) => {
     }
 
     const updatedUser = await userService.linkGoogleAccount(user.id, googleProfile.sub);
-    return res.json({ success: true, data: apiView.formatUser(updatedUser) });
+    return res.json({ success: true, data: await apiView.formatUser(updatedUser) });
   } catch (error) {
     return next(error);
   }
@@ -86,7 +97,7 @@ const unlinkGoogleAccount: RequestHandler = async (req, res, next) => {
     }
 
     const updatedUser = await userService.unlinkGoogleAccount(user.id);
-    return res.json({ success: true, data: apiView.formatUser(updatedUser) });
+    return res.json({ success: true, data: await apiView.formatUser(updatedUser) });
   } catch (error) {
     return next(error);
   }
@@ -94,6 +105,8 @@ const unlinkGoogleAccount: RequestHandler = async (req, res, next) => {
 
 const updateProfile: RequestHandler = async (req, res, next) => {
   let uploadedPhoto: Express.Multer.File | undefined;
+  let uploadedObjectKey: string | undefined;
+  let profileUpdateCommitted = false;
   try {
     const authReq = req as typeof req & {
       user?: any;
@@ -127,7 +140,7 @@ const updateProfile: RequestHandler = async (req, res, next) => {
     }
 
     if (uploadedPhoto) {
-      const contents = await fs.readFile(uploadedPhoto.path);
+      const contents = uploadedPhoto.buffer;
       const isJpeg = contents[0] === 0xff && contents[1] === 0xd8 && contents[2] === 0xff;
       const isPng = contents.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
       const isWebp = contents.toString('ascii', 0, 4) === 'RIFF' && contents.toString('ascii', 8, 12) === 'WEBP';
@@ -140,7 +153,14 @@ const updateProfile: RequestHandler = async (req, res, next) => {
         throw Object.assign(new Error('Isi file tidak sesuai dengan format foto yang dipilih.'), { statusCode: 400 });
       }
 
-      updatePayload.avatarUrl = `${authReq.protocol}://${authReq.get('host')}/uploads/${uploadedPhoto.filename}`;
+      const extensionsByMimeType: Record<string, string> = {
+        'image/jpeg': '.jpg',
+        'image/png': '.png',
+        'image/webp': '.webp',
+      };
+      uploadedObjectKey = `profile-photos/${authReq.user.id}/${randomBytes(16).toString('hex')}${extensionsByMimeType[uploadedPhoto.mimetype]}`;
+      await objectStorageService.uploadObject(uploadedObjectKey, contents, uploadedPhoto.mimetype);
+      updatePayload.avatarUrl = uploadedObjectKey;
     }
 
     if (authReq.body.email !== undefined) {
@@ -172,22 +192,23 @@ const updateProfile: RequestHandler = async (req, res, next) => {
     }
 
     const user = await userService.updateUser(authReq.user.id, updatePayload);
+    profileUpdateCommitted = true;
     if (currentUser?.avatarUrl && currentUser.avatarUrl !== user.avatarUrl) {
-      await removeStoredProfilePhoto(currentUser.avatarUrl);
+      await removeStoredProfilePhoto(currentUser.avatarUrl, authReq.user.id);
     }
     return res.json({
       success: true,
       data: {
-        user: apiView.formatUser(user),
+        user: await apiView.formatUser(user),
         token: createToken(user),
       },
     });
   } catch (error) {
-    if (uploadedPhoto) {
+    if (uploadedObjectKey && !profileUpdateCommitted) {
       try {
-        await fs.unlink(uploadedPhoto.path);
+        await objectStorageService.deleteObject(uploadedObjectKey);
       } catch (cleanupError) {
-        console.error('Failed to remove an uncommitted profile photo:', cleanupError);
+        console.error('Failed to remove an uncommitted profile photo from MinIO:', cleanupError);
       }
     }
     return next(error);

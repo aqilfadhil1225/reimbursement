@@ -1,14 +1,23 @@
-const formatUser = (user: any) => ({
-  id: user.id,
-  name: user.name,
-  email: user.email,
-  role: user.role,
-  avatarUrl: user.avatarUrl ?? null,
-  googleLinked: Boolean(user.googleId),
-  hasLocalPassword: user.hasLocalPassword ?? true,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-});
+import objectStorageService from '../services/objectStorageService';
+
+const formatUser = async (user: any) => {
+  let avatarUrl = user.avatarUrl ?? null;
+  if (avatarUrl && objectStorageService.isProfilePhotoObjectKey(avatarUrl, user.id)) {
+    avatarUrl = await objectStorageService.createObjectUrl(avatarUrl, 24 * 60 * 60);
+  }
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatarUrl,
+    googleLinked: Boolean(user.googleId),
+    hasLocalPassword: user.hasLocalPassword ?? true,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+};
 
 const formatExpense = (expense: any) => ({
   id: expense.id,

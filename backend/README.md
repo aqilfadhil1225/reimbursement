@@ -37,6 +37,14 @@ presigned untuk mengakses objek privat. Gunakan object key relatif yang tidak
 mengandung data sensitif; URL akses berlaku 5 menit secara default dan masa
 berlakunya dapat diatur per pemanggilan hingga maksimum 7 hari. Simpan object key
 di database, bukan URL presigned, karena URL tersebut akan kedaluwarsa.
+
+Foto profil baru disimpan di MinIO menggunakan object key `profile-photos/`.
+Database menyimpan object key pada field `avatarUrl`; API mengubahnya menjadi
+presigned URL selama 24 jam agar foto tetap bisa ditampilkan pada sesi aktif.
+Foto profil lama yang masih berupa URL lokal tetap disajikan seperti sebelumnya
+sampai foto tersebut diganti atau dihapus. Upload foto menggunakan memori
+sementara dan batas ukuran 5 MB; file lokal lama hanya dibersihkan setelah
+pembaruan database berhasil.
 4. Install dependency:
 
 ```bash
