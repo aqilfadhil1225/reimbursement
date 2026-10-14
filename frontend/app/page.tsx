@@ -622,7 +622,6 @@ export default function Home() {
         <ManagerDashboard
           user={user}
           claims={claims}
-          onOpenPasswordModal={() => setPasswordModalOpen(true)}
           handleDecision={handleDecision}
           handleLogout={handleLogout}
         />
@@ -735,7 +734,6 @@ export default function Home() {
         <FinanceDashboard
           user={user}
           claims={claims}
-          onOpenPasswordModal={() => setPasswordModalOpen(true)}
           handleDecision={handleDecision}
           handlePayment={handlePayment}
           handleLogout={handleLogout}
@@ -853,7 +851,6 @@ export default function Home() {
         filter={filter}
         setQuery={setQuery}
         setFilter={setFilter}
-        onOpenPasswordModal={() => setPasswordModalOpen(true)}
         showNew={showNew}
         setShowNew={(value) => {
           setShowNew(value);

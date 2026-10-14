@@ -6,11 +6,11 @@ import {
   Clock3,
   FilePlus2,
   FileText,
-  KeyRound,
   LayoutDashboard,
   Pencil,
   Plus,
   Search,
+  ShieldCheck,
   Trash2,
   Users,
   X,
@@ -29,6 +29,7 @@ import {
 import SidebarProfile from './SidebarProfile';
 import MobileDashboardNav from './MobileDashboardNav';
 import EmployeeNewClaimContent from './EmployeeNewClaimContent';
+import ProfileSecurityContent from './ProfileSecurityContent';
 
 type EmployeeDashboardProps = {
   user: AuthUser;
@@ -47,7 +48,6 @@ type EmployeeDashboardProps = {
   setReceiptFile: Dispatch<SetStateAction<File | null>>;
   error: string;
   setError: (value: string) => void;
-  onOpenPasswordModal: () => void;
   handleCreateClaim: (event: FormEvent<HTMLFormElement>) => Promise<boolean>;
   handleDeleteClaim: (id: number) => Promise<void>;
   handleUploadReceipt: (id: number, file: File) => Promise<void>;
@@ -74,7 +74,6 @@ export default function EmployeeDashboard({
   setReceiptFile,
   error,
   setError,
-  onOpenPasswordModal,
   handleCreateClaim,
   handleDeleteClaim,
   handleUploadReceipt,
@@ -209,11 +208,15 @@ export default function EmployeeDashboard({
             </button>
             <button
               type="button"
-              onClick={onOpenPasswordModal}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+              onClick={() => setActiveNav('Profil & keamanan')}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                activeNav === 'Profil & keamanan'
+                  ? 'bg-[#E8722A]/10 text-[#E8722A]'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+              }`}
             >
-              <KeyRound className="size-[18px]" />
-              <span>Ubah password</span>
+              <ShieldCheck className="size-[18px]" />
+              <span>Profil &amp; keamanan</span>
             </button>
           </nav>
         </div>
@@ -245,7 +248,6 @@ export default function EmployeeDashboard({
           listLabel="Pengajuan saya"
           onNavigate={setActiveNav}
           onCreate={() => setActiveNav('Ajukan baru')}
-          onOpenPasswordModal={onOpenPasswordModal}
           onLogout={handleLogout}
         />
 
@@ -267,6 +269,8 @@ export default function EmployeeDashboard({
               }}
               onSuccess={() => setActiveNav('Pengajuan saya')}
             />
+          ) : activeNav === 'Profil & keamanan' ? (
+            <ProfileSecurityContent user={user} />
           ) : activeNav === 'Ringkasan' ? (
             <>
               <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">

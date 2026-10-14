@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Clock3,
   FileText,
-  KeyRound,
   LayoutDashboard,
   RefreshCcw,
   Search,
@@ -25,16 +24,16 @@ import {
 } from './dashboard-shared';
 import SidebarProfile from './SidebarProfile';
 import MobileDashboardNav from './MobileDashboardNav';
+import ProfileSecurityContent from './ProfileSecurityContent';
 
 type ManagerDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
-  onOpenPasswordModal: () => void;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handleLogout: () => void;
 };
 
-export default function ManagerDashboard({ user, claims, onOpenPasswordModal, handleDecision, handleLogout }: ManagerDashboardProps) {
+export default function ManagerDashboard({ user, claims, handleDecision, handleLogout }: ManagerDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
@@ -126,11 +125,15 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
               </button>
               <button
                 type="button"
-                onClick={onOpenPasswordModal}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                onClick={() => setActiveNav('Profil & keamanan')}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                  activeNav === 'Profil & keamanan'
+                    ? 'bg-[#E8722A]/10 text-[#E8722A]'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                }`}
               >
-                <KeyRound className="size-[18px]" />
-                <span>Ubah password</span>
+                <ShieldCheck className="size-[18px]" />
+                <span>Profil &amp; keamanan</span>
               </button>
             </nav>
           </div>
@@ -161,12 +164,13 @@ export default function ManagerDashboard({ user, claims, onOpenPasswordModal, ha
             activeNav={activeNav}
             listLabel="Daftar Review"
             onNavigate={setActiveNav}
-            onOpenPasswordModal={onOpenPasswordModal}
             onLogout={handleLogout}
           />
 
           <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-8 sm:py-7 lg:px-10">
-            {activeNav === 'Ringkasan' ? (
+            {activeNav === 'Profil & keamanan' ? (
+              <ProfileSecurityContent user={user} />
+            ) : activeNav === 'Ringkasan' ? (
               <>
                 <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                   <div>

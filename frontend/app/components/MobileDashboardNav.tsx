@@ -1,11 +1,10 @@
-import { FilePlus2, FileText, KeyRound, LayoutDashboard, LogOut } from 'lucide-react';
+import { FilePlus2, FileText, LayoutDashboard, LogOut, ShieldCheck } from 'lucide-react';
 
 type MobileDashboardNavProps = {
   activeNav: string;
   listLabel: string;
   onNavigate: (label: string) => void;
   onCreate?: () => void;
-  onOpenPasswordModal: () => void;
   onLogout: () => void;
 };
 
@@ -14,12 +13,12 @@ export default function MobileDashboardNav({
   listLabel,
   onNavigate,
   onCreate,
-  onOpenPasswordModal,
   onLogout,
 }: MobileDashboardNavProps) {
   const items = [
     { label: 'Ringkasan', icon: LayoutDashboard, action: () => onNavigate('Ringkasan') },
     { label: listLabel, icon: FileText, action: () => onNavigate(listLabel) },
+    { label: 'Profil & keamanan', icon: ShieldCheck, action: () => onNavigate('Profil & keamanan') },
   ];
 
   return (
@@ -62,14 +61,6 @@ export default function MobileDashboardNav({
           <span>Ajukan baru</span>
         </button>
       )}
-      <button
-        type="button"
-        onClick={onOpenPasswordModal}
-        className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2.5 text-[11px] font-semibold text-slate-500 transition hover:border-slate-200 hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722A] sm:px-3 sm:text-xs"
-      >
-        <KeyRound className="size-4 shrink-0" />
-        <span>Password</span>
-      </button>
       <button
         type="button"
         onClick={onLogout}
