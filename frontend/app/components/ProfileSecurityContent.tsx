@@ -20,13 +20,15 @@ type ProfileSecurityContentProps = {
   user: AuthUser;
   claims: ClaimRow[];
   onUpdateProfile: (name: string, avatar?: File, removeAvatar?: boolean) => Promise<void>;
-  onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  onChangePassword: (currentPassword: string | undefined, newPassword: string) => Promise<void>;
+  onConnectGoogle: () => Promise<void>;
+  onDisconnectGoogle: () => Promise<void>;
   onLogout: () => void;
 };
 
 const fieldClassName = 'mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#E8722A] focus:bg-white focus:ring-2 focus:ring-[#E8722A]/20';
 
-export default function ProfileSecurityContent({ user, claims, onUpdateProfile, onChangePassword, onLogout }: ProfileSecurityContentProps) {
+export default function ProfileSecurityContent({ user, claims, onUpdateProfile, onChangePassword, onConnectGoogle, onDisconnectGoogle, onLogout }: ProfileSecurityContentProps) {
   const [name, setName] = useState(user.name);
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
@@ -43,6 +45,9 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
   const [passwordError, setPasswordError] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [isUpdatingGoogle, setIsUpdatingGoogle] = useState(false);
+  const [googleStatus, setGoogleStatus] = useState('');
+  const [googleError, setGoogleError] = useState('');
 
   useEffect(() => {
     if (!selectedPhoto) {
@@ -101,7 +106,7 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
       setIsSavingPassword(true);
       setPasswordError('');
       setPasswordStatus('');
-      await onChangePassword(currentPassword, newPassword);
+      await onChangePassword(user.hasLocalPassword === false ? undefined : currentPassword, newPassword);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -110,6 +115,25 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
       setPasswordError(error instanceof Error ? error.message : 'Password gagal diubah.');
     } finally {
       setIsSavingPassword(false);
+    }
+  };
+
+  const updateGoogleLink = async () => {
+    try {
+      setIsUpdatingGoogle(true);
+      setGoogleError('');
+      setGoogleStatus('');
+      if (user.googleLinked) {
+        await onDisconnectGoogle();
+        setGoogleStatus('Akun Google berhasil diputuskan.');
+      } else {
+        await onConnectGoogle();
+        setGoogleStatus('Akun Google berhasil dihubungkan.');
+      }
+    } catch (error) {
+      setGoogleError(error instanceof Error ? error.message : 'Status akun Google gagal diperbarui.');
+    } finally {
+      setIsUpdatingGoogle(false);
     }
   };
 
@@ -273,13 +297,35 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
             </div>
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-            <p className="text-sm font-semibold text-slate-800">Login Google tersedia</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Akun dapat masuk menggunakan Google dari halaman masuk. Menautkan atau melepas akun Google dari profil belum didukung.</p>
+            <p className="text-sm font-semibold text-slate-800">{user.googleLinked ? 'Terhubung' : 'Belum terhubung'}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              {user.googleLinked
+                ? 'Kamu bisa masuk menggunakan password atau akun Google.'
+                : 'Hubungkan untuk login satu klik dengan Google. Gunakan akun dengan email yang sama.'}
+            </p>
           </div>
-          <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-            <BadgeCheck className="size-4 text-emerald-600" />
-            Email akun: <span className="break-all font-medium text-slate-700">{user.email}</span>
-          </div>
+          <button
+            type="button"
+            onClick={() => void updateGoogleLink()}
+            disabled={isUpdatingGoogle || (user.googleLinked === true && user.hasLocalPassword === false)}
+            className={`mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+              user.googleLinked
+                ? 'border-red-200 bg-white text-red-600 hover:bg-red-50'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-[#E8722A]/40 hover:bg-[#E8722A]/5 hover:text-[#D65F19]'
+            }`}
+          >
+            {user.googleLinked ? <X className="size-4" /> : <Link2 className="size-4" />}
+            {isUpdatingGoogle ? 'Memproses...' : user.googleLinked ? 'Putuskan akun Google' : 'Hubungkan akun Google'}
+          </button>
+          {user.googleLinked && (
+            <p className="mt-2 text-[11px] leading-5 text-slate-500">
+              {user.hasLocalPassword === false
+                ? 'Atur password lokal di bagian Ubah password sebelum memutuskan akun Google.'
+                : 'Pastikan password lokal sudah aktif sebelum memutuskan akun Google.'}
+            </p>
+          )}
+          {googleError && <p role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{googleError}</p>}
+          {googleStatus && <p role="status" className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{googleStatus}</p>}
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -291,7 +337,8 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
             </div>
           </div>
           <form onSubmit={submitPassword} className="space-y-3.5">
-            {passwordField('Password lama', currentPassword, setCurrentPassword, visiblePasswords.current, () => setVisiblePasswords((value) => ({ ...value, current: !value.current })), 'Password saat ini', 'current-password')}
+            {user.hasLocalPassword !== false && passwordField('Password lama', currentPassword, setCurrentPassword, visiblePasswords.current, () => setVisiblePasswords((value) => ({ ...value, current: !value.current })), 'Password saat ini', 'current-password')}
+            {user.hasLocalPassword === false && <p className="rounded-lg border border-[#E8722A]/20 bg-[#E8722A]/5 px-3 py-2 text-xs text-slate-600">Akun ini belum memiliki password lokal. Buat password untuk bisa masuk tanpa Google.</p>}
             {passwordField('Password baru', newPassword, setNewPassword, visiblePasswords.next, () => setVisiblePasswords((value) => ({ ...value, next: !value.next })), 'Minimal 6 karakter', 'new-password')}
             {passwordField('Konfirmasi password baru', confirmPassword, setConfirmPassword, visiblePasswords.confirm, () => setVisiblePasswords((value) => ({ ...value, confirm: !value.confirm })), 'Ulangi password baru', 'new-password')}
             {passwordError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{passwordError}</p>}

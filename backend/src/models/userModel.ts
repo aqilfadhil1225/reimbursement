@@ -11,6 +11,10 @@ const findById = (id: unknown) => prisma.user.findUnique({
   where: { id: Number(id) },
 });
 
+const findByGoogleId = (googleId: string) => prisma.user.findUnique({
+  where: { googleId },
+});
+
 const create = (data: any) => prisma.user.create({ data });
 
 const updateById = (id: unknown, data: any) => prisma.user.update({
@@ -26,6 +30,7 @@ export default {
   USER_ROLES,
   findAll,
   findById,
+  findByGoogleId,
   create,
   updateById,
   deleteById,

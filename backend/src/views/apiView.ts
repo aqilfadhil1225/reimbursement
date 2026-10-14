@@ -4,6 +4,8 @@ const formatUser = (user: any) => ({
   email: user.email,
   role: user.role,
   avatarUrl: user.avatarUrl ?? null,
+  googleLinked: Boolean(user.googleId),
+  hasLocalPassword: user.hasLocalPassword ?? true,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });

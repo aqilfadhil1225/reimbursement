@@ -49,7 +49,9 @@ type EmployeeDashboardProps = {
   error: string;
   setError: (value: string) => void;
   onUpdateProfile: (name: string, avatar?: File, removeAvatar?: boolean) => Promise<void>;
-  onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  onChangePassword: (currentPassword: string | undefined, newPassword: string) => Promise<void>;
+  onConnectGoogle: () => Promise<void>;
+  onDisconnectGoogle: () => Promise<void>;
   handleCreateClaim: (event: FormEvent<HTMLFormElement>) => Promise<boolean>;
   handleDeleteClaim: (id: number) => Promise<void>;
   handleUploadReceipt: (id: number, file: File) => Promise<void>;
@@ -78,6 +80,8 @@ export default function EmployeeDashboard({
   setError,
   onUpdateProfile,
   onChangePassword,
+  onConnectGoogle,
+  onDisconnectGoogle,
   handleCreateClaim,
   handleDeleteClaim,
   handleUploadReceipt,
@@ -279,6 +283,8 @@ export default function EmployeeDashboard({
               claims={claims}
               onUpdateProfile={onUpdateProfile}
               onChangePassword={onChangePassword}
+              onConnectGoogle={onConnectGoogle}
+              onDisconnectGoogle={onDisconnectGoogle}
               onLogout={handleLogout}
             />
           ) : activeNav === 'Ringkasan' ? (

@@ -401,6 +401,21 @@ const openApiDocument = {
         }),
       }),
     },
+    '/api/profile/google': {
+      post: operation({
+        tag: 'Profile',
+        summary: 'Link Google account to current user',
+        description: 'Verifies the Google ID token and links it only when its verified email matches the current profile.',
+        body: jsonBody('Google Identity Services credential.', ['credential'], {
+          credential: { type: 'string' },
+        }),
+      }),
+      delete: operation({
+        tag: 'Profile',
+        summary: 'Unlink Google account from current user',
+        description: 'Requires a local password to remain available for login.',
+      }),
+    },
   },
   components: {
     securitySchemes: {

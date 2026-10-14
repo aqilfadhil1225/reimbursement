@@ -8,6 +8,7 @@ import {
   deleteClaim,
   financeReview,
   listClaims,
+  linkGoogleAccount,
   loginUser,
   loginWithGoogle,
   managerReview,
@@ -17,6 +18,7 @@ import {
   updateClaim,
   updateProfile,
   updateProfilePassword,
+  unlinkGoogleAccount,
   uploadPaymentProof,
   uploadReceipt,
 } from '@/app/actions/reimbursements';
@@ -48,6 +50,14 @@ type GoogleIdentityApi = {
           width: number;
         },
       ) => void;
+      prompt: (callback?: (notification: {
+        isNotDisplayed: () => boolean;
+        getNotDisplayedReason: () => string;
+        isSkippedMoment: () => boolean;
+        getSkippedReason: () => string;
+        isDismissedMoment: () => boolean;
+        getDismissedReason: () => string;
+      }) => void) => void;
     };
   };
 };
@@ -57,6 +67,9 @@ export default function Home() {
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleInitializedRef = useRef(false);
   const googleLoginHandlerRef = useRef<(credential: string) => Promise<void>>(async () => {});
+  const googleLinkHandlerRef = useRef<(credential: string) => Promise<void>>(async () => {});
+  const googleActionRef = useRef<'login' | 'link'>('login');
+  const pendingGoogleLinkRef = useRef<{ resolve: () => void; reject: (error: Error) => void } | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -178,6 +191,14 @@ export default function Home() {
     }
   };
 
+  googleLinkHandlerRef.current = async (credential) => {
+    if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
+    const response = await linkGoogleAccount(token, credential);
+    const nextUser = response.user as AuthUser;
+    localStorage.setItem('reimbursement_user', JSON.stringify(nextUser));
+    setUser(nextUser);
+  };
+
   useEffect(() => {
     if (!googleScriptReady || !GOOGLE_CLIENT_ID || googleInitializedRef.current) return;
 
@@ -188,7 +209,26 @@ export default function Home() {
       client_id: GOOGLE_CLIENT_ID,
       callback: (response) => {
         if (!response.credential) {
+          if (googleActionRef.current === 'link') {
+            googleActionRef.current = 'login';
+            const pending = pendingGoogleLinkRef.current;
+            pendingGoogleLinkRef.current = null;
+            pending?.reject(new Error('Google tidak mengembalikan token autentikasi.'));
+            return;
+          }
           setError('Google tidak mengembalikan token autentikasi.');
+          return;
+        }
+        if (googleActionRef.current === 'link') {
+          googleActionRef.current = 'login';
+          const pending = pendingGoogleLinkRef.current;
+          void googleLinkHandlerRef.current(response.credential).then(() => {
+            pendingGoogleLinkRef.current = null;
+            pending?.resolve();
+          }).catch((error: unknown) => {
+            pendingGoogleLinkRef.current = null;
+            pending?.reject(error instanceof Error ? error : new Error('Akun Google gagal dihubungkan.'));
+          });
           return;
         }
         void googleLoginHandlerRef.current(response.credential);
@@ -225,6 +265,14 @@ export default function Home() {
       setError('Layanan Google belum siap. Periksa koneksi internet lalu coba lagi.');
     }
   };
+
+  const googleIdentityScript = GOOGLE_CLIENT_ID ? (
+    <Script
+      src="https://accounts.google.com/gsi/client"
+      strategy="afterInteractive"
+      onReady={() => setGoogleScriptReady(true)}
+    />
+  ) : null;
 
   const closeClaimModal = () => {
     setShowNew(false);
@@ -372,7 +420,7 @@ export default function Home() {
     }
   };
 
-  const handleChangePassword = async (currentPassword: string, newPassword: string) => {
+  const handleChangePassword = async (currentPassword: string | undefined, newPassword: string) => {
     if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
 
     const response = await updateProfilePassword(token, { currentPassword, newPassword });
@@ -380,6 +428,45 @@ export default function Home() {
     localStorage.setItem('reimbursement_user', JSON.stringify(response.user));
     setToken(response.token);
     setUser(response.user as AuthUser);
+  };
+
+  const handleConnectGoogle = () => {
+    if (!GOOGLE_CLIENT_ID) return Promise.reject(new Error('Google SSO belum dikonfigurasi.'));
+    if (!googleScriptReady) return Promise.reject(new Error('Layanan Google belum siap. Coba lagi sebentar.'));
+
+    const google = (window as Window & { google?: GoogleIdentityApi }).google;
+    if (!google || !googleInitializedRef.current) {
+      return Promise.reject(new Error('Layanan Google belum siap. Coba lagi sebentar.'));
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      googleActionRef.current = 'link';
+      pendingGoogleLinkRef.current = { resolve, reject };
+      google.accounts.id.prompt((notification) => {
+        if (
+          (notification.isNotDisplayed() || notification.isSkippedMoment() || notification.isDismissedMoment())
+          && pendingGoogleLinkRef.current
+        ) {
+          googleActionRef.current = 'login';
+          pendingGoogleLinkRef.current = null;
+          const reason = notification.isNotDisplayed()
+            ? notification.getNotDisplayedReason()
+            : notification.isSkippedMoment()
+              ? notification.getSkippedReason()
+              : notification.getDismissedReason();
+          reject(new Error(`Google SSO tidak dilanjutkan (${reason}).`));
+        }
+      });
+    });
+  };
+
+  const handleDisconnectGoogle = async () => {
+    if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
+
+    const response = await unlinkGoogleAccount(token);
+    const nextUser = response.user as AuthUser;
+    localStorage.setItem('reimbursement_user', JSON.stringify(nextUser));
+    setUser(nextUser);
   };
 
   const handleUpdateProfile = async (name: string, avatar?: File, removeAvatar = false) => {
@@ -419,13 +506,7 @@ export default function Home() {
   if (!isLoggedIn || !user) {
     return (
       <div className="min-h-screen bg-[#f4f4f4] text-slate-900" style={{ fontFamily: "'Inter', 'Outfit', sans-serif" }}>
-        {GOOGLE_CLIENT_ID && (
-          <Script
-            src="https://accounts.google.com/gsi/client"
-            strategy="afterInteractive"
-            onReady={() => setGoogleScriptReady(true)}
-          />
-        )}
+        {googleIdentityScript}
         {/* Navbar */}
         <nav className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white/90 px-4 py-3.5 backdrop-blur-md sm:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -627,11 +708,14 @@ export default function Home() {
   if (user.role === 'MANAGER') {
     return (
       <>
+        {googleIdentityScript}
         <ManagerDashboard
           user={user}
           claims={claims}
           onUpdateProfile={handleUpdateProfile}
           onChangePassword={handleChangePassword}
+          onConnectGoogle={handleConnectGoogle}
+          onDisconnectGoogle={handleDisconnectGoogle}
           handleDecision={handleDecision}
           handleLogout={handleLogout}
         />
@@ -741,11 +825,14 @@ export default function Home() {
   if (user.role === 'FINANCE') {
     return (
       <>
+        {googleIdentityScript}
         <FinanceDashboard
           user={user}
           claims={claims}
           onUpdateProfile={handleUpdateProfile}
           onChangePassword={handleChangePassword}
+          onConnectGoogle={handleConnectGoogle}
+          onDisconnectGoogle={handleDisconnectGoogle}
           handleDecision={handleDecision}
           handlePayment={handlePayment}
           handleLogout={handleLogout}
@@ -855,6 +942,7 @@ export default function Home() {
 
   return (
     <>
+      {googleIdentityScript}
       <EmployeeDashboard
         user={user}
         token={token}
@@ -882,6 +970,8 @@ export default function Home() {
         setError={setError}
         onUpdateProfile={handleUpdateProfile}
         onChangePassword={handleChangePassword}
+        onConnectGoogle={handleConnectGoogle}
+        onDisconnectGoogle={handleDisconnectGoogle}
         handleCreateClaim={handleCreateClaim}
         handleDeleteClaim={handleDeleteClaim}
         handleUploadReceipt={handleUploadReceipt}

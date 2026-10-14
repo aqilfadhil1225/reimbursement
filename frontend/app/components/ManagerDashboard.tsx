@@ -30,12 +30,14 @@ type ManagerDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
   onUpdateProfile: (name: string, avatar?: File, removeAvatar?: boolean) => Promise<void>;
-  onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  onChangePassword: (currentPassword: string | undefined, newPassword: string) => Promise<void>;
+  onConnectGoogle: () => Promise<void>;
+  onDisconnectGoogle: () => Promise<void>;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handleLogout: () => void;
 };
 
-export default function ManagerDashboard({ user, claims, onUpdateProfile, onChangePassword, handleDecision, handleLogout }: ManagerDashboardProps) {
+export default function ManagerDashboard({ user, claims, onUpdateProfile, onChangePassword, onConnectGoogle, onDisconnectGoogle, handleDecision, handleLogout }: ManagerDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
@@ -176,6 +178,8 @@ export default function ManagerDashboard({ user, claims, onUpdateProfile, onChan
                 claims={claims}
                 onUpdateProfile={onUpdateProfile}
                 onChangePassword={onChangePassword}
+                onConnectGoogle={onConnectGoogle}
+                onDisconnectGoogle={onDisconnectGoogle}
                 onLogout={handleLogout}
               />
             ) : activeNav === 'Ringkasan' ? (

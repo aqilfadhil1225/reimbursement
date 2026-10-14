@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import userService from '../services/userService';
+import authService from '../services/authService';
 import apiView from '../views/apiView';
 
 const createToken = (user: any) => jwt.sign(
@@ -42,6 +43,50 @@ const getProfile: RequestHandler = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
     }
     return res.json({ success: true, data: apiView.formatUser(user) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const linkGoogleAccount: RequestHandler = async (req, res, next) => {
+  try {
+    const authReq = req as typeof req & { user?: any; body: Record<string, any> };
+    const googleProfile = await authService.verifyGoogleCredential(authReq.body?.credential);
+    const user = await userService.getUserById(authReq.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+    }
+
+    if (googleProfile.email?.trim().toLowerCase() !== user.email.toLowerCase()) {
+      return res.status(403).json({ success: false, message: 'Email Google harus sama dengan email akun yang sedang digunakan.' });
+    }
+    if (user.googleId && user.googleId !== googleProfile.sub) {
+      return res.status(409).json({ success: false, message: 'Akun Google lain sudah terhubung.' });
+    }
+
+    const updatedUser = await userService.linkGoogleAccount(user.id, googleProfile.sub);
+    return res.json({ success: true, data: apiView.formatUser(updatedUser) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const unlinkGoogleAccount: RequestHandler = async (req, res, next) => {
+  try {
+    const authReq = req as typeof req & { user?: any };
+    const user = await userService.getUserById(authReq.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+    }
+    if (!user.googleId) {
+      return res.status(400).json({ success: false, message: 'Belum ada akun Google yang terhubung.' });
+    }
+    if (!user.hasLocalPassword) {
+      return res.status(400).json({ success: false, message: 'Atur password lokal terlebih dahulu sebelum memutus akun Google.' });
+    }
+
+    const updatedUser = await userService.unlinkGoogleAccount(user.id);
+    return res.json({ success: true, data: apiView.formatUser(updatedUser) });
   } catch (error) {
     return next(error);
   }
@@ -104,22 +149,26 @@ const updateProfile: RequestHandler = async (req, res, next) => {
 
     if (authReq.body.password !== undefined) {
       const currentPassword = authReq.body.currentPassword;
-      if (typeof currentPassword !== 'string' || !currentPassword.trim()) {
-        throw new Error('password lama wajib diisi.');
-      }
-
       if (typeof authReq.body.password !== 'string' || authReq.body.password.length < 6) {
         throw new Error('password minimal 6 karakter.');
       }
 
       const passwordUser = await userService.getUserById(authReq.user.id);
-      const passwordMatches = passwordUser && await bcrypt.compare(currentPassword, passwordUser.password);
+      if (!passwordUser) {
+        throw Object.assign(new Error('User tidak ditemukan.'), { statusCode: 404 });
+      }
+      if (passwordUser.hasLocalPassword && (typeof currentPassword !== 'string' || !currentPassword.trim())) {
+        throw new Error('password lama wajib diisi.');
+      }
+      const passwordMatches = !passwordUser.hasLocalPassword
+        || (typeof currentPassword === 'string' && await bcrypt.compare(currentPassword, passwordUser.password));
 
       if (!passwordMatches) {
         throw new Error('password lama salah.');
       }
 
       updatePayload.password = authReq.body.password;
+      updatePayload.hasLocalPassword = true;
     }
 
     const user = await userService.updateUser(authReq.user.id, updatePayload);
@@ -148,4 +197,6 @@ const updateProfile: RequestHandler = async (req, res, next) => {
 export default {
   getProfile,
   updateProfile,
+  linkGoogleAccount,
+  unlinkGoogleAccount,
 };

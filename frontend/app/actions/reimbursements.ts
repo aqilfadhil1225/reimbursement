@@ -151,7 +151,7 @@ export async function uploadPaymentProof(token: string, id: number, file: File) 
   }, token);
 }
 
-export async function updateProfilePassword(token: string, data: { currentPassword: string; newPassword: string }) {
+export async function updateProfilePassword(token: string, data: { currentPassword?: string; newPassword: string }) {
   return request<{ user: unknown; token: string }>('/profile', {
     method: 'PATCH',
     body: JSON.stringify({
@@ -159,6 +159,17 @@ export async function updateProfilePassword(token: string, data: { currentPasswo
       password: data.newPassword,
     }),
   }, token);
+}
+
+export async function linkGoogleAccount(token: string, credential: string) {
+  return request<{ user: unknown }>('/profile/google', {
+    method: 'POST',
+    body: JSON.stringify({ credential }),
+  }, token);
+}
+
+export async function unlinkGoogleAccount(token: string) {
+  return request<{ user: unknown }>('/profile/google', { method: 'DELETE' }, token);
 }
 
 export async function updateProfile(token: string, name: string, avatar?: File, removeAvatar = false) {

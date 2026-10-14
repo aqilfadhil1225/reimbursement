@@ -30,13 +30,15 @@ type FinanceDashboardProps = {
   user: AuthUser;
   claims: ClaimRow[];
   onUpdateProfile: (name: string, avatar?: File, removeAvatar?: boolean) => Promise<void>;
-  onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  onChangePassword: (currentPassword: string | undefined, newPassword: string) => Promise<void>;
+  onConnectGoogle: () => Promise<void>;
+  onDisconnectGoogle: () => Promise<void>;
   handleDecision: (id: number, action: 'approve' | 'reject' | 'revise' | 'verify' | 'start', roleOverride?: 'EMPLOYEE' | 'MANAGER' | 'FINANCE', note?: string) => Promise<void>;
   handlePayment: (id: number, paymentData?: { method?: 'BANK_TRANSFER' | 'CASH' | 'OTHER'; reference?: string; note?: string }, proofFile?: File | null) => Promise<void>;
   handleLogout: () => void;
 };
 
-export default function FinanceDashboard({ user, claims, onUpdateProfile, onChangePassword, handleDecision, handlePayment, handleLogout }: FinanceDashboardProps) {
+export default function FinanceDashboard({ user, claims, onUpdateProfile, onChangePassword, onConnectGoogle, onDisconnectGoogle, handleDecision, handlePayment, handleLogout }: FinanceDashboardProps) {
   const paymentProofInputRef = useRef<HTMLInputElement | null>(null);
   const [activeNav, setActiveNav] = useState('Ringkasan');
   const [query, setQuery] = useState('');
@@ -216,6 +218,8 @@ export default function FinanceDashboard({ user, claims, onUpdateProfile, onChan
                 claims={claims}
                 onUpdateProfile={onUpdateProfile}
                 onChangePassword={onChangePassword}
+                onConnectGoogle={onConnectGoogle}
+                onDisconnectGoogle={onDisconnectGoogle}
                 onLogout={handleLogout}
               />
             ) : activeNav === 'Ringkasan' ? (

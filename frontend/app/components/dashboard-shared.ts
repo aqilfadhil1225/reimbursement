@@ -35,6 +35,8 @@ export type AuthUser = {
   email: string;
   role: Role;
   avatarUrl?: string | null;
+  googleLinked?: boolean;
+  hasLocalPassword?: boolean;
 };
 
 export const STATUS_LABEL: Record<string, string> = {

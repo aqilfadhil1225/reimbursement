@@ -72,6 +72,13 @@ const updateUser = async (id: unknown, payload: any) => {
     data.avatarUrl = payload.avatarUrl === null ? null : payload.avatarUrl.trim();
   }
 
+  if (payload.googleId !== undefined) {
+    if (payload.googleId !== null && (typeof payload.googleId !== 'string' || !payload.googleId.trim())) {
+      throw new Error('googleId tidak valid.');
+    }
+    data.googleId = payload.googleId === null ? null : payload.googleId.trim();
+  }
+
   if (payload.role !== undefined) {
     data.role = normalizeRole(payload.role);
   }
@@ -83,6 +90,10 @@ const updateUser = async (id: unknown, payload: any) => {
     data.password = await bcrypt.hash(payload.password, 12);
   }
 
+  if (payload.hasLocalPassword !== undefined) {
+    data.hasLocalPassword = Boolean(payload.hasLocalPassword);
+  }
+
   if (!Object.keys(data).length) {
     throw new Error('tidak ada data user yang diubah.');
   }
@@ -92,10 +103,24 @@ const updateUser = async (id: unknown, payload: any) => {
 
 const deleteUser = (id: unknown) => userModel.deleteById(validateId(id));
 
+const linkGoogleAccount = async (id: unknown, googleId: string) => {
+  const userId = validateId(id);
+  const linkedUser = await userModel.findByGoogleId(googleId);
+  if (linkedUser && linkedUser.id !== userId) {
+    throw Object.assign(new Error('Akun Google ini sudah terhubung ke akun lain.'), { statusCode: 409 });
+  }
+
+  return updateUser(userId, { googleId });
+};
+
+const unlinkGoogleAccount = (id: unknown) => updateUser(id, { googleId: null });
+
 export default {
   getUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
+  linkGoogleAccount,
+  unlinkGoogleAccount,
 };
