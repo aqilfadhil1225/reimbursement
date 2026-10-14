@@ -14,7 +14,7 @@ import {
   X,
   UserRound,
 } from 'lucide-react';
-import { money, roleLabels, type AuthUser, type ClaimRow } from './dashboard-shared';
+import { money, resolveProfilePhotoUrl, roleLabels, type AuthUser, type ClaimRow } from './dashboard-shared';
 
 type ProfileSecurityContentProps = {
   user: AuthUser;
@@ -184,7 +184,7 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#E8722A]/10 text-lg font-bold text-[#E8722A] ring-1 ring-[#E8722A]/15">
               {(photoPreviewUrl || (!removePhoto && user.avatarUrl)) ? (
-                <img src={photoPreviewUrl || user.avatarUrl || undefined} alt={`Foto profil ${user.name}`} className="size-full object-cover" />
+                <img src={photoPreviewUrl || resolveProfilePhotoUrl(user.avatarUrl)} alt={`Foto profil ${user.name}`} className="size-full object-cover" />
               ) : user.name.slice(0, 2).toUpperCase()}
             </span>
             <div className="min-w-0">
@@ -221,7 +221,7 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
             <div className="flex items-center gap-3">
               <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#E8722A]/10 text-sm font-bold text-[#E8722A]">
                 {(photoPreviewUrl || (!removePhoto && user.avatarUrl)) ? (
-                  <img src={photoPreviewUrl || user.avatarUrl || undefined} alt="Pratinjau foto profil" className="size-full object-cover" />
+                  <img src={photoPreviewUrl || resolveProfilePhotoUrl(user.avatarUrl)} alt="Pratinjau foto profil" className="size-full object-cover" />
                 ) : name.slice(0, 2).toUpperCase()}
               </span>
               <input

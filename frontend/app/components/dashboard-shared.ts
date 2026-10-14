@@ -39,6 +39,18 @@ export type AuthUser = {
   hasLocalPassword?: boolean;
 };
 
+export function resolveProfilePhotoUrl(avatarUrl: string | null | undefined) {
+  if (!avatarUrl) return undefined;
+
+  const localPhotoMatch = avatarUrl.match(
+    /^https?:\/\/[^/]+(\/uploads\/profile-\d+-[a-f0-9]+\.(?:jpg|png|webp)(?:\?[^#]*)?(?:#.*)?)$/i,
+  );
+  if (!localPhotoMatch) return avatarUrl;
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+  return `${new URL(apiBase).origin}${localPhotoMatch[1]}`;
+}
+
 export const STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Draft',
   SUBMITTED: 'Submitted',

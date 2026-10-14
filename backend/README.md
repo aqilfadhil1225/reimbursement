@@ -58,6 +58,32 @@ saat reimbursement berstatus `READY_FOR_PAYMENT` atau `PAID`. File harus berupa
 JPG, PNG, atau PDF sampai 5 MB dan signature isinya divalidasi. URL bukti
 pembayaran lama tetap berfungsi; saat bukti MinIO diganti, objek terdahulu
 dihapus setelah perubahan database berhasil.
+
+### Memigrasikan file upload lokal ke MinIO
+
+Skrip migrasi memeriksa referensi file lama di profil pengguna, bukti
+reimbursement, expense, dan pembayaran. Secara default skrip hanya menjalankan
+dry-run:
+
+```bash
+npm run migrate:local-uploads
+```
+
+Dry-run melaporkan jumlah file yang bisa dipindahkan serta referensi yang
+menunjuk ke file hilang atau memiliki signature yang tidak didukung. Setelah
+memeriksa backup database dan memastikan MinIO dapat dijangkau, jalankan
+migrasi sebenarnya dengan persetujuan eksplisit:
+
+```bash
+npm run migrate:local-uploads -- --apply
+```
+
+Skrip mengunggah setiap file sebelum memperbarui referensi database, dan
+menggunakan object key berbasis hash konten agar percobaan ulang menghasilkan
+key yang sama. File sumber di `uploads/` tidak dihapus. Jika pembaruan database
+gagal setelah upload, objek MinIO mungkin perlu dibersihkan manual. Jangan hapus
+file lokal sampai laporan migrasi ditinjau dan seluruh referensi file telah
+diverifikasi.
 4. Install dependency:
 
 ```bash

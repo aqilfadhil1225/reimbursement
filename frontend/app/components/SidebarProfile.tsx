@@ -1,4 +1,4 @@
-import { roleLabels, type AuthUser } from './dashboard-shared';
+import { resolveProfilePhotoUrl, roleLabels, type AuthUser } from './dashboard-shared';
 
 type SidebarProfileProps = {
   user: AuthUser;
@@ -11,7 +11,7 @@ export default function SidebarProfile({ user, onLogout }: SidebarProfileProps) 
       <div className="flex min-w-0 items-center gap-3 px-1">
         <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E8722A]/15 text-xs font-bold text-[#E8722A]">
           {user.avatarUrl ? (
-            <img src={user.avatarUrl} alt={`Foto profil ${user.name}`} className="size-full object-cover" />
+            <img src={resolveProfilePhotoUrl(user.avatarUrl)} alt={`Foto profil ${user.name}`} className="size-full object-cover" />
           ) : user.name.slice(0, 2).toUpperCase()}
         </span>
         <span className="min-w-0 flex-1">
