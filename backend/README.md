@@ -24,12 +24,13 @@ MINIO_USE_SSL=false
 
 File `.env` jangan di-commit karena berisi konfigurasi rahasia.
 
-Variabel `MINIO_*` menyiapkan konfigurasi object storage untuk tahap integrasi
-berikutnya. Endpoint diisi sebagai hostname atau IP tanpa `http://` atau path;
-port dan penggunaan SSL diatur terpisah. Konfigurasi MinIO divalidasi saat
-`getMinioConfig()` dipanggil oleh layanan storage, sehingga server yang belum
-menggunakan MinIO tetap dapat dijalankan tanpa variabel tersebut. Jangan gunakan
-contoh access key atau secret key di production.
+Variabel `MINIO_*` menyiapkan konfigurasi object storage. Endpoint diisi sebagai
+hostname atau IP tanpa `http://` atau path; port dan penggunaan SSL diatur
+terpisah. Client MinIO dikonfigurasi melalui `getMinioClient()`, sedangkan
+`ensureMinioBucket()` memeriksa bucket dan membuatnya jika belum ada. Keduanya
+belum dijalankan otomatis saat server mulai; integrasi upload akan memanggilnya
+pada tahap berikutnya. Jangan gunakan contoh access key atau secret key di
+production.
 4. Install dependency:
 
 ```bash
