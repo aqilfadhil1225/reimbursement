@@ -282,7 +282,7 @@ export default function ProfileSecurityContent({ user, claims, onUpdateProfile, 
             {photoError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{photoError}</p>}
             {profileError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{profileError}</p>}
             {profileStatus && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{profileStatus}</p>}
-            <button type="submit" disabled={isSavingProfile || (name.trim() === user.name && !selectedPhoto)} className="w-full rounded-xl bg-[#E8722A] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#d4641e] disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="submit" disabled={isSavingProfile || (name.trim() === user.name && !selectedPhoto && !removePhoto)} className="w-full rounded-xl bg-[#E8722A] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#d4641e] disabled:cursor-not-allowed disabled:opacity-50">
               {isSavingProfile ? 'Menyimpan...' : 'Simpan profil'}
             </button>
           </form>
