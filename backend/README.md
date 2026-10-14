@@ -14,9 +14,22 @@ JWT_SECRET="ganti_dengan_secret_random_yang_aman"
 GOOGLE_CLIENT_ID="client-id-dari-google-cloud"
 PORT=3001
 CORS_ORIGIN="http://localhost:3000"
+MINIO_ENDPOINT="localhost"
+MINIO_PORT=9000
+MINIO_ACCESS_KEY="access-key-minio"
+MINIO_SECRET_KEY="secret-key-minio"
+MINIO_BUCKET="reimbursement"
+MINIO_USE_SSL=false
 ```
 
 File `.env` jangan di-commit karena berisi konfigurasi rahasia.
+
+Variabel `MINIO_*` menyiapkan konfigurasi object storage untuk tahap integrasi
+berikutnya. Endpoint diisi sebagai hostname atau IP tanpa `http://` atau path;
+port dan penggunaan SSL diatur terpisah. Konfigurasi MinIO divalidasi saat
+`getMinioConfig()` dipanggil oleh layanan storage, sehingga server yang belum
+menggunakan MinIO tetap dapat dijalankan tanpa variabel tersebut. Jangan gunakan
+contoh access key atau secret key di production.
 4. Install dependency:
 
 ```bash
