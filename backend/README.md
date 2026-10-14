@@ -45,6 +45,13 @@ Foto profil lama yang masih berupa URL lokal tetap disajikan seperti sebelumnya
 sampai foto tersebut diganti atau dihapus. Upload foto menggunakan memori
 sementara dan batas ukuran 5 MB; file lokal lama hanya dibersihkan setelah
 pembaruan database berhasil.
+
+Bukti reimbursement dan bukti expense baru juga disimpan di MinIO, masing-masing
+dengan prefix `reimbursement-receipts/` dan `expense-receipts/`. API mengirimkan
+presigned URL dengan masa berlaku 24 jam; referensi file lama yang masih berupa
+URL lokal tetap berfungsi. Upload bukti menerima JPG, PNG, atau PDF sampai 5 MB
+dan memeriksa signature file sebelum menyimpannya. Upload bukti pembayaran belum
+dipindahkan pada tahap ini.
 4. Install dependency:
 
 ```bash

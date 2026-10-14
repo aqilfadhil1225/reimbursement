@@ -1,4 +1,5 @@
 import prisma from '../config/prisma';
+import objectStorageService from '../services/objectStorageService';
 
 const STATUS = {
   DRAFT: 'DRAFT',
@@ -15,6 +16,9 @@ const VALID_STATUSES = Object.values(STATUS);
 
 const validateReceiptUrl = (receiptUrl: unknown) => {
   if (!receiptUrl) return null;
+  if (typeof receiptUrl === 'string' && objectStorageService.isReceiptObjectKey(receiptUrl)) {
+    return receiptUrl;
+  }
   try {
     const url = new URL(String(receiptUrl));
     if (!['http:', 'https:'].includes(url.protocol)) throw new Error();

@@ -19,14 +19,14 @@ const formatUser = async (user: any) => {
   };
 };
 
-const formatExpense = (expense: any) => ({
+const formatExpense = async (expense: any) => ({
   id: expense.id,
   reimbursementId: expense.reimbursementId,
   category: expense.category,
   amount: expense.amount,
   expenseDate: expense.expenseDate,
   description: expense.description,
-  receiptUrl: expense.receiptUrl,
+  receiptUrl: await objectStorageService.formatReceiptUrl(expense.receiptUrl),
   createdAt: expense.createdAt,
 });
 

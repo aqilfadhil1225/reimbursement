@@ -1,10 +1,12 @@
 import reimbursementModel from '../models/reimbursementModel';
 import auditLogModel from '../models/auditLogModel';
+import objectStorageService from './objectStorageService';
 
 const STATUS = reimbursementModel.STATUS;
 
 const validateReceiptUrl = (receiptUrl: unknown) => {
   if (!receiptUrl) return;
+  if (typeof receiptUrl === 'string' && objectStorageService.isReceiptObjectKey(receiptUrl)) return;
   try {
     const url = new URL(String(receiptUrl));
     if (!['http:', 'https:'].includes(url.protocol)) throw new Error();

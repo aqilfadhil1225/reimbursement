@@ -1,7 +1,7 @@
 import express from 'express';
 import reimbursementController from '../controllers/reimbursementController';
 import authorizeRoles from '../middleware/authorizeRoles';
-import uploadReceipt from '../middleware/uploadReceipt';
+import uploadEvidence from '../middleware/uploadEvidence';
 
 const router = express.Router();
 
@@ -13,6 +13,6 @@ router.delete('/:id', authorizeRoles('EMPLOYEE'), reimbursementController.delete
 router.patch('/:id/submit', authorizeRoles('EMPLOYEE'), reimbursementController.submitReimbursement);
 router.patch('/:id/manager', authorizeRoles('MANAGER'), reimbursementController.managerDecision);
 router.patch('/:id/finance', authorizeRoles('FINANCE'), reimbursementController.financeDecision);
-router.post('/:id/receipt', authorizeRoles('EMPLOYEE'), uploadReceipt.single('receipt'), reimbursementController.uploadReceipt);
+router.post('/:id/receipt', authorizeRoles('EMPLOYEE'), uploadEvidence.single('receipt'), reimbursementController.uploadReceipt);
 
 export default router;

@@ -1,6 +1,7 @@
 import expenseModel from '../models/expenseModel';
 import reimbursementModel from '../models/reimbursementModel';
 import auditLogModel from '../models/auditLogModel';
+import objectStorageService from './objectStorageService';
 
 const validateId = (id: unknown, label: string) => {
   const parsedId = Number(id);
@@ -14,6 +15,9 @@ const validateId = (id: unknown, label: string) => {
 
 const validateReceiptUrl = (receiptUrl: unknown) => {
   if (!receiptUrl) return null;
+  if (typeof receiptUrl === 'string' && objectStorageService.isReceiptObjectKey(receiptUrl)) {
+    return receiptUrl;
+  }
   try {
     const url = new URL(String(receiptUrl));
     if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
@@ -151,7 +155,7 @@ const updateReceipt = async (id: unknown, receiptUrl: unknown, user: any) => {
     action: 'EXPENSE_RECEIPT_UPLOADED',
     details: `Bukti expense ${expense.id} diunggah.`,
   });
-  return updated;
+  return { expense: updated, previousReceiptUrl: expense.receiptUrl };
 };
 
 export default {

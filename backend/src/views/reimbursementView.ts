@@ -1,4 +1,5 @@
 import apiView from './apiView';
+import objectStorageService from '../services/objectStorageService';
 
 const formatHistory = async (history: any) => ({
   id: history.id,
@@ -11,11 +12,13 @@ const formatHistory = async (history: any) => ({
 });
 
 const formatReimbursement = async (reimbursement: any) => {
-  const [employee, manager, finance, history] = await Promise.all([
+  const [employee, manager, finance, history, receiptUrl, expenses] = await Promise.all([
     reimbursement.employee ? apiView.formatUser(reimbursement.employee) : null,
     reimbursement.manager ? apiView.formatUser(reimbursement.manager) : null,
     reimbursement.finance ? apiView.formatUser(reimbursement.finance) : null,
     Promise.all((reimbursement.history || []).map(formatHistory)),
+    objectStorageService.formatReceiptUrl(reimbursement.receiptUrl),
+    Promise.all((reimbursement.expenses || []).map(apiView.formatExpense)),
   ]);
 
   return {
@@ -25,7 +28,7 @@ const formatReimbursement = async (reimbursement: any) => {
     amount: reimbursement.amount,
     category: reimbursement.category,
     description: reimbursement.description,
-    receiptUrl: reimbursement.receiptUrl,
+    receiptUrl,
     status: reimbursement.status,
     employeeId: reimbursement.employeeId,
     managerId: reimbursement.managerId,
@@ -35,7 +38,7 @@ const formatReimbursement = async (reimbursement: any) => {
     employee,
     manager,
     finance,
-    expenses: (reimbursement.expenses || []).map(apiView.formatExpense),
+    expenses,
     history,
     payment: reimbursement.payment ? apiView.formatPayment(reimbursement.payment) : null,
     notifications: (reimbursement.notifications || []).map(apiView.formatNotification),

@@ -1,6 +1,8 @@
 import { RequestHandler } from 'express';
+import { randomBytes } from 'crypto';
 import reimbursementService from '../services/reimbursementService';
 import reimbursementView from '../views/reimbursementView';
+import objectStorageService from '../services/objectStorageService';
 
 const listReimbursements: RequestHandler = async (req, res, next) => {
   try {
@@ -138,8 +140,10 @@ const financeDecision: RequestHandler = async (req, res, next) => {
 };
 
 const uploadReceipt: RequestHandler = async (req, res, next) => {
+  let uploadedObjectKey: string | undefined;
+  let receiptUpdateCommitted = false;
   try {
-    const authReq = req as typeof req & { user?: any; params: Record<string, any>; file?: any; protocol: string; get: (header: string) => string };
+    const authReq = req as typeof req & { user?: any; params: Record<string, any>; file?: Express.Multer.File };
     if (!authReq.file) {
       return res.status(400).json({ success: false, message: 'File bukti wajib dikirim.' });
     }
@@ -150,11 +154,41 @@ const uploadReceipt: RequestHandler = async (req, res, next) => {
     if (!['DRAFT', 'REVISION_REQUIRED'].includes(reimbursement.status)) {
       return res.status(400).json({ success: false, message: 'Bukti hanya bisa diunggah saat DRAFT atau REVISION_REQUIRED.' });
     }
-    const receiptUrl = `${authReq.protocol}://${authReq.get('host')}/uploads/${authReq.file.filename}`;
-    const updated = await reimbursementService.updateReimbursement(authReq.params.id, { receiptUrl }, authReq.user);
+    if (!objectStorageService.isValidEvidenceFile(authReq.file)) {
+      return res.status(400).json({ success: false, message: 'Isi file tidak sesuai dengan format bukti yang dipilih.' });
+    }
+
+    const extensionsByMimeType: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'application/pdf': '.pdf',
+    };
+    const reimbursementId = Number(authReq.params.id);
+    uploadedObjectKey = `reimbursement-receipts/${reimbursementId}/${randomBytes(16).toString('hex')}${extensionsByMimeType[authReq.file.mimetype]}`;
+    await objectStorageService.uploadObject(uploadedObjectKey, authReq.file.buffer, authReq.file.mimetype);
+    const updated = await reimbursementService.updateReimbursement(authReq.params.id, { receiptUrl: uploadedObjectKey }, authReq.user);
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Reimbursement tidak ditemukan.' });
+    }
+    receiptUpdateCommitted = true;
+    if (typeof reimbursement.receiptUrl === 'string' && objectStorageService.isReceiptObjectKey(reimbursement.receiptUrl)) {
+      try {
+        await objectStorageService.deleteObject(reimbursement.receiptUrl);
+      } catch (error) {
+        console.error('Failed to remove the replaced reimbursement receipt from MinIO:', error);
+      }
+    }
     return res.json({ success: true, data: await reimbursementView.formatReimbursement(updated) });
   } catch (error) {
     return next(error);
+  } finally {
+    if (uploadedObjectKey && !receiptUpdateCommitted) {
+      try {
+        await objectStorageService.deleteObject(uploadedObjectKey);
+      } catch (cleanupError) {
+        console.error('Failed to remove an uncommitted reimbursement receipt from MinIO:', cleanupError);
+      }
+    }
   }
 };
 
