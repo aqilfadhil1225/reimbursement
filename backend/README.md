@@ -32,6 +32,24 @@ MINIO_USE_SSL=false
 
 File `.env` jangan di-commit karena berisi konfigurasi rahasia.
 
+### Menjalankan MinIO secara lokal
+
+Pastikan Docker Desktop dan koneksi internet aktif. Community binary resmi
+MinIO tidak lagi diterbitkan sebagai container image; Compose membangun image
+lokal dari source resmi pada commit yang dipin di `docker/minio.Dockerfile`.
+Atur `MINIO_ENDPOINT` menjadi IP Wi-Fi/Ethernet komputer ini supaya signed URL
+bisa dibuka dari browser pada perangkat lain. Kemudian jalankan dari root repo:
+
+```bash
+docker compose --env-file backend/.env up -d --build minio
+```
+
+S3 API tersedia pada port `9000` di IP yang dikonfigurasi dan console hanya
+tersedia lokal di `http://localhost:9001`. Bucket dibuat otomatis saat upload
+pertama. Data tersimpan di volume Docker `minio-data` dan tetap ada setelah
+container dihentikan. Untuk production, tinjau kewajiban lisensi AGPLv3 serta
+status maintenance upstream MinIO Community.
+
 Variabel `MINIO_*` menyiapkan konfigurasi object storage. Endpoint diisi sebagai
 hostname atau IP tanpa `http://` atau path; port dan penggunaan SSL diatur
 terpisah. Client MinIO dikonfigurasi melalui `getMinioClient()`, sedangkan
