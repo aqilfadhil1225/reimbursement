@@ -174,7 +174,7 @@ export default function EmployeeDashboard({
       <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-slate-200 bg-white text-slate-900 lg:flex">
         {/* Logo */}
         <div className="flex h-[72px] items-center gap-2.5 px-5">
-          <img src="/logo-microdata.png" alt="Microdata Indonesia" className="h-11 w-auto object-contain" />
+          <img src="/logo-microdata.png" alt="Microdata Indonesia" className="h-15 w-auto object-contain" />
         </div>
 
         <div className="flex flex-1 flex-col px-4 py-6">
