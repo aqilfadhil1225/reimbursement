@@ -13,7 +13,8 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "migrate:local-uploads": "tsx src/scripts/migrateLocalUploads.ts"
+    "migrate:local-uploads": "tsx src/scripts/migrateLocalUploads.ts",
+    "seed:admin": "tsx src/scripts/seedAdmin.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1151.0",

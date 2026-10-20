@@ -79,8 +79,14 @@ cd backend
 npm install
 npm run prisma:generate
 npm run prisma:migrate
+npm run seed:admin
 npm run dev
 ```
+
+Seeder default membuat akun admin bawaan untuk role privileged, yaitu:
+
+- `admin@reimbursement.local` / `admin123` dengan role `MANAGER`
+- `finance@reimbursement.local` / `finance123` dengan role `FINANCE`
 
 Backend berjalan secara default di [http://localhost:3001](http://localhost:3001). Dokumentasi API tersedia di [http://localhost:3001/api-docs](http://localhost:3001/api-docs).
 
