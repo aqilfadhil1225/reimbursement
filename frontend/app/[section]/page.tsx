@@ -1,9 +1,9 @@
 import Home from '../page';
 
-const dashboardSections = ['my-claims', 'new-claim', 'reviews', 'profile'];
+const appSections = ['login', 'register', 'my-claims', 'new-claim', 'reviews', 'profile'];
 
 export function generateStaticParams() {
-  return dashboardSections.map((section) => ({ section }));
+  return appSections.map((section) => ({ section }));
 }
 
 export const dynamicParams = false;

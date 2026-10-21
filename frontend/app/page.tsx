@@ -134,7 +134,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!isReady || !isLoggedIn || window.location.pathname !== '/') return;
+    if (
+      !isReady
+      || !isLoggedIn
+      || !['/', '/login', '/register'].includes(window.location.pathname)
+    ) return;
 
     window.history.replaceState(
       window.history.state,
@@ -142,6 +146,21 @@ export default function Home() {
       `/dashboard${window.location.search}${window.location.hash}`,
     );
   }, [isReady, isLoggedIn]);
+
+  useEffect(() => {
+    const syncAuthModeFromUrl = () => {
+      if (window.location.pathname === '/register') {
+        setIsRegistering(true);
+      } else if (window.location.pathname === '/login') {
+        setIsRegistering(false);
+      }
+    };
+
+    syncAuthModeFromUrl();
+    window.addEventListener('popstate', syncAuthModeFromUrl);
+
+    return () => window.removeEventListener('popstate', syncAuthModeFromUrl);
+  }, []);
 
   useEffect(() => {
     if (!isReady || !isLoggedIn || user?.role !== 'EMPLOYEE') return;
@@ -159,6 +178,17 @@ export default function Home() {
 
   const resetAuthForm = () => {
     setForm({ name: '', email: '', password: '', description: '', category: 'Transportasi', amount: '' });
+  };
+
+  const navigateAuthMode = (registering: boolean) => {
+    setIsRegistering(registering);
+    setError('');
+    resetAuthForm();
+
+    const pathname = registering ? '/register' : '/login';
+    if (window.location.pathname !== pathname) {
+      window.history.pushState(window.history.state, '', pathname);
+    }
   };
 
   const handleAuth = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -501,7 +531,8 @@ export default function Home() {
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     setShowPasswordInputs({ current: false, next: false, confirm: false });
     setError('');
-    window.history.replaceState(window.history.state, '', '/');
+    setIsRegistering(false);
+    window.history.replaceState(window.history.state, '', '/login');
   };
 
   if (!isReady) {
@@ -532,11 +563,7 @@ export default function Home() {
             {/* Login text link - mirip referensi */}
             <button
               type="button"
-              onClick={() => {
-                setIsRegistering(false);
-                setError('');
-                resetAuthForm();
-              }}
+              onClick={() => navigateAuthMode(false)}
               className="hidden text-sm font-medium text-slate-600 transition hover:text-slate-900 sm:block"
             >
               Login
@@ -544,11 +571,7 @@ export default function Home() {
             {/* Daftar - solid orange button seperti referensi */}
             <button
               type="button"
-              onClick={() => {
-                setIsRegistering(true);
-                setError('');
-                resetAuthForm();
-              }}
+              onClick={() => navigateAuthMode(true)}
               className="rounded-lg bg-[#E8722A] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#d4641e] active:scale-[0.97] sm:px-5"
             >
               Daftar
@@ -699,11 +722,7 @@ export default function Home() {
                 <span>{isRegistering ? 'Sudah punya akun?' : 'Belum punya akun?'}</span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsRegistering((value) => !value);
-                    setError('');
-                    resetAuthForm();
-                  }}
+                  onClick={() => navigateAuthMode(!isRegistering)}
                   className="font-semibold text-[#E8722A] transition hover:underline"
                 >
                   {isRegistering ? 'Masuk di sini' : 'Daftar sekarang'}
