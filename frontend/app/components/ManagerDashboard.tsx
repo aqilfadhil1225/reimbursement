@@ -25,6 +25,7 @@ import {
 import SidebarProfile from './SidebarProfile';
 import MobileDashboardNav from './MobileDashboardNav';
 import ProfileSecurityContent from './ProfileSecurityContent';
+import useDashboardNavigation from './useDashboardNavigation';
 
 type ManagerDashboardProps = {
   user: AuthUser;
@@ -38,7 +39,7 @@ type ManagerDashboardProps = {
 };
 
 export default function ManagerDashboard({ user, claims, onUpdateProfile, onChangePassword, onConnectGoogle, onDisconnectGoogle, handleDecision, handleLogout }: ManagerDashboardProps) {
-  const [activeNav, setActiveNav] = useState('Ringkasan');
+  const [activeNav, setActiveNav] = useDashboardNavigation(user.role);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
   const [decisionDraft, setDecisionDraft] = useState<{ open: boolean; claimId: number | null; action: 'reject' | 'revise'; reason: string }>({

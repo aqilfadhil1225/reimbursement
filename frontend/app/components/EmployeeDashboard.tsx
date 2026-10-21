@@ -30,6 +30,7 @@ import SidebarProfile from './SidebarProfile';
 import MobileDashboardNav from './MobileDashboardNav';
 import EmployeeNewClaimContent from './EmployeeNewClaimContent';
 import ProfileSecurityContent from './ProfileSecurityContent';
+import useDashboardNavigation from './useDashboardNavigation';
 
 type EmployeeDashboardProps = {
   user: AuthUser;
@@ -90,7 +91,7 @@ export default function EmployeeDashboard({
   loadClaims,
   closeClaimModal,
 }: EmployeeDashboardProps) {
-  const [activeNav, setActiveNav] = useState('Ringkasan');
+  const [activeNav, setActiveNav] = useDashboardNavigation(user.role);
   const [decisionPreview, setDecisionPreview] = useState<{ open: boolean; kind: 'reject' | 'revise'; message: string }>({
     open: false,
     kind: 'reject',

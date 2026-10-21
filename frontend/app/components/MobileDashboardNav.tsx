@@ -1,9 +1,10 @@
 import { FilePlus2, FileText, LayoutDashboard, LogOut, ShieldCheck } from 'lucide-react';
+import type { DashboardPage } from './useDashboardNavigation';
 
 type MobileDashboardNavProps = {
-  activeNav: string;
-  listLabel: string;
-  onNavigate: (label: string) => void;
+  activeNav: DashboardPage;
+  listLabel: DashboardPage;
+  onNavigate: (label: DashboardPage) => void;
   onCreate?: () => void;
   onLogout: () => void;
 };

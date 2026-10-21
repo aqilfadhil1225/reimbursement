@@ -134,6 +134,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (!isReady || !isLoggedIn || window.location.pathname !== '/') return;
+
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `/dashboard${window.location.search}${window.location.hash}`,
+    );
+  }, [isReady, isLoggedIn]);
+
+  useEffect(() => {
     if (!isReady || !isLoggedIn || user?.role !== 'EMPLOYEE') return;
 
     const url = new URL(window.location.href);
@@ -491,6 +501,7 @@ export default function Home() {
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     setShowPasswordInputs({ current: false, next: false, confirm: false });
     setError('');
+    window.history.replaceState(window.history.state, '', '/');
   };
 
   if (!isReady) {

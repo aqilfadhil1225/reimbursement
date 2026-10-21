@@ -25,6 +25,7 @@ import {
 import SidebarProfile from './SidebarProfile';
 import MobileDashboardNav from './MobileDashboardNav';
 import ProfileSecurityContent from './ProfileSecurityContent';
+import useDashboardNavigation from './useDashboardNavigation';
 
 type FinanceDashboardProps = {
   user: AuthUser;
@@ -40,7 +41,7 @@ type FinanceDashboardProps = {
 
 export default function FinanceDashboard({ user, claims, onUpdateProfile, onChangePassword, onConnectGoogle, onDisconnectGoogle, handleDecision, handlePayment, handleLogout }: FinanceDashboardProps) {
   const paymentProofInputRef = useRef<HTMLInputElement | null>(null);
-  const [activeNav, setActiveNav] = useState('Ringkasan');
+  const [activeNav, setActiveNav] = useDashboardNavigation(user.role);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
   const [decisionDraft, setDecisionDraft] = useState<{ open: boolean; claimId: number | null; action: 'reject' | 'revise'; reason: string }>({
