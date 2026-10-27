@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+const API_BASE = '/api';
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers ?? {});
@@ -17,7 +17,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     });
   } catch (error) {
     console.error('API request failed:', error);
-    throw new Error('Backend tidak bisa dijangkau. Pastikan server backend sudah berjalan di ' + API_BASE + '.');
+    throw new Error('API tidak bisa dijangkau melalui frontend. Pastikan server frontend dan backend sudah berjalan.');
   }
 
   const payload = await response.json().catch(() => ({}));

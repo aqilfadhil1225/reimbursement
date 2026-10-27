@@ -1,5 +1,5 @@
-import assert from 'node:assert/strict';
-import { randomBytes } from 'node:crypto';
+import assert from 'assert/strict';
+import { randomBytes } from 'crypto';
 import { createServer } from 'node:http';
 import test from 'node:test';
 import express from 'express';

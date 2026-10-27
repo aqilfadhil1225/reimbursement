@@ -26,7 +26,7 @@ npm ci
 
 ## Konfigurasi backend
 
-Frontend menggunakan backend di `http://localhost:3001` secara default. Jalankan backend dan siapkan database PostgreSQL terlebih dahulu. Panduan `.env`, Prisma, dan migrasi database tersedia di [README backend](../backend/README.md).
+Frontend meneruskan request API melalui proxy same-origin Next.js ke backend di `http://localhost:3001` secara default. Jalankan backend dan siapkan database PostgreSQL terlebih dahulu. Panduan `.env`, Prisma, dan migrasi database tersedia di [README backend](../backend/README.md).
 
 Pastikan `backend/.env` menetapkan port yang sama:
 
@@ -35,22 +35,22 @@ PORT=3001
 CORS_ORIGIN="http://localhost:3000"
 ```
 
-Jika backend API berjalan di alamat lain, buat file `.env.local` di folder `frontend` dan atur URL API:
+Jika backend API berjalan di alamat lain, atur URL server-side di `frontend/.env.local`:
 
 ```env
+BACKEND_API_URL=http://localhost:3001/api
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=client-id-dari-google-cloud
 ```
 
-Frontend mengirim request API dengan kredensial browser. Login menggunakan cookie sesi `HttpOnly`; jangan menambahkan token autentikasi ke `localStorage` atau ke konfigurasi `NEXT_PUBLIC_*`.
+Browser mengirim request API ke origin frontend yang sama; proxy Next.js meneruskan cookie sesi `HttpOnly` ke backend. `NEXT_PUBLIC_API_URL` hanya dipakai untuk menampilkan foto profil dari URL upload lokal lama dan tidak digunakan untuk request API.
 
 Ganti port atau host sesuai alamat backend. Untuk mengaktifkan tombol Google SSO,
 buat OAuth client bertipe Web application di Google Cloud Console, tambahkan
 origin frontend (misalnya `http://localhost:3000`) ke daftar JavaScript origins,
 dan gunakan client ID yang sama pada `GOOGLE_CLIENT_ID` di `backend/.env`.
-Route proxy autentikasi di `app/api/auth/[...all]/route.ts` juga mengarah ke
-`http://localhost:3001/api/auth`; jika backend menggunakan port berbeda,
-sesuaikan URL di file tersebut.
+Proxy di `app/api/[...path]/route.ts` dan `app/api/auth/[...all]/route.ts`
+menggunakan `BACKEND_API_URL`; restart frontend setelah mengubah URL tersebut.
 
 ## Menjalankan aplikasi
 
@@ -112,4 +112,4 @@ frontend/
 1. `app/page.tsx` memulihkan sesi atau menampilkan form login dan registrasi.
 2. Setelah login, halaman memilih dashboard berdasarkan role pengguna.
 3. Dashboard menggunakan komponen di `app/components/` dan memanggil endpoint backend melalui fungsi di `app/actions/reimbursements.ts`.
-4. Request API default dikirim ke `http://localhost:3001/api`; route autentikasi Next.js diteruskan ke backend melalui `app/api/auth/[...all]/route.ts`.
+4. Request API dikirim ke proxy same-origin Next.js di `app/api/[...path]/route.ts` dan diteruskan ke backend.

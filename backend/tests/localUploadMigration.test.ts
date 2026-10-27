@@ -1,5 +1,5 @@
-import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import assert from 'assert/strict';
+import { createHash } from 'crypto';
 import test from 'node:test';
 import {
   buildObjectKey,
