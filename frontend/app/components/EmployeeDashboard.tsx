@@ -34,7 +34,6 @@ import useDashboardNavigation from './useDashboardNavigation';
 
 type EmployeeDashboardProps = {
   user: AuthUser;
-  token: string;
   claims: ClaimRow[];
   query: string;
   filter: string;
@@ -58,13 +57,11 @@ type EmployeeDashboardProps = {
   handleUploadReceipt: (id: number, file: File) => Promise<void>;
   handleEditClaim: (claim: ClaimRow) => void;
   handleLogout: () => void;
-  loadClaims: (authToken: string) => Promise<void>;
   closeClaimModal: () => void;
 };
 
 export default function EmployeeDashboard({
   user,
-  token,
   claims,
   query,
   filter,
@@ -88,7 +85,6 @@ export default function EmployeeDashboard({
   handleUploadReceipt,
   handleEditClaim,
   handleLogout,
-  loadClaims,
   closeClaimModal,
 }: EmployeeDashboardProps) {
   const [activeNav, setActiveNav] = useDashboardNavigation(user.role);

@@ -21,14 +21,19 @@ async function proxyAuthRequest(request: Request) {
   });
 
   const responseText = await response.text();
+  const responseHeaders = new Headers({
+    'content-type': response.headers.get('content-type') ?? 'application/json',
+    'cache-control': 'no-store',
+  });
+  const setCookie = response.headers.get('set-cookie');
+  if (setCookie) {
+    responseHeaders.set('set-cookie', setCookie);
+  }
 
   return new Response(responseText, {
     status: response.status,
     statusText: response.statusText,
-    headers: {
-      'content-type': response.headers.get('content-type') ?? 'application/json',
-      'cache-control': 'no-store',
-    },
+    headers: responseHeaders,
   });
 }
 

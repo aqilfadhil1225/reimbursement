@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {
-    "test": "tsx --test tests/localUploadMigration.test.ts tests/objectStorageService.test.ts",
+    "test": "tsx --test tests/authSecurity.test.ts tests/localUploadMigration.test.ts tests/objectStorageService.test.ts",
     "dev": "tsx watch index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
@@ -24,6 +24,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
     "google-auth-library": "^11.3.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.3.0",

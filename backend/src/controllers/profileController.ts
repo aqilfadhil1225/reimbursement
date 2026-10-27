@@ -3,18 +3,10 @@ import fs from 'fs/promises';
 import path from 'path';
 import { randomBytes } from 'crypto';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import config from '../config';
 import userService from '../services/userService';
 import authService from '../services/authService';
 import objectStorageService from '../services/objectStorageService';
 import apiView from '../views/apiView';
-
-const createToken = (user: any) => jwt.sign(
-  { id: user.id, name: user.name, email: user.email, role: user.role },
-  config.jwtSecret,
-  { expiresIn: '1d' },
-);
 
 const removeStoredProfilePhoto = async (avatarUrl: unknown, userId: number) => {
   if (typeof avatarUrl !== 'string') return;
@@ -200,7 +192,6 @@ const updateProfile: RequestHandler = async (req, res, next) => {
       success: true,
       data: {
         user: await apiView.formatUser(user),
-        token: createToken(user),
       },
     });
   } catch (error) {

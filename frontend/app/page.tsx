@@ -7,10 +7,12 @@ import {
   createClaim,
   deleteClaim,
   financeReview,
+  getSession,
   listClaims,
   linkGoogleAccount,
   loginUser,
   loginWithGoogle,
+  logoutUser,
   managerReview,
   processPayment,
   registerUser,
@@ -74,7 +76,6 @@ export default function Home() {
   const [isReady, setIsReady] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [googleScriptReady, setGoogleScriptReady] = useState(false);
-  const [token, setToken] = useState('');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
@@ -92,9 +93,9 @@ export default function Home() {
 
   const isEmployee = user?.role === 'EMPLOYEE';
 
-  const loadClaims = async (authToken: string) => {
+  const loadClaims = async () => {
     try {
-      const data = await listClaims(authToken);
+      const data = await listClaims();
       setClaims(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Tidak dapat memuat data reimbursement.');
@@ -104,26 +105,14 @@ export default function Home() {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const savedToken = localStorage.getItem('reimbursement_token');
-        const savedUser = localStorage.getItem('reimbursement_user');
-
-        if (!savedToken || !savedUser) {
-          setIsLoggedIn(false);
-          setUser(null);
-          setToken('');
-          return;
-        }
-
-        const parsedUser = JSON.parse(savedUser) as AuthUser;
-        setUser(parsedUser);
-        setToken(savedToken);
-        setIsLoggedIn(true);
-        await loadClaims(savedToken);
-      } catch (error) {
         localStorage.removeItem('reimbursement_token');
         localStorage.removeItem('reimbursement_user');
+        const session = await getSession();
+        setUser(session.user as AuthUser);
+        setIsLoggedIn(true);
+        await loadClaims();
+      } catch {
         setUser(null);
-        setToken('');
         setIsLoggedIn(false);
       } finally {
         setIsReady(true);
@@ -201,13 +190,9 @@ export default function Home() {
         : await loginUser({ email: form.email, password: form.password });
 
       const nextUser = payload.user as AuthUser;
-      const nextToken = payload.token as string;
-      localStorage.setItem('reimbursement_token', nextToken);
-      localStorage.setItem('reimbursement_user', JSON.stringify(nextUser));
-      setToken(nextToken);
       setUser(nextUser);
       setIsLoggedIn(true);
-      await loadClaims(nextToken);
+      await loadClaims();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Auth gagal. Coba lagi.');
     }
@@ -219,23 +204,18 @@ export default function Home() {
     try {
       const payload = await loginWithGoogle(credential);
       const nextUser = payload.user as AuthUser;
-      const nextToken = payload.token;
-      localStorage.setItem('reimbursement_token', nextToken);
-      localStorage.setItem('reimbursement_user', JSON.stringify(nextUser));
-      setToken(nextToken);
       setUser(nextUser);
       setIsLoggedIn(true);
-      await loadClaims(nextToken);
+      await loadClaims();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login dengan Google gagal. Coba lagi.');
     }
   };
 
   googleLinkHandlerRef.current = async (credential) => {
-    if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
-    const response = await linkGoogleAccount(token, credential);
+    if (!isLoggedIn) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
+    const response = await linkGoogleAccount(credential);
     const nextUser = response.user as AuthUser;
-    localStorage.setItem('reimbursement_user', JSON.stringify(nextUser));
     setUser(nextUser);
   };
 
@@ -346,19 +326,19 @@ export default function Home() {
       let nextClaimId = editingClaimId;
 
       if (editingClaimId !== null) {
-        await updateClaim(token, editingClaimId, payload);
+        await updateClaim(editingClaimId, payload);
       } else {
-        const created = await createClaim(token, payload);
+        const created = await createClaim(payload);
         nextClaimId = created?.id ?? null;
       }
 
       if (receiptFile && nextClaimId !== null && nextClaimId !== undefined) {
-        await uploadReceipt(token, nextClaimId, receiptFile);
-        await submitClaim(token, nextClaimId);
+        await uploadReceipt(nextClaimId, receiptFile);
+        await submitClaim(nextClaimId);
       }
 
       closeClaimModal();
-      await loadClaims(token);
+      await loadClaims();
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Pengajuan gagal diproses.');
@@ -367,7 +347,7 @@ export default function Home() {
   };
 
   const handleDeleteClaim = async (id: number) => {
-    if (!token) return;
+    if (!isLoggedIn) return;
     setError('');
 
     const targetClaim = claims.find((claim) => claim.id === id);
@@ -379,22 +359,22 @@ export default function Home() {
     setClaims((current) => current.filter((claim) => claim.id !== id));
 
     try {
-      await deleteClaim(token, id);
-      await loadClaims(token);
+      await deleteClaim(id);
+      await loadClaims();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Draft gagal dihapus.');
-      await loadClaims(token);
+      await loadClaims();
     }
   };
 
   const handleUploadReceipt = async (id: number, file: File) => {
-    if (!token) return;
+    if (!isLoggedIn) return;
     setError('');
 
     try {
-      await uploadReceipt(token, id, file);
-      await submitClaim(token, id);
-      await loadClaims(token);
+      await uploadReceipt(id, file);
+      await submitClaim(id);
+      await loadClaims();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload bukti gagal.');
     }
@@ -406,27 +386,27 @@ export default function Home() {
     roleOverride?: Role,
     note?: string,
   ) => {
-    if (!token) return;
+    if (!isLoggedIn) return;
     setError('');
 
     try {
       if (roleOverride === 'MANAGER') {
         const managerAction = action as 'approve' | 'reject' | 'revise';
         const decisionNote = note?.trim() || `Keputusan ${managerAction}`;
-        await managerReview(token, id, managerAction, decisionNote);
+        await managerReview(id, managerAction, decisionNote);
       } else if (roleOverride === 'FINANCE') {
         const financeAction = action as 'start' | 'verify' | 'reject' | 'revise';
         const decisionNote = note?.trim() || `Keputusan ${financeAction}`;
         if (financeAction === 'start') {
-          await financeReview(token, id, 'start');
+          await financeReview(id, 'start');
         } else if (financeAction === 'verify') {
-          await financeReview(token, id, 'verify');
+          await financeReview(id, 'verify');
         } else {
-          await financeReview(token, id, financeAction, decisionNote);
+          await financeReview(id, financeAction, decisionNote);
         }
       }
 
-      await loadClaims(token);
+      await loadClaims();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Aksi gagal diproses.');
     }
@@ -437,7 +417,7 @@ export default function Home() {
     paymentData?: { method?: 'BANK_TRANSFER' | 'CASH' | 'OTHER'; reference?: string; note?: string },
     proofFile?: File | null,
   ) => {
-    if (!token) return;
+    if (!isLoggedIn) return;
     setError('');
 
     try {
@@ -445,14 +425,14 @@ export default function Home() {
       const reference = paymentData?.reference?.trim() || `AUTO-${Date.now()}`;
       const note = paymentData?.note?.trim() || `Pembayaran via ${method} pada ${new Date().toLocaleString('id-ID')}`;
 
-      await processPayment(token, id, method, reference, note);
+      await processPayment(id, method, reference, note);
 
       if (proofFile) {
-        await uploadPaymentProof(token, id, proofFile);
+        await uploadPaymentProof(id, proofFile);
       }
 
       setPaymentProofFile(null);
-      await loadClaims(token);
+      await loadClaims();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Pembayaran gagal diproses.';
       setError(message);
@@ -461,12 +441,9 @@ export default function Home() {
   };
 
   const handleChangePassword = async (currentPassword: string | undefined, newPassword: string) => {
-    if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
+    if (!isLoggedIn) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
 
-    const response = await updateProfilePassword(token, { currentPassword, newPassword });
-    localStorage.setItem('reimbursement_token', response.token);
-    localStorage.setItem('reimbursement_user', JSON.stringify(response.user));
-    setToken(response.token);
+    const response = await updateProfilePassword({ currentPassword, newPassword });
     setUser(response.user as AuthUser);
   };
 
@@ -501,29 +478,31 @@ export default function Home() {
   };
 
   const handleDisconnectGoogle = async () => {
-    if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
+    if (!isLoggedIn) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
 
-    const response = await unlinkGoogleAccount(token);
+    const response = await unlinkGoogleAccount();
     const nextUser = response.user as AuthUser;
-    localStorage.setItem('reimbursement_user', JSON.stringify(nextUser));
     setUser(nextUser);
   };
 
   const handleUpdateProfile = async (name: string, avatar?: File, removeAvatar = false) => {
-    if (!token) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
+    if (!isLoggedIn) throw new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
 
-    const response = await updateProfile(token, name, avatar, removeAvatar);
-    localStorage.setItem('reimbursement_token', response.token);
-    localStorage.setItem('reimbursement_user', JSON.stringify(response.user));
-    setToken(response.token);
+    const response = await updateProfile(name, avatar, removeAvatar);
     setUser(response.user as AuthUser);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sesi gagal diakhiri.');
+      return;
+    }
+
     localStorage.removeItem('reimbursement_token');
     localStorage.removeItem('reimbursement_user');
     resetAuthForm();
-    setToken('');
     setUser(null);
     setClaims([]);
     setIsLoggedIn(false);
@@ -975,7 +954,6 @@ export default function Home() {
       {googleIdentityScript}
       <EmployeeDashboard
         user={user}
-        token={token}
         claims={claims}
         query={query}
         filter={filter}
@@ -1016,7 +994,6 @@ export default function Home() {
           setShowNew(true);
         }}
         handleLogout={handleLogout}
-        loadClaims={loadClaims}
         closeClaimModal={closeClaimModal}
       />
       {passwordModalOpen && (

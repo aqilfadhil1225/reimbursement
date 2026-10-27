@@ -68,7 +68,7 @@ const operation = ({
     tags: [tag],
     summary,
     ...(description ? { description } : {}),
-    security: isPublic ? [] : [{ BearerAuth: [] }],
+    security: isPublic ? [] : [{ SessionCookie: [] }],
     ...(parameters ? { parameters } : {}),
     ...(body ? {
       requestBody: {
@@ -98,7 +98,7 @@ const openApiDocument = {
   info: {
     title: 'Reimbursement API',
     version: '1.0.0',
-    description: 'Dokumentasi API untuk aplikasi reimbursement. Endpoint selain register dan login memerlukan Bearer token.',
+    description: 'Endpoint terlindungi menggunakan cookie sesi HttpOnly yang diterbitkan oleh autentikasi.',
   },
   servers: [{ url: 'http://localhost:3001', description: 'Backend lokal' }],
   tags: [
@@ -125,20 +125,20 @@ const openApiDocument = {
           password: { type: 'string', minLength: 6, example: 'password123' },
         }),
         successCode: 201,
-        successDescription: 'Akun berhasil dibuat.',
+        successDescription: 'Akun berhasil dibuat dan cookie sesi HttpOnly diterbitkan.',
       }),
     },
     '/api/auth/login': {
       post: operation({
         tag: 'Authentication',
         summary: 'Login',
-        description: 'Mengembalikan data user dan JWT yang berlaku selama satu hari.',
+        description: 'Mengembalikan data user dan menerbitkan cookie sesi HttpOnly yang berlaku satu hari.',
         isPublic: true,
         body: jsonBody('Kredensial login.', ['email', 'password'], {
           email: { type: 'string', format: 'email', example: 'employee@example.com' },
           password: { type: 'string', example: 'password123' },
         }),
-        successDescription: 'Login berhasil. Token dikembalikan pada data.token.',
+        successDescription: 'Login berhasil. Cookie sesi HttpOnly diterbitkan.',
       }),
     },
     '/api/auth/google': {
@@ -150,7 +150,23 @@ const openApiDocument = {
         body: jsonBody('Google Identity Services credential.', ['credential'], {
           credential: { type: 'string', description: 'Google ID token dari Google Identity Services.' },
         }),
-        successDescription: 'Login berhasil. Token aplikasi dikembalikan pada data.token.',
+        successDescription: 'Login berhasil. Cookie sesi HttpOnly diterbitkan.',
+      }),
+    },
+    '/api/auth/session': {
+      get: operation({
+        tag: 'Authentication',
+        summary: 'Get current session',
+        description: 'Mengembalikan user dari cookie sesi yang masih berlaku.',
+      }),
+    },
+    '/api/auth/logout': {
+      post: operation({
+        tag: 'Authentication',
+        summary: 'Logout',
+        description: 'Menghapus cookie sesi saat ini.',
+        isPublic: true,
+        successDescription: 'Cookie sesi telah dihapus.',
       }),
     },
     '/api/reimbursements': {
@@ -419,11 +435,11 @@ const openApiDocument = {
   },
   components: {
     securitySchemes: {
-      BearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Gunakan token dari endpoint login tanpa awalan "Bearer ".',
+      SessionCookie: {
+        type: 'apiKey',
+        in: 'cookie',
+        name: 'reimbursement_session',
+        description: 'Cookie HttpOnly diterbitkan oleh endpoint login atau register.',
       },
     },
     schemas: {

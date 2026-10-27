@@ -18,10 +18,14 @@ npm test
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/reimbursement?schema=public"
-JWT_SECRET="ganti_dengan_secret_random_yang_aman"
+JWT_SECRET="<random-secret-minimal-32-byte>"
 GOOGLE_CLIENT_ID="client-id-dari-google-cloud"
 PORT=3001
 CORS_ORIGIN="http://localhost:3000"
+SEED_MANAGER_EMAIL="manager@company.example"
+SEED_MANAGER_PASSWORD="<password-kuat-minimal-12-karakter>"
+SEED_FINANCE_EMAIL="finance@company.example"
+SEED_FINANCE_PASSWORD="<password-kuat-minimal-12-karakter>"
 MINIO_ENDPOINT="localhost"
 MINIO_PORT=9000
 MINIO_ACCESS_KEY="access-key-minio"
@@ -31,6 +35,11 @@ MINIO_USE_SSL=false
 ```
 
 File `.env` jangan di-commit karena berisi konfigurasi rahasia.
+Buat `JWT_SECRET` dari sedikitnya 32 byte data acak kriptografis; server akan menolak secret yang kosong atau terlalu pendek. Untuk production, gunakan HTTPS dan secret terpisah dari development.
+Login dan registrasi menerbitkan JWT hanya dalam cookie `HttpOnly`, bukan dalam body response atau `localStorage`. Cookie berlaku satu hari; request perubahan data harus berasal dari origin yang tercantum di `CORS_ORIGIN`. Endpoint autentikasi dibatasi maksimal 10 percobaan per 15 menit per alamat IP menggunakan penyimpanan in-memory; deployment dengan beberapa instance perlu shared rate-limit store.
+
+Seeder akun privileged memerlukan `SEED_MANAGER_EMAIL`, `SEED_MANAGER_PASSWORD`, `SEED_FINANCE_EMAIL`, dan `SEED_FINANCE_PASSWORD`. Password harus minimal 12 byte. Seeder tidak mengubah akun yang sudah ada dan tidak menampilkan password ke log.
+Jika akun database dibuat oleh seeder versi lama yang memakai kredensial bawaan, rotasi passwordnya secara manual sebelum penggunaan berikutnya.
 
 ### Menjalankan MinIO secara lokal
 
@@ -133,9 +142,9 @@ Server berjalan di `http://localhost:3001`.
 
 ## Dokumentasi API (Swagger)
 
-Jalankan backend, lalu buka Swagger UI di [`http://localhost:3001/api-docs`](http://localhost:3001/api-docs). Dokumentasi mencakup endpoint, format request dan response, upload file, serta autentikasi Bearer.
+Jalankan backend, lalu buka Swagger UI di [`http://localhost:3001/api-docs`](http://localhost:3001/api-docs). Dokumentasi mencakup endpoint, format request dan response, upload file, serta autentikasi cookie sesi HttpOnly.
 
-Untuk mencoba endpoint yang memerlukan autentikasi, login melalui `POST /api/auth/login`, salin nilai `token` dari response, klik **Authorize** di Swagger UI, lalu masukkan token tersebut.
+Untuk mencoba endpoint yang memerlukan autentikasi, login melalui `POST /api/auth/login`; cookie sesi HttpOnly akan digunakan otomatis oleh Swagger UI.
 
 ## Authentication
 
@@ -170,10 +179,10 @@ Content-Type: application/json
 }
 ```
 
-Gunakan token dari response login untuk endpoint lain:
+Cookie `reimbursement_session` diterbitkan oleh login dan harus dikirim oleh browser pada request berikutnya. Cookie ini tidak dapat dibaca oleh JavaScript.
 
 ```http
-Authorization: Bearer TOKEN_LOGIN
+
 ```
 
 Role yang tersedia hanya `EMPLOYEE`, `MANAGER`, dan `FINANCE`.
@@ -201,7 +210,7 @@ sudah ada.
 
 ## Endpoint utama
 
-Semua endpoint di bawah ini membutuhkan token login.
+Semua endpoint di bawah ini membutuhkan cookie sesi login.
 
 ### User
 

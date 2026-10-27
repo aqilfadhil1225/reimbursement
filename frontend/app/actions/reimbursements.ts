@@ -1,12 +1,9 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
-async function request<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers ?? {});
   if (!(init.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
-  }
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
   }
 
   let response: Response;
@@ -15,6 +12,7 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string):
     response = await fetch(`${API_BASE}${path}`, {
       ...init,
       headers,
+      credentials: 'include',
       cache: 'no-store',
     });
   } catch (error) {
@@ -32,31 +30,39 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string):
 }
 
 export async function loginUser(data: { email: string; password: string }) {
-  return request<{ user: unknown; token: string }>('/auth/login', {
+  return request<{ user: unknown }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
+export async function getSession() {
+  return request<{ user: unknown }>('/auth/session', { method: 'GET' });
+}
+
+export async function logoutUser() {
+  return request<{ message: string }>('/auth/logout', { method: 'POST' });
+}
+
 export async function loginWithGoogle(credential: string) {
-  return request<{ user: unknown; token: string }>('/auth/google', {
+  return request<{ user: unknown }>('/auth/google', {
     method: 'POST',
     body: JSON.stringify({ credential }),
   });
 }
 
 export async function registerUser(data: { name: string; email: string; password: string }) {
-  return request<{ user: unknown; token: string }>('/auth/register', {
+  return request<{ user: unknown }>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
-export async function listClaims(token: string) {
-  return request<any[]>('/reimbursements', { method: 'GET' }, token);
+export async function listClaims() {
+  return request<any[]>('/reimbursements', { method: 'GET' });
 }
 
-export async function createClaim(token: string, input: {
+export async function createClaim(input: {
   description: string;
   category: string;
   amount: number;
@@ -71,10 +77,10 @@ export async function createClaim(token: string, input: {
   return request<any>('/reimbursements', {
     method: 'POST',
     body: JSON.stringify(input),
-  }, token);
+  });
 }
 
-export async function updateClaim(token: string, id: number, input: {
+export async function updateClaim(id: number, input: {
   description?: string;
   category?: string;
   amount?: number;
@@ -89,43 +95,42 @@ export async function updateClaim(token: string, id: number, input: {
   return request<any>(`/reimbursements/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(input),
-  }, token);
+  });
 }
 
-export async function deleteClaim(token: string, id: number) {
-  return request<any>(`/reimbursements/${id}`, { method: 'DELETE' }, token);
+export async function deleteClaim(id: number) {
+  return request<any>(`/reimbursements/${id}`, { method: 'DELETE' });
 }
 
-export async function submitClaim(token: string, id: number) {
-  return request<any>(`/reimbursements/${id}/submit`, { method: 'PATCH' }, token);
+export async function submitClaim(id: number) {
+  return request<any>(`/reimbursements/${id}/submit`, { method: 'PATCH' });
 }
 
-export async function uploadReceipt(token: string, id: number, file: File) {
+export async function uploadReceipt(id: number, file: File) {
   const formData = new FormData();
   formData.append('receipt', file);
 
   return request<any>(`/reimbursements/${id}/receipt`, {
     method: 'POST',
     body: formData,
-  }, token);
+  });
 }
 
-export async function managerReview(token: string, id: number, action: 'approve' | 'reject' | 'revise', note?: string) {
+export async function managerReview(id: number, action: 'approve' | 'reject' | 'revise', note?: string) {
   return request<any>(`/reimbursements/${id}/manager`, {
     method: 'PATCH',
     body: JSON.stringify({ action, note: note ?? `${action} queued from frontend` }),
-  }, token);
+  });
 }
 
-export async function financeReview(token: string, id: number, action: 'start' | 'verify' | 'reject' | 'revise', note?: string) {
+export async function financeReview(id: number, action: 'start' | 'verify' | 'reject' | 'revise', note?: string) {
   return request<any>(`/reimbursements/${id}/finance`, {
     method: 'PATCH',
     body: JSON.stringify({ action, note: note ?? `${action} queued from frontend` }),
-  }, token);
+  });
 }
 
 export async function processPayment(
-  token: string,
   id: number,
   method: 'BANK_TRANSFER' | 'CASH' | 'OTHER' = 'BANK_TRANSFER',
   reference?: string,
@@ -138,55 +143,55 @@ export async function processPayment(
       reference: reference ?? `AUTO-${Date.now()}`,
       note: note ?? 'Paid from frontend',
     }),
-  }, token);
+  });
 }
 
-export async function uploadPaymentProof(token: string, id: number, file: File) {
+export async function uploadPaymentProof(id: number, file: File) {
   const formData = new FormData();
   formData.append('proof', file);
 
   return request<any>(`/reimbursements/${id}/payment/proof`, {
     method: 'POST',
     body: formData,
-  }, token);
+  });
 }
 
-export async function updateProfilePassword(token: string, data: { currentPassword?: string; newPassword: string }) {
-  return request<{ user: unknown; token: string }>('/profile', {
+export async function updateProfilePassword(data: { currentPassword?: string; newPassword: string }) {
+  return request<{ user: unknown }>('/profile', {
     method: 'PATCH',
     body: JSON.stringify({
       currentPassword: data.currentPassword,
       password: data.newPassword,
     }),
-  }, token);
+  });
 }
 
-export async function linkGoogleAccount(token: string, credential: string) {
+export async function linkGoogleAccount(credential: string) {
   return request<{ user: unknown }>('/profile/google', {
     method: 'POST',
     body: JSON.stringify({ credential }),
-  }, token);
+  });
 }
 
-export async function unlinkGoogleAccount(token: string) {
-  return request<{ user: unknown }>('/profile/google', { method: 'DELETE' }, token);
+export async function unlinkGoogleAccount() {
+  return request<{ user: unknown }>('/profile/google', { method: 'DELETE' });
 }
 
-export async function updateProfile(token: string, name: string, avatar?: File, removeAvatar = false) {
+export async function updateProfile(name: string, avatar?: File, removeAvatar = false) {
   if (avatar) {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('avatar', avatar);
     if (removeAvatar) formData.append('removeAvatar', 'true');
 
-    return request<{ user: unknown; token: string }>('/profile', {
+    return request<{ user: unknown }>('/profile', {
       method: 'PATCH',
       body: formData,
-    }, token);
+    });
   }
 
-  return request<{ user: unknown; token: string }>('/profile', {
+  return request<{ user: unknown }>('/profile', {
     method: 'PATCH',
     body: JSON.stringify({ name, ...(removeAvatar ? { removeAvatar: true } : {}) }),
-  }, token);
+  });
 }

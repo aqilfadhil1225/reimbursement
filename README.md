@@ -83,10 +83,17 @@ npm run seed:admin
 npm run dev
 ```
 
-Seeder default membuat akun admin bawaan untuk role privileged, yaitu:
+Sebelum menjalankan seeder akun privileged, tambahkan konfigurasi berikut ke `backend/.env` dengan alamat email dan password kuat pilihan Anda:
 
-- `admin@reimbursement.local` / `admin123` dengan role `MANAGER`
-- `finance@reimbursement.local` / `finance123` dengan role `FINANCE`
+```env
+SEED_MANAGER_EMAIL="manager@company.example"
+SEED_MANAGER_PASSWORD="<password-kuat-minimal-12-karakter>"
+SEED_FINANCE_EMAIL="finance@company.example"
+SEED_FINANCE_PASSWORD="<password-kuat-minimal-12-karakter>"
+```
+
+Seeder hanya membuat akun yang belum ada dan tidak mencetak password atau mengubah kredensial akun yang sudah tersedia.
+Jika database lokal pernah memakai kredensial bawaan versi lama, ubah password akun tersebut secara manual sebelum digunakan.
 
 Backend berjalan secara default di [http://localhost:3001](http://localhost:3001). Dokumentasi API tersedia di [http://localhost:3001/api-docs](http://localhost:3001/api-docs).
 
@@ -102,7 +109,7 @@ Frontend berjalan di [http://localhost:3000](http://localhost:3000) dan mengguna
 
 ## Dokumentasi API
 
-Buka `http://localhost:3001/api-docs` saat backend berjalan. Endpoint yang membutuhkan autentikasi memakai JWT Bearer token. Login melalui `POST /api/auth/login`, lalu gunakan nilai `token` melalui tombol **Authorize** di Swagger UI.
+Buka `http://localhost:3001/api-docs` saat backend berjalan. Login melalui `POST /api/auth/login`; browser akan menerima cookie sesi HttpOnly secara otomatis.
 
 ## Catatan konfigurasi
 

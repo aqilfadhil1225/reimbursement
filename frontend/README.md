@@ -42,6 +42,8 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=client-id-dari-google-cloud
 ```
 
+Frontend mengirim request API dengan kredensial browser. Login menggunakan cookie sesi `HttpOnly`; jangan menambahkan token autentikasi ke `localStorage` atau ke konfigurasi `NEXT_PUBLIC_*`.
+
 Ganti port atau host sesuai alamat backend. Untuk mengaktifkan tombol Google SSO,
 buat OAuth client bertipe Web application di Google Cloud Console, tambahkan
 origin frontend (misalnya `http://localhost:3000`) ke daftar JavaScript origins,

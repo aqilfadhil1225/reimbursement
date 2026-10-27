@@ -1,9 +1,20 @@
+import { Buffer } from 'buffer';
+
 const parseCorsOrigins = () => {
   const raw = process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3002,http://localhost:5173';
   return raw
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
+};
+
+export const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || Buffer.byteLength(secret, 'utf8') < 32) {
+    throw new Error('JWT_SECRET must be configured with at least 32 bytes of random data.');
+  }
+
+  return secret;
 };
 
 export const getMinioConfig = () => {
@@ -51,10 +62,14 @@ export const getMinioConfig = () => {
   };
 };
 
-export default {
+const config = {
   port: Number(process.env.PORT) || 3001,
   appName: 'Reimbursement API',
   corsOrigin: parseCorsOrigins(),
-  jwtSecret: process.env.JWT_SECRET || 'development-secret-change-me',
+  get jwtSecret() {
+    return getJwtSecret();
+  },
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
 };
+
+export default config;
